@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
+
+#define MA_EX_ASSERT(condition) assert(condition)
 
 #ifdef MA_EX_DEBUG_LOGGING
 #define ma_ex_debug_log(...) printf(__VA_ARGS__)
@@ -16,7 +19,22 @@ static int strcmp_null_safe(const char *a, const char *b) {
     return strcmp(a, b);
 }
 
-ma_ex_context *ma_ex_context_create(ma_uint32 sampleRate, ma_uint32 channels, ma_format format, ma_device_data_proc dataProc) {
+ma_ex_context_config ma_ex_context_config_init(ma_uint32 sampleRate, ma_uint32 channels, ma_format format, ma_device_data_proc dataProc) {   
+    ma_ex_context_config config;
+    memset(&config, 0, sizeof(ma_ex_context_config));
+    config.sampleRate = sampleRate;
+    config.channels = channels;
+    config.format = format;
+    config.dataProc = dataProc;
+    return config;
+}
+
+ma_ex_context *ma_ex_context_init(const ma_ex_context_config *config) {
+    MA_EX_ASSERT(config != NULL);
+    MA_EX_ASSERT(config->sampleRate > 0);
+    MA_EX_ASSERT(config->channels > 0);
+    MA_EX_ASSERT(config->dataProc != NULL);
+
     ma_ex_context *context = malloc(sizeof(ma_ex_context));
     memset(context, 0, sizeof(ma_ex_context));
 
@@ -26,10 +44,10 @@ ma_ex_context *ma_ex_context_create(ma_uint32 sampleRate, ma_uint32 channels, ma
     context->device = malloc(sizeof(ma_device));
     memset(context->device, 0, sizeof(ma_device));
 
-    context->channels = channels;
-    context->dataProc = dataProc;
-    context->format = format;
-    context->sampleRate = sampleRate;
+    context->channels = config->channels;
+    context->dataProc = config->dataProc;
+    context->format = config->format;
+    context->sampleRate = config->sampleRate;
 
     ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
     deviceConfig.playback.format   = context->format;
@@ -41,7 +59,6 @@ ma_ex_context *ma_ex_context_create(ma_uint32 sampleRate, ma_uint32 channels, ma
         free(context->device);
         free(context->engine);
         free(context);
-        ma_ex_debug_log("ma_ex_context_create: failed to initialize device.\n");
         return NULL;
     }
 
@@ -53,7 +70,6 @@ ma_ex_context *ma_ex_context_create(ma_uint32 sampleRate, ma_uint32 channels, ma
         free(context->device);
         free(context->engine);
         free(context);
-        ma_ex_debug_log("ma_ex_context_create: failed to initialize engine.");
         return NULL;
     }
 
@@ -63,79 +79,59 @@ ma_ex_context *ma_ex_context_create(ma_uint32 sampleRate, ma_uint32 channels, ma
         free(context->device);
         free(context->engine);
         free(context);
-        ma_ex_debug_log("ma_ex_context_create: failed to start device.\n");
         return NULL;
     }
-
-    ma_ex_debug_log("ma_ex_context_create: audio mixer created\n");
 
     return context;
 }
 
-void ma_ex_context_destroy(ma_ex_context *context) {
+void ma_ex_context_uninit(ma_ex_context *context) {
     if(context != NULL) {
         ma_engine_uninit(context->engine);
         ma_device_uninit(context->device);
         free(context->engine);
         free(context->device);
         free(context);
-        ma_ex_debug_log("ma_ex_context_destroy: audio mixer destroyed\n");
     }
 }
 
-ma_ex_audio_source *ma_ex_audio_source_create(ma_engine *engine, ma_engine_node_dsp_proc dspProc) {
-    if(engine == NULL) {
-        ma_ex_debug_log("ma_ex_audio_source_create: engine can not be null\n");
-        return NULL;
-    }
+ma_ex_audio_source_config ma_ex_audio_source_config_init(ma_ex_context *context, ma_ex_audio_source_callbacks callbacks) {
+    ma_ex_audio_source_config config;
+    memset(&config, 0, sizeof(ma_ex_audio_source_config));
+    config.context = context;
+    config.callbacks = callbacks;
+    return config;
+}
 
+ma_ex_audio_source *ma_ex_audio_source_init(const ma_ex_audio_source_config *config) {
+    MA_EX_ASSERT(config != NULL);
+    MA_EX_ASSERT(config->context != NULL);
+    
     ma_ex_audio_source *source = malloc(sizeof(ma_ex_audio_source));
-    source->engine = engine;
-    source->dspProc = dspProc;
+    source->engine = config->context->engine;
     source->filePath = NULL;
-    source->soundLoadedProc = NULL;
-    source->soundLoadedProcUserData = NULL;
-    source->soundEndedProc = NULL;
-    source->soundEndedProcUserData = NULL;
+    source->callbacks = config->callbacks;
     memset(&source->sound, 0, sizeof(ma_sound));
 
-    ma_ex_debug_log("ma_ex_audio_source_create: audio source created\n");
     return source;
 }
 
-void ma_ex_audio_source_destroy(ma_ex_audio_source *source) {
+void ma_ex_audio_source_uninit(ma_ex_audio_source *source) {
     if(source != NULL) {
         ma_sound_uninit(&source->sound);
         if(source->filePath != NULL) {
             free(source->filePath);
         }
         free(source);
-        ma_ex_debug_log("ma_ex_audio_source_destroy: audio source destroyed\n");
-    }
-}
-
-void ma_ex_audio_source_set_sound_loaded_proc(ma_ex_audio_source *source, ma_ex_sound_loaded_proc proc, void *userData) {
-    if(source != NULL) {
-        source->soundLoadedProc = proc;
-        source->soundLoadedProcUserData = userData;
-    }
-}
-
-void ma_ex_audio_source_set_sound_ended_proc(ma_ex_audio_source *source, ma_sound_end_proc proc, void *userData) {
-    if(source != NULL) {
-        source->soundEndedProc = proc;
-        source->soundEndedProcUserData = userData;
     }
 }
 
 ma_result ma_ex_audio_source_play(ma_ex_audio_source *source, const char *filePath, ma_bool8 streamFromDisk) {
     if(source == NULL) {
-        ma_ex_debug_log("ma_ex_audio_source_play: source can not be null\n");
         return MA_ERROR;
     }
 
     if(filePath == NULL) {
-        ma_ex_debug_log("ma_ex_audio_source_play: the given file path is null\n");
         return MA_ERROR;
     }
 
@@ -150,16 +146,15 @@ ma_result ma_ex_audio_source_play(ma_ex_audio_source *source, const char *filePa
         ma_result result = ma_sound_init_from_file(source->engine, filePath, flags, NULL, NULL, &source->sound);
 
         if(result != MA_SUCCESS) {
-            ma_ex_debug_log("ma_ex_audio_source_play: could not initialize file\n");
             return result;
         } else {
-            source->sound.engineNode.dspProc = source->dspProc;
+            source->sound.engineNode.dspProc = source->callbacks.dspProc;
 
-            if(source->soundEndedProc != NULL) {
-                ma_sound_set_end_callback(&source->sound, source->soundEndedProc, source->soundEndedProcUserData);
+            if(source->callbacks.soundEndedProc != NULL) {
+                ma_sound_set_end_callback(&source->sound, source->callbacks.soundEndedProc, source);
             }
-            if(source->soundLoadedProc != NULL) {
-                source->soundLoadedProc(&source->sound, source->soundLoadedProcUserData);
+            if(source->callbacks.soundLoadedProc != NULL) {
+                source->callbacks.soundLoadedProc(&source->sound, source);
             }
         }
 
@@ -170,7 +165,6 @@ ma_result ma_ex_audio_source_play(ma_ex_audio_source *source, const char *filePa
         size_t pathSize = strlen(filePath);
 
         if(pathSize == 0) {
-            ma_ex_debug_log("ma_ex_audio_source_play: the length of given file path is 0\n");
             return MA_INVALID_FILE;
         }
 
@@ -179,18 +173,10 @@ ma_result ma_ex_audio_source_play(ma_ex_audio_source *source, const char *filePa
         strcpy(source->filePath, filePath);
     }
 
-    ma_result result = ma_sound_start(&source->sound);
-
-    if(result != MA_SUCCESS) {
-        ma_ex_debug_log("ma_ex_audio_source_play: could not start the sound\n");
-    } else {
-        ma_ex_debug_log("ma_ex_audio_source_play: success\n");
-    }
-
-    return result;
+    return ma_sound_start(&source->sound);
 }
 
-ma_result ma_ex_audio_source_play_from_waveform_proc(ma_ex_audio_source *source, ma_waveform_custom_proc waveformProc) {
+ma_result ma_ex_audio_source_play_from_waveform_proc(ma_ex_audio_source *source) {
     if(source != NULL) {
         ma_data_source *dataSource = ma_sound_get_data_source(&source->sound);
 
@@ -200,7 +186,7 @@ ma_result ma_ex_audio_source_play_from_waveform_proc(ma_ex_audio_source *source,
         }
 
         ma_waveform_config config = ma_waveform_config_init(ma_format_f32, 2, source->engine->sampleRate, ma_waveform_type_custom, 1.0f, 1.0f);
-        config.customProc = waveformProc;
+        config.customProc = source->callbacks.waveformProc;
 
         ma_result result = MA_ERROR;
 
@@ -224,7 +210,6 @@ ma_result ma_ex_audio_source_play_from_waveform_proc(ma_ex_audio_source *source,
 
 void ma_ex_audio_source_stop(ma_ex_audio_source *source) {
     if(source != NULL) {
-        ma_ex_debug_log("ma_ex_audio_source_stop: stopping sound\n");
         ma_sound_stop(&source->sound);
     }
 }
@@ -323,21 +308,18 @@ ma_bool32 ma_ex_audio_source_get_is_playing(ma_ex_audio_source *source) {
     }
 }
 
-ma_ex_audio_listener *ma_ex_audio_listener_create(ma_engine *engine) {
-    if(engine == NULL) {
-        ma_ex_debug_log("ma_ex_audio_listener_create: engine can not be null\n");
+ma_ex_audio_listener *ma_ex_audio_listener_init(const ma_ex_context *context) {
+    if(context == NULL) {
         return NULL;
     }
     ma_ex_audio_listener *listener = malloc(sizeof(ma_ex_audio_listener));
     memset(listener, 0, sizeof(ma_ex_audio_listener));
-    listener->engine = engine;
-    ma_ex_debug_log("ma_ex_audio_listener_create: audio listener created\n");
+    listener->engine = context->engine;
     return listener;
 }
 
-void ma_ex_audio_listener_destroy(ma_ex_audio_listener *listener) {
+void ma_ex_audio_listener_uninit(ma_ex_audio_listener *listener) {
     if(listener != NULL) {
-        ma_ex_debug_log("ma_ex_audio_listener_destroy: audio listener destroyed\n");
         free(listener);
     }
 }

@@ -54,20 +54,11 @@
 typedef void (*ma_ex_sound_loaded_proc)(ma_sound *pSound, void *pUserData);
 
 typedef struct {
-    ma_engine *engine;
-} ma_ex_audio_listener;
-
-typedef struct {
-    ma_sound sound;
-    ma_waveform waveform;
-    char *filePath;
-    ma_ex_sound_loaded_proc soundLoadedProc;
-    void *soundLoadedProcUserData;
-    ma_sound_end_proc soundEndedProc;
-    void *soundEndedProcUserData;
-    ma_engine *engine;
-    ma_engine_node_dsp_proc dspProc;
-} ma_ex_audio_source;
+    ma_uint32 sampleRate;
+    ma_uint32 channels;
+    ma_format format;
+    ma_device_data_proc dataProc;
+} ma_ex_context_config;
 
 typedef struct {
     ma_device *device;
@@ -78,18 +69,42 @@ typedef struct {
     ma_device_data_proc dataProc;
 }  ma_ex_context;
 
+typedef struct {
+    ma_engine *engine;
+} ma_ex_audio_listener;
+
+typedef struct {
+    ma_ex_sound_loaded_proc soundLoadedProc;
+    ma_sound_end_proc soundEndedProc;
+    ma_engine_node_dsp_proc dspProc;
+    ma_waveform_custom_proc waveformProc;
+} ma_ex_audio_source_callbacks;
+
+typedef struct {
+    ma_ex_context *context;
+    ma_ex_audio_source_callbacks callbacks;
+} ma_ex_audio_source_config;
+
+typedef struct {
+    ma_sound sound;
+    ma_waveform waveform;
+    char *filePath;    
+    ma_ex_audio_source_callbacks callbacks;
+    ma_engine *engine;
+} ma_ex_audio_source;
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
-    MA_API ma_ex_context *ma_ex_context_create(ma_uint32 sampleRate, ma_uint32 channels, ma_format format, ma_device_data_proc dataProc);
-    MA_API void ma_ex_context_destroy(ma_ex_context *context);
+    MA_API ma_ex_context_config ma_ex_context_config_init(ma_uint32 sampleRate, ma_uint32 channels, ma_format format, ma_device_data_proc dataProc);
+    MA_API ma_ex_context *ma_ex_context_init(const ma_ex_context_config *config);
+    MA_API void ma_ex_context_uninit(ma_ex_context *context);
 
-    MA_API ma_ex_audio_source *ma_ex_audio_source_create(ma_engine *engine, ma_engine_node_dsp_proc dspProc);
-    MA_API void ma_ex_audio_source_destroy(ma_ex_audio_source *source);
-    MA_API void ma_ex_audio_source_set_sound_loaded_proc(ma_ex_audio_source *source, ma_ex_sound_loaded_proc proc, void *userData);
-    MA_API void ma_ex_audio_source_set_sound_ended_proc(ma_ex_audio_source *source, ma_sound_end_proc proc, void *userData);
+    MA_API ma_ex_audio_source_config ma_ex_audio_source_config_init(ma_ex_context *context, ma_ex_audio_source_callbacks callbacks);
+    MA_API ma_ex_audio_source *ma_ex_audio_source_init(const ma_ex_audio_source_config *config);
+    MA_API void ma_ex_audio_source_uninit(ma_ex_audio_source *source);
     MA_API ma_result ma_ex_audio_source_play(ma_ex_audio_source *source, const char *filePath, ma_bool8 streamFromDisk);
-    MA_API ma_result ma_ex_audio_source_play_from_waveform_proc(ma_ex_audio_source *source, ma_waveform_custom_proc waveformProc);
+    MA_API ma_result ma_ex_audio_source_play_from_waveform_proc(ma_ex_audio_source *source);
     MA_API void ma_ex_audio_source_stop(ma_ex_audio_source *source);
     MA_API void ma_ex_audio_source_set_pcm_position(ma_ex_audio_source *source, ma_uint64 frameIndex);
     MA_API void ma_ex_audio_source_set_pcm_start_position(ma_ex_audio_source *source, ma_uint64 frameIndex);
@@ -107,8 +122,8 @@ extern "C" {
     MA_API void ma_ex_audio_source_set_max_distance(ma_ex_audio_source *source, float distance);
     MA_API ma_bool32 ma_ex_audio_source_get_is_playing(ma_ex_audio_source *source);
 
-    MA_API ma_ex_audio_listener *ma_ex_audio_listener_create(ma_engine *engine);
-    MA_API void ma_ex_audio_listener_destroy(ma_ex_audio_listener *listener);
+    MA_API ma_ex_audio_listener *ma_ex_audio_listener_init(const ma_ex_context *context);
+    MA_API void ma_ex_audio_listener_uninit(ma_ex_audio_listener *listener);
     MA_API void ma_ex_audio_listener_set_spatialization(ma_ex_audio_listener *listener, ma_bool32 enabled);
     MA_API void ma_ex_audio_listener_set_position(ma_ex_audio_listener *listener, float x, float y, float z);
     MA_API void ma_ex_audio_listener_set_direction(ma_ex_audio_listener *listener, float x, float y, float z);
