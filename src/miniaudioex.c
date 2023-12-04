@@ -3,10 +3,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#ifdef MA_MIXER_DEBUG_LOGGING
-#define ma_mixer_debug_log(...) printf(__VA_ARGS__)
+#ifdef MA_EX_DEBUG_LOGGING
+#define ma_ex_debug_log(...) printf(__VA_ARGS__)
 #else
-#define ma_mixer_debug_log(...)
+#define ma_ex_debug_log(...)
 #endif
 
 static int strcmp_null_safe(const char *a, const char *b) {
@@ -41,7 +41,7 @@ ma_ex_context *ma_ex_context_create(ma_uint32 sampleRate, ma_uint32 channels, ma
         free(context->device);
         free(context->engine);
         free(context);
-        ma_mixer_debug_log("ma_audio_mixer_create: failed to initialize device.\n");
+        ma_ex_debug_log("ma_ex_context_create: failed to initialize device.\n");
         return NULL;
     }
 
@@ -53,7 +53,7 @@ ma_ex_context *ma_ex_context_create(ma_uint32 sampleRate, ma_uint32 channels, ma
         free(context->device);
         free(context->engine);
         free(context);
-        ma_mixer_debug_log("ma_audio_mixer_create: failed to initialize engine.");
+        ma_ex_debug_log("ma_ex_context_create: failed to initialize engine.");
         return NULL;
     }
 
@@ -63,11 +63,11 @@ ma_ex_context *ma_ex_context_create(ma_uint32 sampleRate, ma_uint32 channels, ma
         free(context->device);
         free(context->engine);
         free(context);
-        ma_mixer_debug_log("ma_audio_mixer_create: failed to start device.\n");
+        ma_ex_debug_log("ma_ex_context_create: failed to start device.\n");
         return NULL;
     }
 
-    ma_mixer_debug_log("ma_audio_mixer_create: audio mixer created\n");
+    ma_ex_debug_log("ma_ex_context_create: audio mixer created\n");
 
     return context;
 }
@@ -79,13 +79,13 @@ void ma_ex_context_destroy(ma_ex_context *context) {
         free(context->engine);
         free(context->device);
         free(context);
-        ma_mixer_debug_log("ma_audio_mixer_destroy: audio mixer destroyed\n");
+        ma_ex_debug_log("ma_ex_context_destroy: audio mixer destroyed\n");
     }
 }
 
 ma_ex_audio_source *ma_ex_audio_source_create(ma_engine *engine, ma_engine_node_dsp_proc dspProc) {
     if(engine == NULL) {
-        ma_mixer_debug_log("ma_ex_audio_source_create: engine can not be null\n");
+        ma_ex_debug_log("ma_ex_audio_source_create: engine can not be null\n");
         return NULL;
     }
 
@@ -99,7 +99,7 @@ ma_ex_audio_source *ma_ex_audio_source_create(ma_engine *engine, ma_engine_node_
     source->soundEndedProcUserData = NULL;
     memset(&source->sound, 0, sizeof(ma_sound));
 
-    ma_mixer_debug_log("ma_ex_audio_source_create: audio source created\n");
+    ma_ex_debug_log("ma_ex_audio_source_create: audio source created\n");
     return source;
 }
 
@@ -110,7 +110,7 @@ void ma_ex_audio_source_destroy(ma_ex_audio_source *source) {
             free(source->filePath);
         }
         free(source);
-        ma_mixer_debug_log("ma_ex_audio_source_destroy: audio source destroyed\n");
+        ma_ex_debug_log("ma_ex_audio_source_destroy: audio source destroyed\n");
     }
 }
 
@@ -130,12 +130,12 @@ void ma_ex_audio_source_set_sound_ended_proc(ma_ex_audio_source *source, ma_soun
 
 ma_result ma_ex_audio_source_play(ma_ex_audio_source *source, const char *filePath, ma_bool8 streamFromDisk) {
     if(source == NULL) {
-        ma_mixer_debug_log("ma_ex_audio_source_play: source can not be null\n");
+        ma_ex_debug_log("ma_ex_audio_source_play: source can not be null\n");
         return MA_ERROR;
     }
 
     if(filePath == NULL) {
-        ma_mixer_debug_log("ma_ex_audio_source_play: the given file path is null\n");
+        ma_ex_debug_log("ma_ex_audio_source_play: the given file path is null\n");
         return MA_ERROR;
     }
 
@@ -150,7 +150,7 @@ ma_result ma_ex_audio_source_play(ma_ex_audio_source *source, const char *filePa
         ma_result result = ma_sound_init_from_file(source->engine, filePath, flags, NULL, NULL, &source->sound);
 
         if(result != MA_SUCCESS) {
-            ma_mixer_debug_log("ma_ex_audio_source_play: could not initialize file\n");
+            ma_ex_debug_log("ma_ex_audio_source_play: could not initialize file\n");
             return result;
         } else {
             source->sound.engineNode.dspProc = source->dspProc;
@@ -170,7 +170,7 @@ ma_result ma_ex_audio_source_play(ma_ex_audio_source *source, const char *filePa
         size_t pathSize = strlen(filePath);
 
         if(pathSize == 0) {
-            ma_mixer_debug_log("ma_ex_audio_source_play: the length of given file path is 0\n");
+            ma_ex_debug_log("ma_ex_audio_source_play: the length of given file path is 0\n");
             return MA_INVALID_FILE;
         }
 
@@ -182,9 +182,9 @@ ma_result ma_ex_audio_source_play(ma_ex_audio_source *source, const char *filePa
     ma_result result = ma_sound_start(&source->sound);
 
     if(result != MA_SUCCESS) {
-        ma_mixer_debug_log("ma_ex_audio_source_play: could not start the sound\n");
+        ma_ex_debug_log("ma_ex_audio_source_play: could not start the sound\n");
     } else {
-        ma_mixer_debug_log("ma_ex_audio_source_play: success\n");
+        ma_ex_debug_log("ma_ex_audio_source_play: success\n");
     }
 
     return result;
@@ -224,7 +224,7 @@ ma_result ma_ex_audio_source_play_from_waveform_proc(ma_ex_audio_source *source,
 
 void ma_ex_audio_source_stop(ma_ex_audio_source *source) {
     if(source != NULL) {
-        ma_mixer_debug_log("ma_ex_audio_source_stop: stopping sound\n");
+        ma_ex_debug_log("ma_ex_audio_source_stop: stopping sound\n");
         ma_sound_stop(&source->sound);
     }
 }
@@ -325,19 +325,19 @@ ma_bool32 ma_ex_audio_source_get_is_playing(ma_ex_audio_source *source) {
 
 ma_ex_audio_listener *ma_ex_audio_listener_create(ma_engine *engine) {
     if(engine == NULL) {
-        ma_mixer_debug_log("ma_ex_audio_listener_create: engine can not be null\n");
+        ma_ex_debug_log("ma_ex_audio_listener_create: engine can not be null\n");
         return NULL;
     }
     ma_ex_audio_listener *listener = malloc(sizeof(ma_ex_audio_listener));
     memset(listener, 0, sizeof(ma_ex_audio_listener));
     listener->engine = engine;
-    ma_mixer_debug_log("ma_ex_audio_listener_create: audio listener created\n");
+    ma_ex_debug_log("ma_ex_audio_listener_create: audio listener created\n");
     return listener;
 }
 
 void ma_ex_audio_listener_destroy(ma_ex_audio_listener *listener) {
     if(listener != NULL) {
-        ma_mixer_debug_log("ma_ex_audio_listener_destroy: audio listener destroyed\n");
+        ma_ex_debug_log("ma_ex_audio_listener_destroy: audio listener destroyed\n");
         free(listener);
     }
 }
