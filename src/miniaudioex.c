@@ -177,6 +177,12 @@ void ma_ex_audio_source_uninit(ma_ex_audio_source *source) {
     }
 }
 
+void ma_ex_audio_source_set_callbacks_user_data(ma_ex_audio_source *source, void *userData) {
+    if(source != NULL) {
+        source->callbacks.pUserData = userData;
+    }
+}
+
 ma_result ma_ex_audio_source_play(ma_ex_audio_source *source, const char *filePath, ma_bool8 streamFromDisk) {
     if(source == NULL) {
         return MA_ERROR;
@@ -200,7 +206,8 @@ ma_result ma_ex_audio_source_play(ma_ex_audio_source *source, const char *filePa
         if(result != MA_SUCCESS) {
             return result;
         } else {
-            source->sound.engineNode.dspProc = source->callbacks.dspProc;
+            source->sound.engineNode.dspConfig.proc = source->callbacks.dspProc;
+            source->sound.engineNode.dspConfig.pUserData = source->callbacks.pUserData;
 
             if(source->callbacks.soundEndedProc != NULL) {
                 ma_sound_set_end_callback(&source->sound, source->callbacks.soundEndedProc, source);
@@ -238,7 +245,8 @@ ma_result ma_ex_audio_source_play_from_waveform_proc(ma_ex_audio_source *source)
         }
 
         ma_waveform_config config = ma_waveform_config_init(ma_format_f32, 2, source->engine->sampleRate, ma_waveform_type_custom, 1.0f, 1.0f);
-        config.customProc = source->callbacks.waveformProc;
+        config.customConfig.proc = source->callbacks.waveformProc;
+        config.customConfig.pUserData = source->callbacks.pUserData;
 
         ma_result result = MA_ERROR;
 

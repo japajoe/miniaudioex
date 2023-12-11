@@ -78,6 +78,7 @@ typedef struct {
     ma_sound_end_proc soundEndedProc;
     ma_engine_node_dsp_proc dspProc;
     ma_waveform_custom_proc waveformProc;
+    void *pUserData;
 } ma_ex_audio_source_callbacks;
 
 typedef struct {
@@ -103,6 +104,7 @@ extern "C" {
     MA_API ma_ex_audio_source_config ma_ex_audio_source_config_init(ma_ex_context *context, ma_ex_audio_source_callbacks callbacks);
     MA_API ma_ex_audio_source *ma_ex_audio_source_init(const ma_ex_audio_source_config *config);
     MA_API void ma_ex_audio_source_uninit(ma_ex_audio_source *source);
+    MA_API void ma_ex_audio_source_set_callbacks_user_data(ma_ex_audio_source *source, void *userData);
     MA_API ma_result ma_ex_audio_source_play(ma_ex_audio_source *source, const char *filePath, ma_bool8 streamFromDisk);
     MA_API ma_result ma_ex_audio_source_play_from_waveform_proc(ma_ex_audio_source *source);
     MA_API void ma_ex_audio_source_stop(ma_ex_audio_source *source);

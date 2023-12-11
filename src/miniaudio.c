@@ -54415,7 +54415,6 @@ MA_API ma_waveform_config ma_waveform_config_init(ma_format format, ma_uint32 ch
     config.type       = type;
     config.amplitude  = amplitude;
     config.frequency  = frequency;
-    config.customProc = NULL;
 
     return config;
 }
@@ -54782,8 +54781,8 @@ static void ma_waveform_read_pcm_frames__custom(ma_waveform* pWaveform, void* pF
     MA_ASSERT(pWaveform  != NULL);
     MA_ASSERT(pFramesOut != NULL);
 
-    if(pWaveform->config.customProc != NULL) {
-        pWaveform->config.customProc(pWaveform, pFramesOut, frameCount, pWaveform->config.channels);
+    if(pWaveform->config.customConfig.proc != NULL) {
+        pWaveform->config.customConfig.proc(pWaveform, pFramesOut, frameCount, pWaveform->config.channels, pWaveform->config.customConfig.pUserData);
     }
 }
 
@@ -62904,9 +62903,8 @@ static void ma_engine_node_process_pcm_frames__general(ma_engine_node* pEngineNo
             ma_panner_process_pcm_frames(&pEngineNode->panner, pRunningFramesOut, pRunningFramesOut, framesJustProcessedOut);   /* In-place processing. */
         }
 
-        //W.M.R Jap-A-Joe
-        if(pEngineNode->dspProc != NULL && framesJustProcessedOut > 0) {
-            pEngineNode->dspProc(pEngineNode, pRunningFramesOut, pRunningFramesOut, framesJustProcessedOut, channelsOut);
+        if(pEngineNode->dspConfig.proc != NULL && framesJustProcessedOut > 0) {
+            pEngineNode->dspConfig.proc(pEngineNode, pRunningFramesOut, pRunningFramesOut, framesJustProcessedOut, channelsOut, pEngineNode->dspConfig.pUserData);
         }
 
         /* We're done for this chunk. */
