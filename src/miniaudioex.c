@@ -112,6 +112,7 @@ ma_ex_context *ma_ex_context_init(const ma_ex_context_config *config) {
 
     ma_engine_config engineConfig = ma_engine_config_init();
     engineConfig.listenerCount = 1;
+    engineConfig.pDevice = context->device;
 
     if(ma_engine_init(&engineConfig, context->engine) != MA_SUCCESS) {
         ma_device_uninit(context->device);
@@ -121,9 +122,11 @@ ma_ex_context *ma_ex_context_init(const ma_ex_context_config *config) {
         return NULL;
     }
 
+    context->device->pUserData = context->engine;
+
     if (ma_device_start(context->device) != MA_SUCCESS) {
-        ma_device_uninit(context->device);
         ma_engine_uninit(context->engine);
+        ma_device_uninit(context->device);
         free(context->device);
         free(context->engine);
         free(context);
@@ -185,7 +188,8 @@ ma_result ma_ex_audio_source_play(ma_ex_audio_source *source, const char *filePa
 
     if(strcmp_null_safe(source->filePath, filePath) != 0) {
         ma_sound_uninit(&source->sound);
-        ma_uint32 flags = MA_SOUND_FLAG_ASYNC | MA_SOUND_FLAG_DECODE;
+        //ma_uint32 flags = MA_SOUND_FLAG_ASYNC | MA_SOUND_FLAG_DECODE;
+        ma_uint32 flags = MA_SOUND_FLAG_DECODE;
         
         if(streamFromDisk) {
             flags |= MA_SOUND_FLAG_STREAM;
@@ -244,7 +248,8 @@ ma_result ma_ex_audio_source_play_from_waveform_proc(ma_ex_audio_source *source)
             return result;
         }
 
-        result = ma_sound_init_from_data_source(source->engine, &source->waveform, MA_SOUND_FLAG_ASYNC, NULL, &source->sound);
+        result = ma_sound_init_from_data_source(source->engine, &source->waveform, 0, NULL, &source->sound);
+        //result = ma_sound_init_from_data_source(source->engine, &source->waveform, MA_SOUND_FLAG_ASYNC, NULL, &source->sound);
 
         if(result != MA_SUCCESS) {
             return result;
