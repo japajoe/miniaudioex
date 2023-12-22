@@ -108,6 +108,7 @@ extern "C" {
     MA_API ma_result ma_ex_audio_source_play(ma_ex_audio_source *source, const char *filePath, ma_bool8 streamFromDisk);
     MA_API ma_result ma_ex_audio_source_play_from_waveform_proc(ma_ex_audio_source *source);
     MA_API void ma_ex_audio_source_stop(ma_ex_audio_source *source);
+    MA_API ma_result ma_ex_audio_source_get_pcm_position(ma_ex_audio_source *source, ma_uint64 *position);
     MA_API void ma_ex_audio_source_set_pcm_position(ma_ex_audio_source *source, ma_uint64 frameIndex);
     MA_API void ma_ex_audio_source_set_pcm_start_position(ma_ex_audio_source *source, ma_uint64 frameIndex);
     MA_API ma_result ma_ex_audio_source_get_pcm_length(ma_ex_audio_source *source, ma_uint64 *length);

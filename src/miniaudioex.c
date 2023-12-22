@@ -210,10 +210,10 @@ ma_result ma_ex_audio_source_play(ma_ex_audio_source *source, const char *filePa
             source->sound.engineNode.dspConfig.pUserData = source->callbacks.pUserData;
 
             if(source->callbacks.soundEndedProc != NULL) {
-                ma_sound_set_end_callback(&source->sound, source->callbacks.soundEndedProc, source);
+                ma_sound_set_end_callback(&source->sound, source->callbacks.soundEndedProc, source->callbacks.pUserData);
             }
             if(source->callbacks.soundLoadedProc != NULL) {
-                source->callbacks.soundLoadedProc(&source->sound, source);
+                source->callbacks.soundLoadedProc(&source->sound, source->callbacks.pUserData);
             }
         }
 
@@ -273,6 +273,15 @@ void ma_ex_audio_source_stop(ma_ex_audio_source *source) {
     if(source != NULL) {
         ma_sound_stop(&source->sound);
     }
+}
+
+ma_result ma_ex_audio_source_get_pcm_position(ma_ex_audio_source *source, ma_uint64 *position) {
+    if(source != NULL) {
+        *position = ma_sound_get_time_in_pcm_frames(&source->sound);
+        return MA_SUCCESS;
+    }
+
+    return MA_ERROR;
 }
 
 void ma_ex_audio_source_set_pcm_position(ma_ex_audio_source *source, ma_uint64 frameIndex) {
