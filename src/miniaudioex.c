@@ -235,6 +235,41 @@ ma_result ma_ex_audio_source_play(ma_ex_audio_source *source, const char *filePa
     return ma_sound_start(&source->sound);
 }
 
+ma_result ma_ex_audio_source_play_from_memory(ma_ex_audio_source *source, const void *data, ma_uint64 dataSize) {
+    if(source == NULL) {
+        return MA_ERROR;
+        printf("Source is null\n");
+    }
+
+    if(data == NULL) {
+        return MA_ERROR;        
+    }
+
+    ma_data_source *dataSource = ma_sound_get_data_source(&source->sound);
+
+    if(dataSource != NULL) {
+        ma_sound_uninit(&source->sound);
+        ma_data_source_uninit(dataSource);
+    } else {
+        memset(&source->decoder, 0, sizeof(ma_decoder));
+    }
+
+    ma_decoder_config config = ma_decoder_config_init(ma_format_f32, 2, source->engine->sampleRate);
+    ma_result result = ma_decoder_init_memory(data, dataSize, &config, &source->decoder);
+
+    if(result != MA_SUCCESS) {
+        return result;
+    }
+
+    result = ma_sound_init_from_data_source(source->engine, &source->decoder, MA_SOUND_FLAG_DECODE, NULL, &source->sound);
+
+    if(result != MA_SUCCESS) {
+        return result;
+    }
+
+    return ma_sound_start(&source->sound);
+}
+
 ma_result ma_ex_audio_source_play_from_waveform_proc(ma_ex_audio_source *source) {
     if(source != NULL) {
         ma_data_source *dataSource = ma_sound_get_data_source(&source->sound);
@@ -248,9 +283,7 @@ ma_result ma_ex_audio_source_play_from_waveform_proc(ma_ex_audio_source *source)
         config.customConfig.proc = source->callbacks.waveformProc;
         config.customConfig.pUserData = source->callbacks.pUserData;
 
-        ma_result result = MA_ERROR;
-
-        result = ma_waveform_init(&config, &source->waveform);
+        ma_result result = ma_waveform_init(&config, &source->waveform);
 
         if(result != MA_SUCCESS) {
             return result;
@@ -374,8 +407,16 @@ void ma_ex_audio_source_set_max_distance(ma_ex_audio_source *source, float dista
 
 ma_bool32 ma_ex_audio_source_get_is_playing(ma_ex_audio_source *source) {
     if(source != NULL) {
-        ma_sound_is_playing(&source->sound);
+        return ma_sound_is_playing(&source->sound);
     }
+    return MA_FALSE;
+}
+
+ma_sound *ma_ex_audio_source_get_sound(ma_ex_audio_source *source) {
+    if(source != NULL) {
+        return &source->sound;
+    }
+    return NULL;
 }
 
 ma_ex_audio_listener *ma_ex_audio_listener_init(const ma_ex_context *context) {
@@ -440,4 +481,77 @@ void ma_ex_audio_listener_set_cone(ma_ex_audio_listener *listener, float innerAn
             ma_engine_listener_set_cone(listener->engine, 0, innerAngleInRadians, outerAngleInRadians, outerGain);
         }
     }
+}
+
+static void ma_ex_dsp_node_process_pcm_frames(ma_node* pNode, const float** ppFramesIn, ma_uint32* pFrameCountIn, float** ppFramesOut, ma_uint32* pFrameCountOut)
+{
+    ma_ex_dsp_node* pDspNode = (ma_ex_dsp_node*)pNode;
+
+    if(pDspNode->dspProc)
+        pDspNode->dspProc(ppFramesIn, pFrameCountIn, ppFramesOut, pFrameCountOut, pDspNode->pUserData);
+}
+
+static ma_node_vtable g_ma_ex_dsp_node_vtable =
+{
+    ma_ex_dsp_node_process_pcm_frames,
+    NULL,
+    2,  /* 1 input channel. */
+    2,  /* 1 output channel. */
+    MA_NODE_FLAG_CONTINUOUS_PROCESSING  /* Reverb requires continuous processing to ensure the tail get's processed. */
+};
+
+ma_ex_dsp_node_config ma_ex_dsp_node_config_init(ma_uint32 channels, ma_uint32 sampleRate, ma_ex_dsp_node_proc pDspProc, void* pUserData) {
+    MA_EX_ASSERT(pDspProc != NULL);
+    MA_EX_ASSERT(channels >= 1);
+    MA_EX_ASSERT(sampleRate >= 1);
+
+    ma_ex_dsp_node_config config;
+
+    memset(&config, 0, sizeof(ma_ex_dsp_node_config));
+
+    config.nodeConfig = ma_node_config_init();  /* Input and output channels will be set in ma_reverb_node_init(). */
+    config.channels   = channels;
+    config.sampleRate = sampleRate;
+    config.dspProc = pDspProc;
+    config.pUserData = pUserData;
+
+    return config;
+}
+
+ma_result ma_ex_dsp_node_init(ma_node_graph* pNodeGraph, ma_ex_dsp_node_config *pConfig, const ma_allocation_callbacks* pAllocationCallbacks, ma_ex_dsp_node* pDspNode) {
+    ma_result result;
+    ma_node_config baseConfig;
+
+    if (pDspNode == NULL) {
+        return MA_INVALID_ARGS;
+    }
+
+    memset(pDspNode, 0, sizeof(ma_ex_dsp_node));
+
+    if (pConfig == NULL) {
+        return MA_INVALID_ARGS;
+    }
+
+    pDspNode->channels = pConfig->channels;
+    pDspNode->sampleRate = pConfig->sampleRate;
+    pDspNode->pUserData = pConfig->pUserData;
+    pDspNode->dspProc = pConfig->dspProc;
+
+    baseConfig = pConfig->nodeConfig;
+    baseConfig.vtable          = &g_ma_ex_dsp_node_vtable;
+    baseConfig.pInputChannels  = &pConfig->channels;
+    baseConfig.pOutputChannels = &pConfig->channels;
+
+    result = ma_node_init(pNodeGraph, &baseConfig, pAllocationCallbacks, &pDspNode->baseNode);
+    
+    if (result != MA_SUCCESS) {
+        return result;
+    }
+
+    return MA_SUCCESS;
+}
+
+MA_API void ma_ex_dsp_node_uninit(ma_ex_dsp_node* pDspNode, const ma_allocation_callbacks* pAllocationCallbacks) {
+    /* The base node is always uninitialized first. */
+    ma_node_uninit(pDspNode, pAllocationCallbacks);
 }

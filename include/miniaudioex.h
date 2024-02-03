@@ -52,6 +52,23 @@
 #include "miniaudio.h"
 
 typedef void (*ma_ex_sound_loaded_proc)(ma_sound *pSound, void *pUserData);
+typedef void (*ma_ex_dsp_node_proc)(const float** ppFramesIn, ma_uint32* pFrameCountIn, float** ppFramesOut, ma_uint32* pFrameCountOut, void *pUserData);
+
+typedef struct {
+    ma_node_config nodeConfig;    
+    ma_uint32 channels;
+    ma_uint32 sampleRate;
+    ma_ex_dsp_node_proc dspProc;
+    void* pUserData;
+} ma_ex_dsp_node_config;
+
+typedef struct {
+    ma_node_base baseNode;
+    ma_uint32 channels;
+    ma_uint32 sampleRate;
+    ma_ex_dsp_node_proc dspProc;
+    void* pUserData;
+} ma_ex_dsp_node;
 
 typedef struct {
     ma_uint32 sampleRate;
@@ -78,6 +95,7 @@ typedef struct {
     ma_sound_end_proc soundEndedProc;
     ma_engine_node_dsp_proc dspProc;
     ma_waveform_custom_proc waveformProc;
+    //ma_ex_dsp_node dspNode;
     void *pUserData;
 } ma_ex_audio_source_callbacks;
 
@@ -89,6 +107,7 @@ typedef struct {
 typedef struct {
     ma_sound sound;
     ma_waveform waveform;
+    ma_decoder decoder;
     char *filePath;    
     ma_ex_audio_source_callbacks callbacks;
     ma_engine *engine;
@@ -106,6 +125,7 @@ extern "C" {
     MA_API void ma_ex_audio_source_uninit(ma_ex_audio_source *source);
     MA_API void ma_ex_audio_source_set_callbacks_user_data(ma_ex_audio_source *source, void *userData);
     MA_API ma_result ma_ex_audio_source_play(ma_ex_audio_source *source, const char *filePath, ma_bool8 streamFromDisk);
+    MA_API ma_result ma_ex_audio_source_play_from_memory(ma_ex_audio_source *source, const void *data, ma_uint64 dataSize);
     MA_API ma_result ma_ex_audio_source_play_from_waveform_proc(ma_ex_audio_source *source);
     MA_API void ma_ex_audio_source_stop(ma_ex_audio_source *source);
     MA_API ma_result ma_ex_audio_source_get_pcm_position(ma_ex_audio_source *source, ma_uint64 *position);
@@ -124,6 +144,7 @@ extern "C" {
     MA_API void ma_ex_audio_source_set_min_distance(ma_ex_audio_source *source, float distance);
     MA_API void ma_ex_audio_source_set_max_distance(ma_ex_audio_source *source, float distance);
     MA_API ma_bool32 ma_ex_audio_source_get_is_playing(ma_ex_audio_source *source);
+    MA_API ma_sound *ma_ex_audio_source_get_sound(ma_ex_audio_source *source);
 
     MA_API ma_ex_audio_listener *ma_ex_audio_listener_init(const ma_ex_context *context);
     MA_API void ma_ex_audio_listener_uninit(ma_ex_audio_listener *listener);
@@ -133,6 +154,11 @@ extern "C" {
     MA_API void ma_ex_audio_listener_set_velocity(ma_ex_audio_listener *listener, float x, float y, float z);
     MA_API void ma_ex_audio_listener_set_world_up(ma_ex_audio_listener *listener, float x, float y, float z);
     MA_API void ma_ex_audio_listener_set_cone(ma_ex_audio_listener *listener, float innerAngleInRadians, float outerAngleInRadians, float outerGain);
+
+    MA_API ma_ex_dsp_node_config ma_ex_dsp_node_config_init(ma_uint32 channels, ma_uint32 sampleRate, ma_ex_dsp_node_proc pDspProc, void* pUserData);
+    MA_API ma_result ma_ex_dsp_node_init(ma_node_graph* pNodeGraph, ma_ex_dsp_node_config *pConfig, const ma_allocation_callbacks* pAllocationCallbacks, ma_ex_dsp_node* pDspNode);
+    MA_API void ma_ex_dsp_node_uninit(ma_ex_dsp_node* pDspNode, const ma_allocation_callbacks* pAllocationCallbacks);
+
 #if defined(__cplusplus)
 }
 #endif
