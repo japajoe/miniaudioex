@@ -265,6 +265,16 @@ ma_result ma_ex_audio_source_play_from_memory(ma_ex_audio_source *source, const 
 
     if(result != MA_SUCCESS) {
         return result;
+    } else {
+        source->sound.engineNode.dspConfig.proc = source->callbacks.dspProc;
+        source->sound.engineNode.dspConfig.pUserData = source->callbacks.pUserData;
+
+        if(source->callbacks.soundEndedProc != NULL) {
+            ma_sound_set_end_callback(&source->sound, source->callbacks.soundEndedProc, source->callbacks.pUserData);
+        }
+        if(source->callbacks.soundLoadedProc != NULL) {
+            source->callbacks.soundLoadedProc(&source->sound, source->callbacks.pUserData);
+        }
     }
 
     return ma_sound_start(&source->sound);
