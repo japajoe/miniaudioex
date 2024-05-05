@@ -1,6 +1,6 @@
 /*
 Audio playback and capture library. Choice of public domain or MIT-0. See license statements at the end of this file.
-miniaudio - v0.11.21 - 2023-11-15
+miniaudio - v0.11.22 - TBD
 
 David Reid - mackron@gmail.com
 
@@ -20,7 +20,7 @@ extern "C" {
 
 #define MA_VERSION_MAJOR    0
 #define MA_VERSION_MINOR    11
-#define MA_VERSION_REVISION 21
+#define MA_VERSION_REVISION 22
 #define MA_VERSION_STRING   MA_XSTRINGIFY(MA_VERSION_MAJOR) "." MA_XSTRINGIFY(MA_VERSION_MINOR) "." MA_XSTRINGIFY(MA_VERSION_REVISION)
 
 #if defined(_MSC_VER) && !defined(__clang__)
@@ -3546,6 +3546,10 @@ struct ma_context_config
     ma_allocation_callbacks allocationCallbacks;
     struct
     {
+        ma_handle hWnd; /* HWND. Optional window handle to pass into SetCooperativeLevel(). Will default to the foreground window, and if that fails, the desktop window. */
+    } dsound;
+    struct
+    {
         ma_bool32 useVerboseDeviceEnumeration;
     } alsa;
     struct
@@ -3633,6 +3637,7 @@ struct ma_context
 #ifdef MA_SUPPORT_DSOUND
         struct
         {
+            ma_handle hWnd; /* Can be null. */
             ma_handle hDSoundDLL;
             ma_proc DirectSoundCreate;
             ma_proc DirectSoundEnumerateA;
@@ -6393,16 +6398,8 @@ typedef enum
     ma_waveform_type_sine,
     ma_waveform_type_square,
     ma_waveform_type_triangle,
-    ma_waveform_type_sawtooth,
-    ma_waveform_type_custom
+    ma_waveform_type_sawtooth
 } ma_waveform_type;
-
-typedef void (*ma_waveform_custom_proc)(void* pWaveform, void* pFramesOut, ma_uint64 frameCount, ma_uint32 channels, void* pUserData);
-
-typedef struct {
-    ma_waveform_custom_proc proc;
-    void* pUserData;
-} ma_waveform_custom_config;
 
 typedef struct
 {
@@ -6412,7 +6409,6 @@ typedef struct
     ma_waveform_type type;
     double amplitude;
     double frequency;
-    ma_waveform_custom_config customConfig;
 } ma_waveform_config;
 
 MA_API ma_waveform_config ma_waveform_config_init(ma_format format, ma_uint32 channels, ma_uint32 sampleRate, ma_waveform_type type, double amplitude, double frequency);
@@ -7364,12 +7360,12 @@ typedef struct
 
 MA_API ma_engine_node_config ma_engine_node_config_init(ma_engine* pEngine, ma_engine_node_type type, ma_uint32 flags);
 
-typedef void (*ma_engine_node_dsp_proc)(void* pEngineNode, void* pFramesOut, const void* pFramesIn, ma_uint64 frameCount, ma_int32 channels, void* pUserData);
+typedef void (* ma_engine_node_dsp_proc)(void* pUserData, void* pEngineNode, void* pFramesOut, ma_uint64 frameCount, ma_int32 channels);
 
 typedef struct {
-    ma_engine_node_dsp_proc proc;
-    void* pUserData;
-} ma_engine_node_dsp_config;
+    void *pUserData;
+    ma_engine_node_dsp_proc dspCallback;
+} ma_engine_node_callbacks;
 
 /* Base node object for both ma_sound and ma_sound_group. */
 typedef struct
@@ -7404,7 +7400,7 @@ typedef struct
     /* Memory management. */
     ma_bool8 _ownsHeap;
     void* _pHeap;
-    ma_engine_node_dsp_config dspConfig;
+    ma_engine_node_callbacks callbacks;
 } ma_engine_node;
 
 MA_API ma_result ma_engine_node_get_heap_size(const ma_engine_node_config* pConfig, size_t* pHeapSizeInBytes);
@@ -7456,7 +7452,6 @@ struct ma_sound
     ma_sound_end_proc endCallback;
     void* pEndCallbackUserData;
     ma_bool8 ownsDataSource;
-
     /*
     We're declaring a resource manager data source object here to save us a malloc when loading a
     sound via the resource manager, which I *think* will be the most common scenario.
