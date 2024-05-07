@@ -6398,8 +6398,11 @@ typedef enum
     ma_waveform_type_sine,
     ma_waveform_type_square,
     ma_waveform_type_triangle,
-    ma_waveform_type_sawtooth
+    ma_waveform_type_sawtooth,
+    ma_waveform_type_custom,
 } ma_waveform_type;
+
+typedef void (*ma_waveform_proc)(void *pUserData, void* pFramesOut, ma_uint64 frameCount, ma_uint32 channels);
 
 typedef struct
 {
@@ -6409,6 +6412,8 @@ typedef struct
     ma_waveform_type type;
     double amplitude;
     double frequency;
+    ma_waveform_proc waveformCallback;
+    void *pUserData;
 } ma_waveform_config;
 
 MA_API ma_waveform_config ma_waveform_config_init(ma_format format, ma_uint32 channels, ma_uint32 sampleRate, ma_waveform_type type, double amplitude, double frequency);
@@ -7360,7 +7365,7 @@ typedef struct
 
 MA_API ma_engine_node_config ma_engine_node_config_init(ma_engine* pEngine, ma_engine_node_type type, ma_uint32 flags);
 
-typedef void (* ma_engine_node_dsp_proc)(void* pUserData, void* pEngineNode, void* pFramesOut, ma_uint64 frameCount, ma_int32 channels);
+typedef void (* ma_engine_node_dsp_proc)(void* pUserData, void* pEngineNode, void* pFramesOut, ma_uint64 frameCount, ma_uint32 channels);
 
 typedef struct {
     void *pUserData;

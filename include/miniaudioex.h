@@ -54,7 +54,6 @@
 typedef struct {
     ma_uint32 sampleRate;
     ma_uint8 channels;
-    ma_device_data_proc dataCallback;
 } ma_ex_context_config;
 
 typedef struct {
@@ -63,7 +62,6 @@ typedef struct {
     ma_uint32 sampleRate;
     ma_uint8 channels;
     ma_format format;
-    ma_device_data_proc dataCallback;
 }  ma_ex_context;
 
 typedef void (*ma_sound_load_proc)(void* pUserData, ma_sound* pSound);
@@ -73,7 +71,8 @@ typedef struct {
     ma_sound_end_proc endCallback;
     ma_sound_load_proc loadCallback;
     ma_engine_node_dsp_proc dspCallback;
-} ma_ex_sound_callbacks;
+    ma_waveform_proc waveformCallback;
+} ma_ex_audio_source_callbacks;
 
 typedef struct {
     float volume;
@@ -92,8 +91,9 @@ typedef struct {
 typedef struct {
     ma_sound sound;
     ma_decoder decoder;
+    ma_waveform waveform;
     ma_engine *engine;
-    ma_ex_sound_callbacks callbacks;
+    ma_ex_audio_source_callbacks callbacks;
     ma_uint64 soundHash;
     ma_ex_audio_source_settings settings;
 } ma_ex_audio_source;
@@ -117,13 +117,15 @@ typedef struct {
 #if defined(__cplusplus)
 extern "C" {
 #endif
-    MA_API ma_ex_context_config ma_ex_context_config_init(ma_uint32 sampleRate, ma_uint8 channels, ma_device_data_proc dataCallback);
+    MA_API ma_ex_context_config ma_ex_context_config_init(ma_uint32 sampleRate, ma_uint8 channels);
     MA_API ma_ex_context *ma_ex_context_init(const ma_ex_context_config *config);
     MA_API void ma_ex_context_uninit(ma_ex_context *context);
+    MA_API void ma_ex_context_set_master_volume(ma_ex_context *context, float volume);
+    MA_API float ma_ex_context_get_master_volume(ma_ex_context *context);
 
     MA_API ma_ex_audio_source *ma_ex_audio_source_init(const ma_ex_context *context);
     MA_API void ma_ex_audio_source_uninit(ma_ex_audio_source *source);
-    MA_API void ma_ex_audio_source_set_callbacks(ma_ex_audio_source *source, ma_ex_sound_callbacks callbacks);
+    MA_API void ma_ex_audio_source_set_callbacks(ma_ex_audio_source *source, ma_ex_audio_source_callbacks callbacks);
     MA_API ma_result ma_ex_audio_source_play(ma_ex_audio_source *source);
     MA_API ma_result ma_ex_audio_source_play_from_file(ma_ex_audio_source *source, const char *filePath, ma_bool32 streamFromDisk);
     MA_API ma_result ma_ex_audio_source_play_from_memory(ma_ex_audio_source *source, const void *data, ma_uint64 dataSize);

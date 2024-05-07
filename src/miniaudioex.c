@@ -88,24 +88,6 @@ static MA_INLINE void ma_zero_memory_default(void* p, size_t sz)
     #endif
 #endif
 
-//blank waveform with 2 channels, 8 samples per channel
-static const unsigned char g_blankwaveform[108] = {
-    0x52, 0x49, 0x46, 0x46, 0x64, 0x00, 0x00, 0x00,
-    0x57, 0x41, 0x56, 0x45, 0x66, 0x6d, 0x74, 0x20,
-    0x10, 0x00, 0x00, 0x00, 0x01, 0x00, 0x02, 0x00,
-    0x44, 0xac, 0x00, 0x00, 0x10, 0xb1, 0x02, 0x00,
-    0x04, 0x00, 0x10, 0x00, 0x64, 0x61, 0x74, 0x61,
-    0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff,
-    0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0xfe, 0xff,
-    0xff, 0xff, 0x01, 0x00, 0x03, 0x00, 0x00, 0x00,
-    0xfc, 0xff, 0xfe, 0xff, 0x03, 0x00, 0x03, 0x00,
-    0xfe, 0xff, 0xfd, 0xff, 0x01, 0x00, 0x03, 0x00,
-    0x00, 0x00, 0xfd, 0xff, 0x00, 0x00, 0x02, 0x00,
-    0xfe, 0xff, 0x00, 0x00, 0x03, 0x00, 0xfe, 0xff,
-    0xfe, 0xff, 0x03, 0x00, 0x01, 0x00, 0xfd, 0xff,
-    0xff, 0xff, 0x03, 0x00
-};
-
 static MA_INLINE ma_uint64 ma_ex_create_hashcode(const void *data, size_t size) {
     ma_uint8 *d = (ma_uint8*)data;
     ma_uint64 hash = 0;
@@ -140,15 +122,18 @@ static MA_INLINE void ma_ex_vec3f_get(const ma_vec3f *v, float *x, float *y, flo
     *z = v->z;
 }
 
-ma_ex_context_config ma_ex_context_config_init(ma_uint32 sampleRate, ma_uint8 channels, ma_device_data_proc dataCallback) {
+static void ma_ex_on_data_proc(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount) {
+    ma_engine_read_pcm_frames((ma_engine *)pDevice->pUserData, pOutput, frameCount, NULL);
+    (void)pInput;
+}
+
+ma_ex_context_config ma_ex_context_config_init(ma_uint32 sampleRate, ma_uint8 channels) {
     MA_ASSERT(sampleRate > 0);
     MA_ASSERT(channels > 0);
-    MA_ASSERT(dataCallback != NULL);
 
     ma_ex_context_config config;
     config.sampleRate = sampleRate;
     config.channels = channels;
-    config.dataCallback = dataCallback;
 
     return config;
 }
@@ -156,7 +141,6 @@ ma_ex_context_config ma_ex_context_config_init(ma_uint32 sampleRate, ma_uint8 ch
 ma_ex_context *ma_ex_context_init(const ma_ex_context_config *config) {
     MA_ASSERT(config->sampleRate > 0);
     MA_ASSERT(config->channels > 0);
-    MA_ASSERT(config->dataCallback != NULL);
 
     ma_ex_context *context = MA_MALLOC(sizeof(ma_ex_context));
     MA_ZERO_OBJECT(context);
@@ -170,13 +154,12 @@ ma_ex_context *ma_ex_context_init(const ma_ex_context_config *config) {
     context->sampleRate = config->sampleRate;
     context->channels = config->channels;
     context->format = ma_format_f32;
-    context->dataCallback = config->dataCallback;
 
     ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
     deviceConfig.playback.format = context->format;
     deviceConfig.playback.channels = context->channels;
     deviceConfig.sampleRate = context->sampleRate;
-    deviceConfig.dataCallback = context->dataCallback;
+    deviceConfig.dataCallback = &ma_ex_on_data_proc;
 
     if(ma_device_init(NULL, &deviceConfig, context->device) != MA_SUCCESS) {
         MA_FREE(context->device);
@@ -221,6 +204,17 @@ void ma_ex_context_uninit(ma_ex_context *context) {
     }
 }
 
+void ma_ex_context_set_master_volume(ma_ex_context *context, float volume) {
+    if(context != NULL)
+        ma_engine_set_volume(context->engine, volume);
+}
+
+float ma_ex_context_get_master_volume(ma_ex_context *context) {
+    if(context != NULL)
+        return ma_engine_get_volume(context->engine);
+    return 0.0f;
+}
+
 ma_ex_audio_source *ma_ex_audio_source_init(const ma_ex_context *context) {
     MA_ASSERT(context != NULL);
     MA_ASSERT(context->engine != NULL);
@@ -233,6 +227,7 @@ ma_ex_audio_source *ma_ex_audio_source_init(const ma_ex_context *context) {
     source->callbacks.endCallback = NULL;
     source->callbacks.loadCallback = NULL;
     source->callbacks.dspCallback = NULL;
+    source->callbacks.waveformCallback = NULL;
     source->callbacks.pUserData = NULL;
     source->soundHash = 0;
 
@@ -258,7 +253,7 @@ void ma_ex_audio_source_uninit(ma_ex_audio_source *source) {
     }
 }
 
-void ma_ex_audio_source_set_callbacks(ma_ex_audio_source *source, ma_ex_sound_callbacks callbacks) {
+void ma_ex_audio_source_set_callbacks(ma_ex_audio_source *source, ma_ex_audio_source_callbacks callbacks) {
     if(source != NULL) {
         if(callbacks.pUserData == NULL)
             callbacks.pUserData = source;
@@ -270,9 +265,7 @@ ma_result ma_ex_audio_source_play(ma_ex_audio_source *source) {
     if(source == NULL)
         return MA_ERROR;
 
-    const size_t dataSize = 108;
-
-    ma_uint64 hashcode = ma_ex_pointer_to_hashcode(g_blankwaveform);
+    ma_uint64 hashcode = ma_ex_pointer_to_hashcode(&source->waveform);
 
     if(ma_ex_hashcode_is_same(hashcode, source->soundHash) != MA_TRUE) {
         ma_data_source *dataSource = ma_sound_get_data_source(&source->sound);
@@ -281,18 +274,19 @@ ma_result ma_ex_audio_source_play(ma_ex_audio_source *source) {
             ma_sound_uninit(&source->sound);
             ma_data_source_uninit(dataSource);
         } else {
-            MA_ZERO_OBJECT(&source->decoder);
+            MA_ZERO_OBJECT(&source->waveform);
         }
 
-        ma_decoder_config config = ma_decoder_config_init(ma_format_f32, 2, source->engine->sampleRate);
-        ma_result result = ma_decoder_init_memory(g_blankwaveform, dataSize, &config, &source->decoder);
+        ma_waveform_config config = ma_waveform_config_init(ma_format_f32, 2, source->engine->sampleRate, ma_waveform_type_custom, 1.0f, 1.0f);
+        config.waveformCallback = source->callbacks.waveformCallback;
+        config.pUserData = source->callbacks.pUserData;
+
+        ma_result result = ma_waveform_init(&config, &source->waveform);
 
         if(result != MA_SUCCESS)
             return result;
 
-        ma_uint32 flags = MA_SOUND_FLAG_DECODE;
-
-        result = ma_sound_init_from_data_source(source->engine, &source->decoder, flags, NULL, &source->sound);
+        result = ma_sound_init_from_data_source(source->engine, &source->waveform, 0, NULL, &source->sound);
 
         if(result != MA_SUCCESS)
             return result;
@@ -303,9 +297,9 @@ ma_result ma_ex_audio_source_play(ma_ex_audio_source *source) {
     ma_ex_audio_source_apply_settings(source);
 
     if(source->callbacks.dspCallback != NULL) {
-        source->sound.engineNode.callbacks.dspCallback = source->callbacks.dspCallback;
         source->sound.engineNode.callbacks.pUserData = source->callbacks.pUserData;
-    }
+        source->sound.engineNode.callbacks.dspCallback = source->callbacks.dspCallback;
+    } 
 
     if(source->callbacks.endCallback != NULL)
         ma_sound_set_end_callback(&source->sound, source->callbacks.endCallback, source->callbacks.pUserData);
