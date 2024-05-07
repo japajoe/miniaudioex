@@ -82,6 +82,7 @@ int main(int argc, char **argv) {
         .waveformCallback = &on_waveform
     };
 
+    ma_ex_audio_source_set_callbacks(source, callbacks);
     ma_ex_audio_source_play(source);
 
     printf("Press enter to stop ");
