@@ -5,3 +5,28 @@ This is a modified version of the [MiniAudio](https://github.com/mackron/miniaud
 There's no need to install any dependencies. On Windows and macOS there's no need to link to  anything. On Linux just link to `-lpthread`, `-lm` and `-ldl`. On BSD just link to `-lpthread` and `-lm`. On iOS you need to compile as Objective-C.
 
 If you get errors about undefined references to `__sync_val_compare_and_swap_8`, `__atomic_load_8`, etc. you need to link with `-latomic`.
+
+# Example
+```c
+#include "miniaudioex.h"
+
+int main(int argc, char **argv) {
+    const char *file = "some_audio.mp3";
+
+    ma_ex_context_config contextConfig = ma_ex_context_config_init(48000, 2);
+    ma_ex_context *context = ma_ex_context_init(&contextConfig);
+
+    ma_ex_audio_source *source = ma_ex_audio_source_init(context);
+
+    ma_ex_audio_source_play_from_file(source, file, MA_TRUE);
+
+    printf("Press enter to stop ");
+    getchar();
+
+    ma_ex_audio_source_stop(source);
+    ma_ex_audio_source_uninit(source);
+    ma_ex_context_uninit(context);
+
+    return 0;
+}
+```
