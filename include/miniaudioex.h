@@ -111,6 +111,7 @@ typedef struct {
 
 typedef struct {
     ma_engine *engine;
+    ma_uint32 index;
     ma_ex_audio_listener_settings settings;
 } ma_ex_audio_listener;
 
@@ -174,6 +175,7 @@ extern "C" {
     MA_API void ma_ex_audio_listener_get_cone(ma_ex_audio_listener *listener, float *innerAngleInRadians, float *outerAngleInRadians, float *outerGain);
 
     MA_API char *ma_ex_read_bytes_from_file(const char *filepath, size_t *size);
+
 #if defined(__cplusplus)
 }
 #endif

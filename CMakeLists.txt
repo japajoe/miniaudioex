@@ -26,7 +26,6 @@ include_directories(
 )
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
-#add_executable(${PROJECT_NAME} ${SOURCES})
 
 if(BUILD_PLATFORM STREQUAL "linux")
     target_link_libraries(${PROJECT_NAME} -lpthread -lm -ldl)

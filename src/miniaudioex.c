@@ -640,8 +640,9 @@ ma_ex_audio_listener *ma_ex_audio_listener_init(const ma_ex_context *context) {
 }
 
 void ma_ex_audio_listener_uninit(ma_ex_audio_listener *listener) {
-    if(listener != NULL)
+    if(listener != NULL) {
         MA_FREE(listener);
+    }
 }
 
 void ma_ex_audio_listener_set_spatialization(ma_ex_audio_listener *listener, ma_bool32 enabled) {

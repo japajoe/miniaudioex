@@ -36,6 +36,9 @@ You can also play audio directly from memory.
 ```c
 #include "miniaudioex.h"
 
+#define SAMPLE_RATE 44100
+#define NUM_CHANNELS 2
+
 int main(int argc, char **argv) {
     size_t fileSize = 0;
     char *file = ma_ex_read_bytes_from_file("some_audio.mp3", &fileSize);
@@ -43,7 +46,7 @@ int main(int argc, char **argv) {
     if(file == NULL)
         return 1;
 
-    ma_ex_context_config contextConfig = ma_ex_context_config_init(44100, 2);
+    ma_ex_context_config contextConfig = ma_ex_context_config_init(SAMPLE_RATE, NUM_CHANNELS);
     ma_ex_context *context = ma_ex_context_init(&contextConfig);
 
     ma_ex_audio_source *source = ma_ex_audio_source_init(context);
@@ -66,10 +69,13 @@ Generating audio with a callback function.
 #include "miniaudioex.h"
 #include <math.h>
 
+#define SAMPLE_RATE 44100
+#define NUM_CHANNELS 2
+
 void on_waveform(void *pUserData, void* pFramesOut, ma_uint64 frameCount, ma_uint32 channels);
 
 int main(int argc, char **argv) {
-    ma_ex_context_config contextConfig = ma_ex_context_config_init(44100, 2);
+    ma_ex_context_config contextConfig = ma_ex_context_config_init(SAMPLE_RATE, NUM_CHANNELS);
     ma_ex_context *context = ma_ex_context_init(&contextConfig);
 
     ma_ex_audio_source *source = ma_ex_audio_source_init(context);
@@ -106,7 +112,7 @@ void on_waveform(void *pUserData, void* pFramesOut, ma_uint64 frameCount, ma_uin
     float sample = 0.0f;
 
     for(size_t i = 0; i < numSamples; i+=channels) {
-        sample = sinf(2 * M_PI * 440 * timeCounter / 44100);
+        sample = sinf(2 * M_PI * 440 * timeCounter / SAMPLE_RATE);
         dataOut[i] = sample;
         if(channels == 2)
             dataOut[i+1] = sample;
