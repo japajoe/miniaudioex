@@ -1,4 +1,3 @@
 /build
 /.vscode
-/src/main.c
-/res
+CMakeLists.txt
