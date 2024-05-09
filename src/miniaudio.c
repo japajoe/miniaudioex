@@ -54426,8 +54426,6 @@ MA_API ma_waveform_config ma_waveform_config_init(ma_format format, ma_uint32 ch
     config.type       = type;
     config.amplitude  = amplitude;
     config.frequency  = frequency;
-    config.waveformCallback = NULL;
-    config.pUserData  = NULL;
 
     return config;
 }
@@ -54790,16 +54788,6 @@ static void ma_waveform_read_pcm_frames__sawtooth(ma_waveform* pWaveform, void* 
     }
 }
 
-static void ma_waveform_read_pcm_frames__custom(ma_waveform* pWaveform, void* pFramesOut, ma_uint64 frameCount)
-{
-    MA_ASSERT(pWaveform  != NULL);
-    MA_ASSERT(pFramesOut != NULL);
-
-    if(pWaveform->config.waveformCallback != NULL) {
-        pWaveform->config.waveformCallback(pWaveform->config.pUserData, pFramesOut, frameCount, pWaveform->config.channels);
-    }
-}
-
 MA_API ma_result ma_waveform_read_pcm_frames(ma_waveform* pWaveform, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead)
 {
     if (pFramesRead != NULL) {
@@ -54835,11 +54823,6 @@ MA_API ma_result ma_waveform_read_pcm_frames(ma_waveform* pWaveform, void* pFram
             case ma_waveform_type_sawtooth:
             {
                 ma_waveform_read_pcm_frames__sawtooth(pWaveform, pFramesOut, frameCount);
-            } break;
-
-            case ma_waveform_type_custom:
-            {
-                ma_waveform_read_pcm_frames__custom(pWaveform, pFramesOut, frameCount);
             } break;
 
             default: return MA_INVALID_OPERATION;   /* Unknown waveform type. */

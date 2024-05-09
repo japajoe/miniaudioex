@@ -70,7 +70,9 @@ static MA_INLINE void ma_zero_memory_default(void* p, size_t sz)
 #define MA_ZERO_MEMORY(p, sz)           ma_zero_memory_default((p), (sz))
 #endif
 
+#ifndef MA_ZERO_OBJECT
 #define MA_ZERO_OBJECT(p)               MA_ZERO_MEMORY((p), sizeof(*(p)))
+#endif
 
 #ifndef MA_MALLOC
 #define MA_MALLOC(sz)                   malloc((sz))
@@ -277,11 +279,8 @@ ma_result ma_ex_audio_source_play(ma_ex_audio_source *source) {
             MA_ZERO_OBJECT(&source->waveform);
         }
 
-        ma_waveform_config config = ma_waveform_config_init(ma_format_f32, 2, source->engine->sampleRate, ma_waveform_type_custom, 1.0f, 1.0f);
-        config.waveformCallback = source->callbacks.waveformCallback;
-        config.pUserData = source->callbacks.pUserData;
-
-        ma_result result = ma_waveform_init(&config, &source->waveform);
+        ma_procedural_wave_config config = ma_procedural_wave_config_init(ma_format_f32, 2, source->engine->sampleRate, source->callbacks.waveformCallback, source->callbacks.pUserData);
+        ma_result result = ma_procedural_wave_init(&config, &source->waveform);
 
         if(result != MA_SUCCESS)
             return result;
@@ -782,4 +781,9 @@ char *ma_ex_read_bytes_from_file(const char *filepath, size_t *size) {
 
     *size = fileSize;
     return buffer;
+}
+
+void ma_ex_free_bytes_from_file(char *pointer) {
+    if(pointer != NULL)
+        free(pointer);
 }

@@ -50,6 +50,7 @@
 #define MINIAUDIOEX_H
 
 #include "miniaudio.h"
+#include "ma_procedural_wave.h"
 
 typedef struct {
     ma_uint32 sampleRate;
@@ -71,7 +72,7 @@ typedef struct {
     ma_sound_end_proc endCallback;
     ma_sound_load_proc loadCallback;
     ma_engine_node_dsp_proc dspCallback;
-    ma_waveform_proc waveformCallback;
+    ma_procedural_wave_proc waveformCallback;
 } ma_ex_audio_source_callbacks;
 
 typedef struct {
@@ -91,7 +92,7 @@ typedef struct {
 typedef struct {
     ma_sound sound;
     ma_decoder decoder;
-    ma_waveform waveform;
+    ma_procedural_wave waveform;
     ma_engine *engine;
     ma_ex_audio_source_callbacks callbacks;
     ma_uint64 soundHash;
@@ -118,63 +119,65 @@ typedef struct {
 #if defined(__cplusplus)
 extern "C" {
 #endif
-    MA_API ma_ex_context_config ma_ex_context_config_init(ma_uint32 sampleRate, ma_uint8 channels);
-    MA_API ma_ex_context *ma_ex_context_init(const ma_ex_context_config *config);
-    MA_API void ma_ex_context_uninit(ma_ex_context *context);
-    MA_API void ma_ex_context_set_master_volume(ma_ex_context *context, float volume);
-    MA_API float ma_ex_context_get_master_volume(ma_ex_context *context);
 
-    MA_API ma_ex_audio_source *ma_ex_audio_source_init(const ma_ex_context *context);
-    MA_API void ma_ex_audio_source_uninit(ma_ex_audio_source *source);
-    MA_API void ma_ex_audio_source_set_callbacks(ma_ex_audio_source *source, ma_ex_audio_source_callbacks callbacks);
-    MA_API ma_result ma_ex_audio_source_play(ma_ex_audio_source *source);
-    MA_API ma_result ma_ex_audio_source_play_from_file(ma_ex_audio_source *source, const char *filePath, ma_bool32 streamFromDisk);
-    MA_API ma_result ma_ex_audio_source_play_from_memory(ma_ex_audio_source *source, const void *data, ma_uint64 dataSize);
-    MA_API void ma_ex_audio_source_stop(ma_ex_audio_source *source);
-    MA_API void ma_ex_audio_source_apply_settings(ma_ex_audio_source *source);
-    MA_API void ma_ex_audio_source_set_volume(ma_ex_audio_source *source, float value);
-    MA_API float ma_ex_audio_source_get_volume(ma_ex_audio_source *source);
-    MA_API void ma_ex_audio_source_set_pitch(ma_ex_audio_source *source, float value);
-    MA_API float ma_ex_audio_source_get_pitch(ma_ex_audio_source *source);
-    MA_API void ma_ex_audio_source_set_pcm_position(ma_ex_audio_source *source, ma_uint64 position);
-    MA_API ma_uint64 ma_ex_audio_source_get_pcm_position(ma_ex_audio_source *source);
-    MA_API ma_uint64 ma_ex_audio_source_get_pcm_length(ma_ex_audio_source *source);
-    MA_API void ma_ex_audio_source_set_loop(ma_ex_audio_source *source, ma_bool32 loop);
-    MA_API ma_bool32 ma_ex_audio_source_get_loop(ma_ex_audio_source *source);
-    MA_API void ma_ex_audio_source_set_position(ma_ex_audio_source *source, float x, float y, float z);
-    MA_API void ma_ex_audio_source_get_position(ma_ex_audio_source *source, float *x, float *y, float *z);
-    MA_API void ma_ex_audio_source_set_direction(ma_ex_audio_source *source, float x, float y, float z);
-    MA_API void ma_ex_audio_source_get_direction(ma_ex_audio_source *source, float *x, float *y, float *z);
-    MA_API void ma_ex_audio_source_set_velocity(ma_ex_audio_source *source, float x, float y, float z);
-    MA_API void ma_ex_audio_source_get_velocity(ma_ex_audio_source *source, float *x, float *y, float *z);
-    MA_API void ma_ex_audio_source_set_spatialization(ma_ex_audio_source *source, ma_bool32 enabled);
-    MA_API ma_bool32 ma_ex_audio_source_get_spatialization(ma_ex_audio_source *source);
-    MA_API void ma_ex_audio_source_set_attenuation_model(ma_ex_audio_source *source, ma_attenuation_model model);
-    MA_API ma_attenuation_model ma_ex_audio_source_get_attenuation_model(ma_ex_audio_source *source);
-    MA_API void ma_ex_audio_source_set_doppler_factor(ma_ex_audio_source *source, float factor);
-    MA_API float ma_ex_audio_source_get_doppler_factor(ma_ex_audio_source *source);
-    MA_API void ma_ex_audio_source_set_min_distance(ma_ex_audio_source *source, float distance);
-    MA_API float ma_ex_audio_source_get_min_distance(ma_ex_audio_source *source);
-    MA_API void ma_ex_audio_source_set_max_distance(ma_ex_audio_source *source, float distance);
-    MA_API float ma_ex_audio_source_get_max_distance(ma_ex_audio_source *source);
-    MA_API ma_bool32 ma_ex_audio_source_get_is_playing(ma_ex_audio_source *source);
+MA_API ma_ex_context_config ma_ex_context_config_init(ma_uint32 sampleRate, ma_uint8 channels);
+MA_API ma_ex_context *ma_ex_context_init(const ma_ex_context_config *config);
+MA_API void ma_ex_context_uninit(ma_ex_context *context);
+MA_API void ma_ex_context_set_master_volume(ma_ex_context *context, float volume);
+MA_API float ma_ex_context_get_master_volume(ma_ex_context *context);
 
-    MA_API ma_ex_audio_listener *ma_ex_audio_listener_init(const ma_ex_context *context);
-    MA_API void ma_ex_audio_listener_uninit(ma_ex_audio_listener *listener);
-    MA_API void ma_ex_audio_listener_set_spatialization(ma_ex_audio_listener *listener, ma_bool32 enabled);
-    MA_API ma_bool32 ma_ex_audio_listener_get_spatialization(ma_ex_audio_listener *listener);
-    MA_API void ma_ex_audio_listener_set_position(ma_ex_audio_listener *listener, float x, float y, float z);
-    MA_API void ma_ex_audio_listener_get_position(ma_ex_audio_listener *listener, float *x, float *y, float *z);
-    MA_API void ma_ex_audio_listener_set_direction(ma_ex_audio_listener *listener, float x, float y, float z);
-    MA_API void ma_ex_audio_listener_get_direction(ma_ex_audio_listener *listener, float *x, float *y, float *z);
-    MA_API void ma_ex_audio_listener_set_velocity(ma_ex_audio_listener *listener, float x, float y, float z);
-    MA_API void ma_ex_audio_listener_get_velocity(ma_ex_audio_listener *listener, float *x, float *y, float *z);
-    MA_API void ma_ex_audio_listener_set_world_up(ma_ex_audio_listener *listener, float x, float y, float z);
-    MA_API void ma_ex_audio_listener_get_world_up(ma_ex_audio_listener *listener, float *x, float *y, float *z);
-    MA_API void ma_ex_audio_listener_set_cone(ma_ex_audio_listener *listener, float innerAngleInRadians, float outerAngleInRadians, float outerGain);
-    MA_API void ma_ex_audio_listener_get_cone(ma_ex_audio_listener *listener, float *innerAngleInRadians, float *outerAngleInRadians, float *outerGain);
+MA_API ma_ex_audio_source *ma_ex_audio_source_init(const ma_ex_context *context);
+MA_API void ma_ex_audio_source_uninit(ma_ex_audio_source *source);
+MA_API void ma_ex_audio_source_set_callbacks(ma_ex_audio_source *source, ma_ex_audio_source_callbacks callbacks);
+MA_API ma_result ma_ex_audio_source_play(ma_ex_audio_source *source);
+MA_API ma_result ma_ex_audio_source_play_from_file(ma_ex_audio_source *source, const char *filePath, ma_bool32 streamFromDisk);
+MA_API ma_result ma_ex_audio_source_play_from_memory(ma_ex_audio_source *source, const void *data, ma_uint64 dataSize);
+MA_API void ma_ex_audio_source_stop(ma_ex_audio_source *source);
+MA_API void ma_ex_audio_source_apply_settings(ma_ex_audio_source *source);
+MA_API void ma_ex_audio_source_set_volume(ma_ex_audio_source *source, float value);
+MA_API float ma_ex_audio_source_get_volume(ma_ex_audio_source *source);
+MA_API void ma_ex_audio_source_set_pitch(ma_ex_audio_source *source, float value);
+MA_API float ma_ex_audio_source_get_pitch(ma_ex_audio_source *source);
+MA_API void ma_ex_audio_source_set_pcm_position(ma_ex_audio_source *source, ma_uint64 position);
+MA_API ma_uint64 ma_ex_audio_source_get_pcm_position(ma_ex_audio_source *source);
+MA_API ma_uint64 ma_ex_audio_source_get_pcm_length(ma_ex_audio_source *source);
+MA_API void ma_ex_audio_source_set_loop(ma_ex_audio_source *source, ma_bool32 loop);
+MA_API ma_bool32 ma_ex_audio_source_get_loop(ma_ex_audio_source *source);
+MA_API void ma_ex_audio_source_set_position(ma_ex_audio_source *source, float x, float y, float z);
+MA_API void ma_ex_audio_source_get_position(ma_ex_audio_source *source, float *x, float *y, float *z);
+MA_API void ma_ex_audio_source_set_direction(ma_ex_audio_source *source, float x, float y, float z);
+MA_API void ma_ex_audio_source_get_direction(ma_ex_audio_source *source, float *x, float *y, float *z);
+MA_API void ma_ex_audio_source_set_velocity(ma_ex_audio_source *source, float x, float y, float z);
+MA_API void ma_ex_audio_source_get_velocity(ma_ex_audio_source *source, float *x, float *y, float *z);
+MA_API void ma_ex_audio_source_set_spatialization(ma_ex_audio_source *source, ma_bool32 enabled);
+MA_API ma_bool32 ma_ex_audio_source_get_spatialization(ma_ex_audio_source *source);
+MA_API void ma_ex_audio_source_set_attenuation_model(ma_ex_audio_source *source, ma_attenuation_model model);
+MA_API ma_attenuation_model ma_ex_audio_source_get_attenuation_model(ma_ex_audio_source *source);
+MA_API void ma_ex_audio_source_set_doppler_factor(ma_ex_audio_source *source, float factor);
+MA_API float ma_ex_audio_source_get_doppler_factor(ma_ex_audio_source *source);
+MA_API void ma_ex_audio_source_set_min_distance(ma_ex_audio_source *source, float distance);
+MA_API float ma_ex_audio_source_get_min_distance(ma_ex_audio_source *source);
+MA_API void ma_ex_audio_source_set_max_distance(ma_ex_audio_source *source, float distance);
+MA_API float ma_ex_audio_source_get_max_distance(ma_ex_audio_source *source);
+MA_API ma_bool32 ma_ex_audio_source_get_is_playing(ma_ex_audio_source *source);
 
-    MA_API char *ma_ex_read_bytes_from_file(const char *filepath, size_t *size);
+MA_API ma_ex_audio_listener *ma_ex_audio_listener_init(const ma_ex_context *context);
+MA_API void ma_ex_audio_listener_uninit(ma_ex_audio_listener *listener);
+MA_API void ma_ex_audio_listener_set_spatialization(ma_ex_audio_listener *listener, ma_bool32 enabled);
+MA_API ma_bool32 ma_ex_audio_listener_get_spatialization(ma_ex_audio_listener *listener);
+MA_API void ma_ex_audio_listener_set_position(ma_ex_audio_listener *listener, float x, float y, float z);
+MA_API void ma_ex_audio_listener_get_position(ma_ex_audio_listener *listener, float *x, float *y, float *z);
+MA_API void ma_ex_audio_listener_set_direction(ma_ex_audio_listener *listener, float x, float y, float z);
+MA_API void ma_ex_audio_listener_get_direction(ma_ex_audio_listener *listener, float *x, float *y, float *z);
+MA_API void ma_ex_audio_listener_set_velocity(ma_ex_audio_listener *listener, float x, float y, float z);
+MA_API void ma_ex_audio_listener_get_velocity(ma_ex_audio_listener *listener, float *x, float *y, float *z);
+MA_API void ma_ex_audio_listener_set_world_up(ma_ex_audio_listener *listener, float x, float y, float z);
+MA_API void ma_ex_audio_listener_get_world_up(ma_ex_audio_listener *listener, float *x, float *y, float *z);
+MA_API void ma_ex_audio_listener_set_cone(ma_ex_audio_listener *listener, float innerAngleInRadians, float outerAngleInRadians, float outerGain);
+MA_API void ma_ex_audio_listener_get_cone(ma_ex_audio_listener *listener, float *innerAngleInRadians, float *outerAngleInRadians, float *outerGain);
+
+MA_API char *ma_ex_read_bytes_from_file(const char *filepath, size_t *size);
+MA_API void ma_ex_free_bytes_from_file(char *pointer);
 
 #if defined(__cplusplus)
 }
