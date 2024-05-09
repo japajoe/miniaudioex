@@ -60,6 +60,8 @@ int main(int argc, char **argv) {
     ma_ex_audio_source_uninit(source);
     ma_ex_context_uninit(context);
 
+    ma_ex_free_bytes_from_file(file);
+
     return 0;
 }
 ```
