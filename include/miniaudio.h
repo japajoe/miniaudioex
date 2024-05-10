@@ -7360,13 +7360,6 @@ typedef struct
 
 MA_API ma_engine_node_config ma_engine_node_config_init(ma_engine* pEngine, ma_engine_node_type type, ma_uint32 flags);
 
-typedef void (* ma_engine_node_dsp_proc)(void* pUserData, void* pEngineNode, void* pFramesOut, ma_uint64 frameCount, ma_uint32 channels);
-
-typedef struct {
-    void *pUserData;
-    ma_engine_node_dsp_proc dspCallback;
-} ma_engine_node_callbacks;
-
 /* Base node object for both ma_sound and ma_sound_group. */
 typedef struct
 {
@@ -7400,7 +7393,6 @@ typedef struct
     /* Memory management. */
     ma_bool8 _ownsHeap;
     void* _pHeap;
-    ma_engine_node_callbacks callbacks;
 } ma_engine_node;
 
 MA_API ma_result ma_engine_node_get_heap_size(const ma_engine_node_config* pConfig, size_t* pHeapSizeInBytes);
@@ -7413,6 +7405,19 @@ MA_API void ma_engine_node_uninit(ma_engine_node* pEngineNode, const ma_allocati
 
 /* Callback for when a sound reaches the end. */
 typedef void (* ma_sound_end_proc)(void* pUserData, ma_sound* pSound);
+typedef void (* ma_sound_load_proc)(void* pUserData, ma_sound* pSound);
+typedef void (* ma_sound_process_proc)(void* pUserData, ma_sound* pSound, float* pFrames, ma_uint64 frameCount, ma_uint32 channels);
+
+typedef struct
+{
+    ma_fence* pLoadedFence;                                 /* Set to NULL if not using a fence. */
+    ma_sound_end_proc onLoaded;  /* Fired by the resource manager when the sound has finished loading. */
+    ma_sound_end_proc onAtEnd;  /* Fired when the sound reaches the end of the data source. */
+    ma_sound_process_proc onProcess;
+    void* pUserData;
+} ma_sound_notifications;
+
+MA_API ma_sound_notifications ma_sound_notifications_init(void);
 
 typedef struct
 {
@@ -7451,6 +7456,7 @@ struct ma_sound
     MA_ATOMIC(4, ma_bool32) atEnd;
     ma_sound_end_proc endCallback;
     void* pEndCallbackUserData;
+    ma_sound_notifications notifications;
     ma_bool8 ownsDataSource;
     /*
     We're declaring a resource manager data source object here to save us a malloc when loading a
@@ -7662,6 +7668,10 @@ MA_API ma_result ma_sound_get_length_in_pcm_frames(ma_sound* pSound, ma_uint64* 
 MA_API ma_result ma_sound_get_cursor_in_seconds(ma_sound* pSound, float* pCursor);
 MA_API ma_result ma_sound_get_length_in_seconds(ma_sound* pSound, float* pLength);
 MA_API ma_result ma_sound_set_end_callback(ma_sound* pSound, ma_sound_end_proc callback, void* pUserData);
+MA_API ma_result ma_sound_set_notifications_userdata(ma_sound* pSound, void* pUserData);
+MA_API ma_result ma_sound_set_end_notification_callback(ma_sound* pSound, ma_sound_end_proc callback);
+MA_API ma_result ma_sound_set_load_notification_callback(ma_sound* pSound, ma_sound_load_proc callback);
+MA_API ma_result ma_sound_set_process_notification_callback(ma_sound* pSound, ma_sound_process_proc callback);
 
 MA_API ma_result ma_sound_group_init(ma_engine* pEngine, ma_uint32 flags, ma_sound_group* pParentGroup, ma_sound_group* pGroup);
 MA_API ma_result ma_sound_group_init_ex(ma_engine* pEngine, const ma_sound_group_config* pConfig, ma_sound_group* pGroup);

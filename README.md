@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
         .pUserData = NULL,
         .loadCallback = NULL,
         .endCallback = NULL,
-        .dspCallback = NULL,
+        .processCallback = NULL,
         .waveformCallback = &on_waveform
     };
 

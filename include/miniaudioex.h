@@ -65,13 +65,11 @@ typedef struct {
     ma_format format;
 }  ma_ex_context;
 
-typedef void (*ma_sound_load_proc)(void* pUserData, ma_sound* pSound);
-
 typedef struct {
     void *pUserData;
     ma_sound_end_proc endCallback;
     ma_sound_load_proc loadCallback;
-    ma_engine_node_dsp_proc dspCallback;
+    ma_sound_process_proc processCallback;
     ma_procedural_wave_proc waveformCallback;
 } ma_ex_audio_source_callbacks;
 

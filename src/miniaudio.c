@@ -62586,6 +62586,10 @@ static void ma_sound_set_at_end(ma_sound* pSound, ma_bool32 atEnd)
 
     /* Fire any callbacks or events. */
     if (atEnd) {
+        if(pSound->notifications.onAtEnd != NULL) {
+            pSound->notifications.onAtEnd(pSound->notifications.pUserData, pSound);
+        }
+        //Compatibility
         if (pSound->endCallback != NULL) {
             pSound->endCallback(pSound->pEndCallbackUserData, pSound);
         }
@@ -62900,9 +62904,9 @@ static void ma_engine_node_process_pcm_frames__general(ma_engine_node* pEngineNo
             ma_panner_process_pcm_frames(&pEngineNode->panner, pRunningFramesOut, pRunningFramesOut, framesJustProcessedOut);   /* In-place processing. */
         }
 
-        if(pEngineNode->callbacks.dspCallback != NULL && framesJustProcessedOut > 0) {
-            pEngineNode->callbacks.dspCallback(pEngineNode->callbacks.pUserData, pEngineNode, pRunningFramesOut, framesJustProcessedOut, channelsOut);
-        }
+        // if(pEngineNode->callbacks.dspCallback != NULL && framesJustProcessedOut > 0) {
+        //     pEngineNode->callbacks.dspCallback(pEngineNode->callbacks.pUserData, pEngineNode, pRunningFramesOut, framesJustProcessedOut, channelsOut);
+        // }
 
         /* We're done for this chunk. */
         totalFramesProcessedIn  += framesJustProcessedIn;
@@ -62911,6 +62915,26 @@ static void ma_engine_node_process_pcm_frames__general(ma_engine_node* pEngineNo
         /* If we didn't process any output frames this iteration it means we've either run out of input data, or run out of room in the output buffer. */
         if (framesJustProcessedOut == 0) {
             break;
+        }
+    }
+
+    /*
+    Fire the processing callback. We can cast pEngineNode to a `ma_sound` since that's the base object. There's
+    a few edge cases here. It's possible that a sound does not have a data source or an input which means the
+    input frame count may be zero. In this case, the output frame count at this point will also be zero since
+    it was unable to process any data. We need to check for this and just assume that the processing callback
+    is producing some data. We pre-initialize this to silence.
+    */
+    {
+        ma_sound* pSound = (ma_sound*)pEngineNode;
+        if (pSound->notifications.onProcess != NULL) {
+            if (totalFramesProcessedOut == 0 && totalFramesProcessedIn == 0 && frameCountOut > 0) {
+                /* Pre-silence the output buffer. This should be the equivalent to setting the output frame count to 0. */
+                totalFramesProcessedOut = frameCountOut;
+                ma_silence_pcm_frames(ppFramesOut[0], totalFramesProcessedOut, ma_format_f32, channelsOut);
+            }
+
+            pSound->notifications.onProcess(pSound->notifications.pUserData, pSound, ppFramesOut[0], totalFramesProcessedOut, channelsOut);
         }
     }
 
@@ -63405,8 +63429,6 @@ MA_API ma_result ma_engine_node_init(const ma_engine_node_config* pConfig, const
     }
 
     pEngineNode->_ownsHeap = MA_TRUE;
-    pEngineNode->callbacks.pUserData = NULL;
-    pEngineNode->callbacks.dspCallback = NULL;
     return MA_SUCCESS;
 }
 
@@ -63432,6 +63454,14 @@ MA_API void ma_engine_node_uninit(ma_engine_node* pEngineNode, const ma_allocati
     }
 }
 
+MA_API ma_sound_notifications ma_sound_notifications_init(void)
+{
+    ma_sound_notifications notifications;
+
+    MA_ZERO_OBJECT(&notifications);
+
+    return notifications;
+}
 
 MA_API ma_sound_config ma_sound_config_init(void)
 {
@@ -64648,6 +64678,12 @@ MA_API ma_result ma_sound_init_ex(ma_engine* pEngine, const ma_sound_config* pCo
         return MA_INVALID_ARGS;
     }
 
+    pSound->notifications.pLoadedFence = NULL;
+    pSound->notifications.pUserData = NULL;
+    pSound->notifications.onLoaded = NULL;
+    pSound->notifications.onAtEnd = NULL;
+    pSound->notifications.onProcess = NULL;
+
     pSound->endCallback          = pConfig->endCallback;
     pSound->pEndCallbackUserData = pConfig->pEndCallbackUserData;
 
@@ -64734,6 +64770,10 @@ MA_API ma_result ma_sound_start(ma_sound* pSound)
 
     /* Make sure the sound is started. If there's a start delay, the sound won't actually start until the start time is reached. */
     ma_node_set_state(pSound, ma_node_state_started);
+
+    if(pSound->notifications.onLoaded != NULL) {
+        pSound->notifications.onLoaded(pSound->notifications.pUserData, pSound);
+    }
 
     return MA_SUCCESS;
 }
@@ -65504,6 +65544,74 @@ MA_API ma_result ma_sound_set_end_callback(ma_sound* pSound, ma_sound_end_proc c
     pSound->pEndCallbackUserData = pUserData;
 
     return MA_SUCCESS;
+}
+
+MA_API ma_result ma_sound_set_notifications_userdata(ma_sound* pSound, void* pUserData)
+{
+    if (pSound == NULL) {
+        return MA_INVALID_ARGS;
+    }
+
+    if (pSound->pDataSource == NULL) {
+        return MA_INVALID_OPERATION;
+    }
+
+    if(pUserData != NULL) {
+        pSound->notifications.pUserData = pUserData;
+    } else {
+        pSound->notifications.pUserData = NULL;
+    }
+}
+
+MA_API ma_result ma_sound_set_end_notification_callback(ma_sound* pSound, ma_sound_end_proc callback)
+{
+    if (pSound == NULL) {
+        return MA_INVALID_ARGS;
+    }
+
+    if (pSound->pDataSource == NULL) {
+        return MA_INVALID_OPERATION;
+    }
+
+    if(callback != NULL) {
+        pSound->notifications.onAtEnd = callback;
+    } else {
+        pSound->notifications.onAtEnd = NULL;
+    }
+}
+
+MA_API ma_result ma_sound_set_load_notification_callback(ma_sound* pSound, ma_sound_load_proc callback)
+{
+    if (pSound == NULL) {
+        return MA_INVALID_ARGS;
+    }
+
+    if (pSound->pDataSource == NULL) {
+        return MA_INVALID_OPERATION;
+    }
+
+    if(callback != NULL) {
+        pSound->notifications.onLoaded = callback;
+    } else {
+        pSound->notifications.onLoaded = NULL;
+    }
+}
+
+MA_API ma_result ma_sound_set_process_notification_callback(ma_sound* pSound, ma_sound_process_proc callback)
+{
+    if (pSound == NULL) {
+        return MA_INVALID_ARGS;
+    }
+
+    if (pSound->pDataSource == NULL) {
+        return MA_INVALID_OPERATION;
+    }
+
+    if(callback != NULL) {
+        pSound->notifications.onProcess = callback;
+    } else {
+        pSound->notifications.onProcess = NULL;
+    }
 }
 
 MA_API ma_result ma_sound_group_init(ma_engine* pEngine, ma_uint32 flags, ma_sound_group* pParentGroup, ma_sound_group* pGroup)

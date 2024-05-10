@@ -228,7 +228,7 @@ ma_ex_audio_source *ma_ex_audio_source_init(const ma_ex_context *context) {
     MA_ZERO_OBJECT(&source->settings);
     source->callbacks.endCallback = NULL;
     source->callbacks.loadCallback = NULL;
-    source->callbacks.dspCallback = NULL;
+    source->callbacks.processCallback = NULL;
     source->callbacks.waveformCallback = NULL;
     source->callbacks.pUserData = NULL;
     source->soundHash = 0;
@@ -263,6 +263,15 @@ void ma_ex_audio_source_set_callbacks(ma_ex_audio_source *source, ma_ex_audio_so
     }
 }
 
+static MA_INLINE void ma_ex_sound_set_callbacks(ma_sound *pSound, const ma_ex_audio_source_callbacks *pCallbacks) {
+    if(pSound != NULL) {
+        ma_sound_set_notifications_userdata(pSound, pCallbacks->pUserData);
+        ma_sound_set_end_notification_callback(pSound, pCallbacks->endCallback);
+        ma_sound_set_load_notification_callback(pSound, pCallbacks->loadCallback);
+        ma_sound_set_process_notification_callback(pSound, pCallbacks->processCallback);
+    }
+}
+
 ma_result ma_ex_audio_source_play(ma_ex_audio_source *source) {
     if(source == NULL)
         return MA_ERROR;
@@ -294,18 +303,7 @@ ma_result ma_ex_audio_source_play(ma_ex_audio_source *source) {
     source->soundHash = hashcode;
 
     ma_ex_audio_source_apply_settings(source);
-
-    if(source->callbacks.dspCallback != NULL) {
-        source->sound.engineNode.callbacks.pUserData = source->callbacks.pUserData;
-        source->sound.engineNode.callbacks.dspCallback = source->callbacks.dspCallback;
-    } 
-
-    if(source->callbacks.endCallback != NULL)
-        ma_sound_set_end_callback(&source->sound, source->callbacks.endCallback, source->callbacks.pUserData);
-
-    if(source->callbacks.loadCallback != NULL)
-        source->callbacks.loadCallback(source->callbacks.pUserData, &source->sound);
-
+    ma_ex_sound_set_callbacks(&source->sound, &source->callbacks);    
     return ma_sound_start(&source->sound);
 }
 
@@ -340,18 +338,7 @@ ma_result ma_ex_audio_source_play_from_file(ma_ex_audio_source *source, const ch
     source->soundHash = hashcode;
 
     ma_ex_audio_source_apply_settings(source);
-
-    if(source->callbacks.dspCallback != NULL) {
-        source->sound.engineNode.callbacks.dspCallback = source->callbacks.dspCallback;
-        source->sound.engineNode.callbacks.pUserData = source->callbacks.pUserData;
-    }
-
-    if(source->callbacks.endCallback != NULL)
-        ma_sound_set_end_callback(&source->sound, source->callbacks.endCallback, source->callbacks.pUserData);
-
-    if(source->callbacks.loadCallback != NULL)
-        source->callbacks.loadCallback(source->callbacks.pUserData, &source->sound);
-
+    ma_ex_sound_set_callbacks(&source->sound, &source->callbacks);
     return ma_sound_start(&source->sound);
 }
 
@@ -391,18 +378,7 @@ ma_result ma_ex_audio_source_play_from_memory(ma_ex_audio_source *source, const 
     source->soundHash = hashcode;
 
     ma_ex_audio_source_apply_settings(source);
-
-    if(source->callbacks.dspCallback != NULL) {
-        source->sound.engineNode.callbacks.dspCallback = source->callbacks.dspCallback;
-        source->sound.engineNode.callbacks.pUserData = source->callbacks.pUserData;
-    }
-
-    if(source->callbacks.endCallback != NULL)
-        ma_sound_set_end_callback(&source->sound, source->callbacks.endCallback, source->callbacks.pUserData);
-
-    if(source->callbacks.loadCallback != NULL)
-        source->callbacks.loadCallback(source->callbacks.pUserData, &source->sound);
-
+    ma_ex_sound_set_callbacks(&source->sound, &source->callbacks);
     return ma_sound_start(&source->sound);
 }
 
