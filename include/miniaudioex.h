@@ -53,16 +53,24 @@
 #include "ma_procedural_wave.h"
 
 typedef struct {
+    char *pName;
+    ma_uint32 index;
+} ma_ex_device_info;
+
+typedef struct {
+    ma_ex_device_info deviceInfo;
     ma_uint32 sampleRate;
     ma_uint8 channels;
 } ma_ex_context_config;
 
 typedef struct {
-    ma_device *device;
-    ma_engine *engine;
+    ma_context context;
+    ma_device device;
+    ma_engine engine;
     ma_uint32 sampleRate;
     ma_uint8 channels;
     ma_format format;
+    ma_int32 listeners[MA_ENGINE_MAX_LISTENERS];
 }  ma_ex_context;
 
 typedef struct {
@@ -88,10 +96,10 @@ typedef struct {
 } ma_ex_audio_source_settings;
 
 typedef struct {
+    ma_ex_context *context;
     ma_sound sound;
     ma_decoder decoder;
     ma_procedural_wave waveform;
-    ma_engine *engine;
     ma_ex_audio_source_callbacks callbacks;
     ma_uint64 soundHash;
     ma_ex_audio_source_settings settings;
@@ -109,7 +117,7 @@ typedef struct {
 } ma_ex_audio_listener_settings;
 
 typedef struct {
-    ma_engine *engine;
+    ma_ex_context *context;
     ma_uint32 index;
     ma_ex_audio_listener_settings settings;
 } ma_ex_audio_listener;
@@ -118,13 +126,16 @@ typedef struct {
 extern "C" {
 #endif
 
-MA_API ma_ex_context_config ma_ex_context_config_init(ma_uint32 sampleRate, ma_uint8 channels);
+MA_API ma_ex_device_info *ma_ex_playback_devices_get(ma_uint32 *count);
+MA_API void *ma_ex_playback_devices_free(ma_ex_device_info *pDeviceInfo, ma_uint32 count);
+
+MA_API ma_ex_context_config ma_ex_context_config_init(ma_uint32 sampleRate, ma_uint8 channels, const ma_ex_device_info *pDeviceInfo);
 MA_API ma_ex_context *ma_ex_context_init(const ma_ex_context_config *config);
 MA_API void ma_ex_context_uninit(ma_ex_context *context);
 MA_API void ma_ex_context_set_master_volume(ma_ex_context *context, float volume);
 MA_API float ma_ex_context_get_master_volume(ma_ex_context *context);
 
-MA_API ma_ex_audio_source *ma_ex_audio_source_init(const ma_ex_context *context);
+MA_API ma_ex_audio_source *ma_ex_audio_source_init(ma_ex_context *context);
 MA_API void ma_ex_audio_source_uninit(ma_ex_audio_source *source);
 MA_API void ma_ex_audio_source_set_callbacks(ma_ex_audio_source *source, ma_ex_audio_source_callbacks callbacks);
 MA_API ma_result ma_ex_audio_source_play(ma_ex_audio_source *source);
@@ -159,7 +170,7 @@ MA_API void ma_ex_audio_source_set_max_distance(ma_ex_audio_source *source, floa
 MA_API float ma_ex_audio_source_get_max_distance(ma_ex_audio_source *source);
 MA_API ma_bool32 ma_ex_audio_source_get_is_playing(ma_ex_audio_source *source);
 
-MA_API ma_ex_audio_listener *ma_ex_audio_listener_init(const ma_ex_context *context);
+MA_API ma_ex_audio_listener *ma_ex_audio_listener_init(ma_ex_context *context);
 MA_API void ma_ex_audio_listener_uninit(ma_ex_audio_listener *listener);
 MA_API void ma_ex_audio_listener_set_spatialization(ma_ex_audio_listener *listener, ma_bool32 enabled);
 MA_API ma_bool32 ma_ex_audio_listener_get_spatialization(ma_ex_audio_listener *listener);

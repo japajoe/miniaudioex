@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 3.5.1)
 project(miniaudioex)
 
 set(BUILD_PLATFORM "unknown" CACHE STRING "Target platform for the build")
-SET(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_C_FLAGS_RELEASE "-O3")
 
 if(BUILD_PLATFORM STREQUAL "windows")
@@ -23,6 +22,8 @@ file(GLOB SOURCES
 include_directories(
     "${PROJECT_SOURCE_DIR}/include"
 )
+
+add_definitions(-DNDEBUG)
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 #add_executable(${PROJECT_NAME} ${SOURCES})

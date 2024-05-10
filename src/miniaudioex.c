@@ -129,7 +129,62 @@ static void ma_ex_on_data_proc(ma_device* pDevice, void* pOutput, const void* pI
     (void)pInput;
 }
 
-ma_ex_context_config ma_ex_context_config_init(ma_uint32 sampleRate, ma_uint8 channels) {
+ma_ex_device_info *ma_ex_playback_devices_get(ma_uint32 *count) {
+    *count = 0;
+
+    ma_context context;
+    ma_result result = ma_context_init(NULL, 0, NULL, &context);
+    
+    if (result != MA_SUCCESS) {
+        return NULL;
+    }
+
+    ma_device_info* pPlaybackInfos;
+    ma_uint32 playbackCount;
+    ma_device_info* pCaptureInfos;
+    ma_uint32 captureCount;
+    result = ma_context_get_devices(&context, &pPlaybackInfos, &playbackCount, &pCaptureInfos, &captureCount);
+
+    if (result != MA_SUCCESS) {
+        return NULL;
+    }
+
+    ma_ex_device_info *pDeviceInfo = NULL;
+
+    if(playbackCount > 0) {
+        pDeviceInfo = MA_MALLOC(sizeof(ma_ex_device_info) * playbackCount);
+        if(pDeviceInfo == NULL)
+            return NULL;
+    } else {
+        return NULL;
+    }
+
+    *count = playbackCount;
+
+    for (ma_uint32 iDevice = 0; iDevice < playbackCount; iDevice += 1) {
+        pDeviceInfo[iDevice].index = iDevice;
+        size_t len = strlen(pPlaybackInfos[iDevice].name) + 1;
+        pDeviceInfo[iDevice].pName = MA_MALLOC(len);
+        memset(pDeviceInfo[iDevice].pName, 0, len);
+        memcpy(pDeviceInfo[iDevice].pName, pPlaybackInfos[iDevice].name, len);
+    }
+
+    ma_context_uninit(&context);
+
+    return pDeviceInfo;
+}
+
+void *ma_ex_playback_devices_free(ma_ex_device_info *pDeviceInfo, ma_uint32 count) {
+    if(pDeviceInfo != NULL && count > 0) {
+        for(ma_uint32 i = 0; i < count; i++) {
+            if(pDeviceInfo[i].pName != NULL)
+                MA_FREE(pDeviceInfo[i].pName);
+        }
+        MA_FREE(pDeviceInfo);
+    }
+}
+
+ma_ex_context_config ma_ex_context_config_init(ma_uint32 sampleRate, ma_uint8 channels, const ma_ex_device_info *pDeviceInfo) {
     MA_ASSERT(sampleRate > 0);
     MA_ASSERT(channels > 0);
 
@@ -137,25 +192,35 @@ ma_ex_context_config ma_ex_context_config_init(ma_uint32 sampleRate, ma_uint8 ch
     config.sampleRate = sampleRate;
     config.channels = channels;
 
+    if(pDeviceInfo == NULL) {
+        config.deviceInfo.index = 0;
+    } else {
+        config.deviceInfo = *pDeviceInfo;
+    }
+
     return config;
 }
 
 ma_ex_context *ma_ex_context_init(const ma_ex_context_config *config) {
+    
     MA_ASSERT(config->sampleRate > 0);
     MA_ASSERT(config->channels > 0);
 
     ma_ex_context *context = MA_MALLOC(sizeof(ma_ex_context));
     MA_ZERO_OBJECT(context);
-
-    context->engine = MA_MALLOC(sizeof(ma_engine));
-    MA_ZERO_OBJECT(context->engine);
-    
-    context->device = MA_MALLOC(sizeof(ma_device));
-    MA_ZERO_OBJECT(context->device);
+    MA_ZERO_OBJECT(&context->context);
+    MA_ZERO_OBJECT(&context->engine);
+    MA_ZERO_OBJECT(&context->device);
 
     context->sampleRate = config->sampleRate;
     context->channels = config->channels;
     context->format = ma_format_f32;
+
+    if (ma_context_init(NULL, 0, NULL, &context->context) != MA_SUCCESS) {
+        fprintf(stderr, "Failed to initialize ma_context\n");
+        MA_FREE(context);
+        return NULL;
+    }
 
     ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
     deviceConfig.playback.format = context->format;
@@ -163,34 +228,59 @@ ma_ex_context *ma_ex_context_init(const ma_ex_context_config *config) {
     deviceConfig.sampleRate = context->sampleRate;
     deviceConfig.dataCallback = &ma_ex_on_data_proc;
 
-    if(ma_device_init(NULL, &deviceConfig, context->device) != MA_SUCCESS) {
-        MA_FREE(context->device);
-        MA_FREE(context->engine);
+    ma_device_info* pPlaybackInfos;
+    ma_uint32 playbackCount;
+    ma_device_info* pCaptureInfos;
+    ma_uint32 captureCount;
+
+    if (ma_context_get_devices(&context->context, &pPlaybackInfos, &playbackCount, &pCaptureInfos, &captureCount) != MA_SUCCESS) {
+        fprintf(stderr, "Failed to get playback devices\n");
+        ma_context_uninit(&context->context);
+        MA_FREE(context);
+        return NULL;
+    }
+
+    if(config->deviceInfo.index >= playbackCount) {
+        fprintf(stderr, "Device index is greater than or equal to the number of playback devices\n");
+        ma_context_uninit(&context->context);
+        MA_FREE(context);
+        return NULL;
+    }
+    
+    deviceConfig.playback.pDeviceID = &pPlaybackInfos[config->deviceInfo.index].id;
+
+    if(ma_device_init(&context->context, &deviceConfig, &context->device) != MA_SUCCESS) {
+        fprintf(stderr, "Failed to initialize ma_device\n");
+        ma_context_uninit(&context->context);
         MA_FREE(context);
         return NULL;
     }
 
     ma_engine_config engineConfig = ma_engine_config_init();
-    engineConfig.listenerCount = 1;
-    engineConfig.pDevice = context->device;
+    engineConfig.listenerCount = MA_ENGINE_MAX_LISTENERS;
+    engineConfig.pDevice = &context->device;
 
-    if(ma_engine_init(&engineConfig, context->engine) != MA_SUCCESS) {
-        ma_device_uninit(context->device);
-        MA_FREE(context->device);
-        MA_FREE(context->engine);
+    if(ma_engine_init(&engineConfig, &context->engine) != MA_SUCCESS) {
+        fprintf(stderr, "Failed to initialize ma_engine\n");
+        ma_device_uninit(&context->device);
+        ma_context_uninit(&context->context);
         MA_FREE(context);
         return NULL;
     }
 
-    context->device->pUserData = context->engine;
+    context->device.pUserData = &context->engine;
 
-    if (ma_device_start(context->device) != MA_SUCCESS) {
-        ma_engine_uninit(context->engine);
-        ma_device_uninit(context->device);
-        MA_FREE(context->device);
-        MA_FREE(context->engine);
+    if (ma_device_start(&context->device) != MA_SUCCESS) {
+        fprintf(stderr, "Failed to start ma_device\n");
+        ma_engine_uninit(&context->engine);
+        ma_device_uninit(&context->device);
+        ma_context_uninit(&context->context);
         MA_FREE(context);
         return NULL;
+    }
+
+    for(size_t i = 0; i < MA_ENGINE_MAX_LISTENERS; i++) {
+        context->listeners[i] = -1;
     }
 
     return context;
@@ -198,31 +288,29 @@ ma_ex_context *ma_ex_context_init(const ma_ex_context_config *config) {
 
 void ma_ex_context_uninit(ma_ex_context *context) {
     if(context != NULL) {
-        ma_engine_uninit(context->engine);
-        ma_device_uninit(context->device);
-        MA_FREE(context->engine);
-        MA_FREE(context->device);
+        ma_engine_uninit(&context->engine);
+        ma_device_uninit(&context->device);
+        ma_context_uninit(&context->context);
         MA_FREE(context);
     }
 }
 
 void ma_ex_context_set_master_volume(ma_ex_context *context, float volume) {
     if(context != NULL)
-        ma_engine_set_volume(context->engine, volume);
+        ma_engine_set_volume(&context->engine, volume);
 }
 
 float ma_ex_context_get_master_volume(ma_ex_context *context) {
     if(context != NULL)
-        return ma_engine_get_volume(context->engine);
+        return ma_engine_get_volume(&context->engine);
     return 0.0f;
 }
 
-ma_ex_audio_source *ma_ex_audio_source_init(const ma_ex_context *context) {
+ma_ex_audio_source *ma_ex_audio_source_init(ma_ex_context *context) {
     MA_ASSERT(context != NULL);
-    MA_ASSERT(context->engine != NULL);
     
     ma_ex_audio_source *source = MA_MALLOC(sizeof(ma_ex_audio_source));
-    source->engine = context->engine;
+    source->context = context;
     MA_ZERO_OBJECT(&source->sound);
     MA_ZERO_OBJECT(&source->callbacks);
     MA_ZERO_OBJECT(&source->settings);
@@ -288,13 +376,13 @@ ma_result ma_ex_audio_source_play(ma_ex_audio_source *source) {
             MA_ZERO_OBJECT(&source->waveform);
         }
 
-        ma_procedural_wave_config config = ma_procedural_wave_config_init(ma_format_f32, 2, source->engine->sampleRate, source->callbacks.waveformCallback, source->callbacks.pUserData);
+        ma_procedural_wave_config config = ma_procedural_wave_config_init(ma_format_f32, 2, source->context->engine.sampleRate, source->callbacks.waveformCallback, source->callbacks.pUserData);
         ma_result result = ma_procedural_wave_init(&config, &source->waveform);
 
         if(result != MA_SUCCESS)
             return result;
 
-        result = ma_sound_init_from_data_source(source->engine, &source->waveform, 0, NULL, &source->sound);
+        result = ma_sound_init_from_data_source(&source->context->engine, &source->waveform, 0, NULL, &source->sound);
 
         if(result != MA_SUCCESS)
             return result;
@@ -329,7 +417,7 @@ ma_result ma_ex_audio_source_play_from_file(ma_ex_audio_source *source, const ch
             ma_data_source_uninit(dataSource);
         }
 
-        ma_result result = ma_sound_init_from_file(source->engine, filePath, flags, NULL, NULL, &source->sound);
+        ma_result result = ma_sound_init_from_file(&source->context->engine, filePath, flags, NULL, NULL, &source->sound);
 
         if(result != MA_SUCCESS)
             return result;
@@ -361,7 +449,7 @@ ma_result ma_ex_audio_source_play_from_memory(ma_ex_audio_source *source, const 
             MA_ZERO_OBJECT(&source->decoder);
         }
 
-        ma_decoder_config config = ma_decoder_config_init(ma_format_f32, 2, source->engine->sampleRate);
+        ma_decoder_config config = ma_decoder_config_init(ma_format_f32, 2, source->context->engine.sampleRate);
         ma_result result = ma_decoder_init_memory(data, dataSize, &config, &source->decoder);
 
         if(result != MA_SUCCESS)
@@ -369,7 +457,7 @@ ma_result ma_ex_audio_source_play_from_memory(ma_ex_audio_source *source, const 
 
         ma_uint32 flags = MA_SOUND_FLAG_DECODE;
 
-        result = ma_sound_init_from_data_source(source->engine, &source->decoder, flags, NULL, &source->sound);
+        result = ma_sound_init_from_data_source(&source->context->engine, &source->decoder, flags, NULL, &source->sound);
 
         if(result != MA_SUCCESS)
             return result;
@@ -587,14 +675,29 @@ ma_bool32 ma_ex_audio_source_get_is_playing(ma_ex_audio_source *source) {
     return MA_FALSE;
 }
 
-ma_ex_audio_listener *ma_ex_audio_listener_init(const ma_ex_context *context) {
+ma_ex_audio_listener *ma_ex_audio_listener_init(ma_ex_context *context) {
     MA_ASSERT(context != NULL);
-    MA_ASSERT(context->engine != NULL);
+
+    ma_int32 listenerIndex = -1;
+
+    for(ma_int32 i = 0; i < MA_ENGINE_MAX_LISTENERS; i++) {
+        if(context->listeners[i] == -1) {
+            context->listeners[i] = i;
+            listenerIndex = i;
+            break;
+        }
+    }
+
+    if(listenerIndex == -1) {
+        fprintf(stderr, "Can't create any more audio listeners, the max of %d is already achieved\n", MA_ENGINE_MAX_LISTENERS);
+        return NULL;
+    }
 
     ma_ex_audio_listener *listener = (ma_ex_audio_listener*)MA_MALLOC(sizeof(ma_ex_audio_listener));
     MA_ZERO_OBJECT(listener);
 
-    listener->engine = context->engine;
+    listener->context = context;
+    listener->index = listenerIndex;
     ma_ex_vec3f_set(&listener->settings.position, 0.0f, 0.0f, 0.0f);
     ma_ex_vec3f_set(&listener->settings.direction, 0.0f, 0.0f, -1.0f);
     ma_ex_vec3f_set(&listener->settings.velocity, 0.0f, 0.0f, 0.0f);
@@ -604,25 +707,28 @@ ma_ex_audio_listener *ma_ex_audio_listener_init(const ma_ex_context *context) {
     listener->settings.coneOuterAngleInRadians = 6.283185f; /* 360 degrees. */
     listener->settings.coneOuterGain = 0;
 
-    ma_engine_listener_set_position(listener->engine, 0, listener->settings.position.x, listener->settings.position.y, listener->settings.position.z);
-    ma_engine_listener_set_direction(listener->engine, 0, listener->settings.direction.x, listener->settings.direction.y, listener->settings.direction.z);
-    ma_engine_listener_set_velocity(listener->engine, 0, listener->settings.velocity.x, listener->settings.velocity.y, listener->settings.velocity.z);
-    ma_engine_listener_set_world_up(listener->engine, 0, listener->settings.worldUp.x, listener->settings.worldUp.y, listener->settings.worldUp.z);
-    ma_engine_listener_set_cone(listener->engine, 0, listener->settings.coneInnerAngleInRadians, listener->settings.coneOuterAngleInRadians, listener->settings.coneOuterGain);
-    ma_engine_listener_set_enabled(listener->engine, 0, listener->settings.spatialization);
+    ma_engine_listener_set_position(&listener->context->engine, listener->index, listener->settings.position.x, listener->settings.position.y, listener->settings.position.z);
+    ma_engine_listener_set_direction(&listener->context->engine, listener->index, listener->settings.direction.x, listener->settings.direction.y, listener->settings.direction.z);
+    ma_engine_listener_set_velocity(&listener->context->engine, listener->index, listener->settings.velocity.x, listener->settings.velocity.y, listener->settings.velocity.z);
+    ma_engine_listener_set_world_up(&listener->context->engine, listener->index, listener->settings.worldUp.x, listener->settings.worldUp.y, listener->settings.worldUp.z);
+    ma_engine_listener_set_cone(&listener->context->engine, listener->index, listener->settings.coneInnerAngleInRadians, listener->settings.coneOuterAngleInRadians, listener->settings.coneOuterGain);
+    ma_engine_listener_set_enabled(&listener->context->engine, listener->index, listener->settings.spatialization);
     
     return listener;
 }
 
 void ma_ex_audio_listener_uninit(ma_ex_audio_listener *listener) {
     if(listener != NULL) {
+        if(listener->context != NULL && listener->index < MA_ENGINE_MAX_LISTENERS) {
+            listener->context->listeners[listener->index] = -1;
+        }
         MA_FREE(listener);
     }
 }
 
 void ma_ex_audio_listener_set_spatialization(ma_ex_audio_listener *listener, ma_bool32 enabled) {
     if(listener != NULL)
-        ma_engine_listener_set_enabled(listener->engine, 0, enabled);
+        ma_engine_listener_set_enabled(&listener->context->engine, listener->index, enabled);
 }
 
 ma_bool32 ma_ex_audio_listener_get_spatialization(ma_ex_audio_listener *listener) {
@@ -636,7 +742,7 @@ void ma_ex_audio_listener_set_position(ma_ex_audio_listener *listener, float x, 
         listener->settings.position.x = x;
         listener->settings.position.y = y;
         listener->settings.position.z = z;
-        ma_engine_listener_set_position(listener->engine, 0, x, y, z);
+        ma_engine_listener_set_position(&listener->context->engine, listener->index, x, y, z);
     }
 }
 
@@ -655,7 +761,7 @@ void ma_ex_audio_listener_set_direction(ma_ex_audio_listener *listener, float x,
         listener->settings.direction.x = x;
         listener->settings.direction.y = y;
         listener->settings.direction.z = z;
-        ma_engine_listener_set_direction(listener->engine, 0, x, y, z);
+        ma_engine_listener_set_direction(&listener->context->engine, listener->index, x, y, z);
     }
 }
 
@@ -674,7 +780,7 @@ void ma_ex_audio_listener_set_velocity(ma_ex_audio_listener *listener, float x, 
         listener->settings.velocity.x = x;
         listener->settings.velocity.y = y;
         listener->settings.velocity.z = z;
-        ma_engine_listener_set_velocity(listener->engine, 0, x, y, z);
+        ma_engine_listener_set_velocity(&listener->context->engine, listener->index, x, y, z);
     }
 }
 
@@ -693,7 +799,7 @@ void ma_ex_audio_listener_set_world_up(ma_ex_audio_listener *listener, float x, 
         listener->settings.worldUp.x = x;
         listener->settings.worldUp.y = y;
         listener->settings.worldUp.z = z;
-        ma_engine_listener_set_world_up(listener->engine, 0, x, y, z);
+        ma_engine_listener_set_world_up(&listener->context->engine, listener->index, x, y, z);
     }
 }
 
@@ -712,7 +818,7 @@ void ma_ex_audio_listener_set_cone(ma_ex_audio_listener *listener, float innerAn
         listener->settings.coneInnerAngleInRadians = innerAngleInRadians;
         listener->settings.coneOuterAngleInRadians = outerAngleInRadians;
         listener->settings.coneOuterGain = outerGain;
-        ma_engine_listener_set_cone(listener->engine, 0, innerAngleInRadians, outerAngleInRadians, outerGain);
+        ma_engine_listener_set_cone(&listener->context->engine, listener->index, innerAngleInRadians, outerAngleInRadians, outerGain);
     }
 }
 
