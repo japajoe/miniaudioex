@@ -175,7 +175,7 @@ MA_API ma_ex_device_info *ma_ex_playback_devices_get(ma_uint32 *count) {
 }
 
 MA_API void *ma_ex_playback_devices_free(ma_ex_device_info *pDeviceInfo, ma_uint32 count) {
-    if(pDeviceInfo != NULL && count > 0) {
+    if(pDeviceInfo != NULL) {
         for(ma_uint32 i = 0; i < count; i++) {
             if(pDeviceInfo[i].pName != NULL)
                 MA_FREE(pDeviceInfo[i].pName);
