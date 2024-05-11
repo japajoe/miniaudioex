@@ -107,7 +107,7 @@ static ma_node_vtable g_ma_dsp_node_vtable = {
     MA_NODE_FLAG_CONTINUOUS_PROCESSING  /* Reverb requires continuous processing to ensure the tail get's processed. */
 };
 
-ma_dsp_node_config ma_dsp_node_config_init(ma_uint32 channels, ma_uint32 sampleRate, ma_dsp_node_proc pCallback, void *pUserData) {
+MA_API ma_dsp_node_config ma_dsp_node_config_init(ma_uint32 channels, ma_uint32 sampleRate, ma_dsp_node_proc pCallback, void *pUserData) {
     MA_ASSERT(pCallback != NULL);
     
     ma_dsp_node_config config;
@@ -122,7 +122,7 @@ ma_dsp_node_config ma_dsp_node_config_init(ma_uint32 channels, ma_uint32 sampleR
     return config;
 }
 
-ma_result ma_dsp_node_init(ma_node_graph* pNodeGraph, const ma_dsp_node_config* pConfig, const ma_allocation_callbacks* pAllocationCallbacks, ma_dsp_node* pDspNode) {
+MA_API ma_result ma_dsp_node_init(ma_node_graph* pNodeGraph, const ma_dsp_node_config* pConfig, const ma_allocation_callbacks* pAllocationCallbacks, ma_dsp_node* pDspNode) {
     ma_result result;
     ma_node_config baseConfig;
 
@@ -151,7 +151,7 @@ ma_result ma_dsp_node_init(ma_node_graph* pNodeGraph, const ma_dsp_node_config* 
     return MA_SUCCESS;
 }
 
-void ma_dsp_node_uninit(ma_dsp_node_config* pDspNode, const ma_allocation_callbacks* pAllocationCallbacks) {
+MA_API void ma_dsp_node_uninit(ma_dsp_node_config* pDspNode, const ma_allocation_callbacks* pAllocationCallbacks) {
     if(pDspNode != NULL)
         ma_node_uninit(pDspNode, pAllocationCallbacks);
 }

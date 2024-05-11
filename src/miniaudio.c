@@ -62589,10 +62589,6 @@ static void ma_sound_set_at_end(ma_sound* pSound, ma_bool32 atEnd)
         if(pSound->notifications.onAtEnd != NULL) {
             pSound->notifications.onAtEnd(pSound->notifications.pUserData, pSound);
         }
-        //Compatibility
-        if (pSound->endCallback != NULL) {
-            pSound->endCallback(pSound->pEndCallbackUserData, pSound);
-        }
     }
 }
 
@@ -64684,9 +64680,6 @@ MA_API ma_result ma_sound_init_ex(ma_engine* pEngine, const ma_sound_config* pCo
     pSound->notifications.onAtEnd = NULL;
     pSound->notifications.onProcess = NULL;
 
-    pSound->endCallback          = pConfig->endCallback;
-    pSound->pEndCallbackUserData = pConfig->pEndCallbackUserData;
-
     /* We need to load the sound differently depending on whether or not we're loading from a file. */
 #ifndef MA_NO_RESOURCE_MANAGER
     if (pConfig->pFilePath != NULL || pConfig->pFilePathW != NULL) {
@@ -65527,23 +65520,6 @@ MA_API ma_result ma_sound_get_length_in_seconds(ma_sound* pSound, float* pLength
     }
 
     return ma_data_source_get_length_in_seconds(pSound->pDataSource, pLength);
-}
-
-MA_API ma_result ma_sound_set_end_callback(ma_sound* pSound, ma_sound_end_proc callback, void* pUserData)
-{
-    if (pSound == NULL) {
-        return MA_INVALID_ARGS;
-    }
-
-    /* The notion of an end is only valid for sounds that are backed by a data source. */
-    if (pSound->pDataSource == NULL) {
-        return MA_INVALID_OPERATION;
-    }
-
-    pSound->endCallback          = callback;
-    pSound->pEndCallbackUserData = pUserData;
-
-    return MA_SUCCESS;
 }
 
 MA_API ma_result ma_sound_set_notifications_userdata(ma_sound* pSound, void* pUserData)

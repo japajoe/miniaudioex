@@ -76,7 +76,6 @@ MA_API ma_procedural_wave_config ma_procedural_wave_config_init(ma_format format
 MA_API ma_result ma_procedural_wave_init(const ma_procedural_wave_config* pConfig, ma_procedural_wave* pWaveform);
 MA_API void ma_procedural_wave_uninit(ma_procedural_wave* pWaveform);
 MA_API ma_result ma_procedural_wave_read_pcm_frames(ma_procedural_wave* pWaveform, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead);
-MA_API ma_result ma_procedural_wave_seek_to_pcm_frame(ma_procedural_wave* pWaveform, ma_uint64 frameIndex);
 
 #if defined(__cplusplus)
 }

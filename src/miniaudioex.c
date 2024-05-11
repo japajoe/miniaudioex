@@ -129,7 +129,7 @@ static void ma_ex_on_data_proc(ma_device* pDevice, void* pOutput, const void* pI
     (void)pInput;
 }
 
-ma_ex_device_info *ma_ex_playback_devices_get(ma_uint32 *count) {
+MA_API ma_ex_device_info *ma_ex_playback_devices_get(ma_uint32 *count) {
     *count = 0;
 
     ma_context context;
@@ -174,7 +174,7 @@ ma_ex_device_info *ma_ex_playback_devices_get(ma_uint32 *count) {
     return pDeviceInfo;
 }
 
-void *ma_ex_playback_devices_free(ma_ex_device_info *pDeviceInfo, ma_uint32 count) {
+MA_API void *ma_ex_playback_devices_free(ma_ex_device_info *pDeviceInfo, ma_uint32 count) {
     if(pDeviceInfo != NULL && count > 0) {
         for(ma_uint32 i = 0; i < count; i++) {
             if(pDeviceInfo[i].pName != NULL)
@@ -184,7 +184,7 @@ void *ma_ex_playback_devices_free(ma_ex_device_info *pDeviceInfo, ma_uint32 coun
     }
 }
 
-ma_ex_context_config ma_ex_context_config_init(ma_uint32 sampleRate, ma_uint8 channels, const ma_ex_device_info *pDeviceInfo) {
+MA_API ma_ex_context_config ma_ex_context_config_init(ma_uint32 sampleRate, ma_uint8 channels, const ma_ex_device_info *pDeviceInfo) {
     MA_ASSERT(sampleRate > 0);
     MA_ASSERT(channels > 0);
 
@@ -201,7 +201,7 @@ ma_ex_context_config ma_ex_context_config_init(ma_uint32 sampleRate, ma_uint8 ch
     return config;
 }
 
-ma_ex_context *ma_ex_context_init(const ma_ex_context_config *config) {
+MA_API ma_ex_context *ma_ex_context_init(const ma_ex_context_config *config) {
     
     MA_ASSERT(config->sampleRate > 0);
     MA_ASSERT(config->channels > 0);
@@ -286,7 +286,7 @@ ma_ex_context *ma_ex_context_init(const ma_ex_context_config *config) {
     return context;
 }
 
-void ma_ex_context_uninit(ma_ex_context *context) {
+MA_API void ma_ex_context_uninit(ma_ex_context *context) {
     if(context != NULL) {
         ma_engine_uninit(&context->engine);
         ma_device_uninit(&context->device);
@@ -295,18 +295,18 @@ void ma_ex_context_uninit(ma_ex_context *context) {
     }
 }
 
-void ma_ex_context_set_master_volume(ma_ex_context *context, float volume) {
+MA_API void ma_ex_context_set_master_volume(ma_ex_context *context, float volume) {
     if(context != NULL)
         ma_engine_set_volume(&context->engine, volume);
 }
 
-float ma_ex_context_get_master_volume(ma_ex_context *context) {
+MA_API float ma_ex_context_get_master_volume(ma_ex_context *context) {
     if(context != NULL)
         return ma_engine_get_volume(&context->engine);
     return 0.0f;
 }
 
-ma_ex_audio_source *ma_ex_audio_source_init(ma_ex_context *context) {
+MA_API ma_ex_audio_source *ma_ex_audio_source_init(ma_ex_context *context) {
     MA_ASSERT(context != NULL);
     
     ma_ex_audio_source *source = MA_MALLOC(sizeof(ma_ex_audio_source));
@@ -336,14 +336,14 @@ ma_ex_audio_source *ma_ex_audio_source_init(ma_ex_context *context) {
     return source;
 }
 
-void ma_ex_audio_source_uninit(ma_ex_audio_source *source) {
+MA_API void ma_ex_audio_source_uninit(ma_ex_audio_source *source) {
     if(source != NULL) {
         ma_sound_uninit(&source->sound);
         MA_FREE(source);
     }
 }
 
-void ma_ex_audio_source_set_callbacks(ma_ex_audio_source *source, ma_ex_audio_source_callbacks callbacks) {
+MA_API void ma_ex_audio_source_set_callbacks(ma_ex_audio_source *source, ma_ex_audio_source_callbacks callbacks) {
     if(source != NULL) {
         if(callbacks.pUserData == NULL)
             callbacks.pUserData = source;
@@ -360,7 +360,7 @@ static MA_INLINE void ma_ex_sound_set_callbacks(ma_sound *pSound, const ma_ex_au
     }
 }
 
-ma_result ma_ex_audio_source_play(ma_ex_audio_source *source) {
+MA_API ma_result ma_ex_audio_source_play(ma_ex_audio_source *source) {
     if(source == NULL)
         return MA_ERROR;
 
@@ -395,12 +395,12 @@ ma_result ma_ex_audio_source_play(ma_ex_audio_source *source) {
     return ma_sound_start(&source->sound);
 }
 
-ma_result ma_ex_audio_source_play_from_file(ma_ex_audio_source *source, const char *filePath, ma_bool32 streamFromDisk) {
+MA_API ma_result ma_ex_audio_source_play_from_file(ma_ex_audio_source *source, const char *filePath, ma_bool32 streamFromDisk) {
     if(source == NULL)
         return MA_ERROR;
 
     if(filePath == NULL)
-        return MA_ERROR;
+        return MA_INVALID_FILE;
     
     ma_uint32 flags = MA_SOUND_FLAG_DECODE;
     
@@ -430,12 +430,12 @@ ma_result ma_ex_audio_source_play_from_file(ma_ex_audio_source *source, const ch
     return ma_sound_start(&source->sound);
 }
 
-ma_result ma_ex_audio_source_play_from_memory(ma_ex_audio_source *source, const void *data, ma_uint64 dataSize) {
+MA_API ma_result ma_ex_audio_source_play_from_memory(ma_ex_audio_source *source, const void *data, ma_uint64 dataSize) {
     if(source == NULL)
         return MA_ERROR;
 
     if(data == NULL)
-        return MA_ERROR;
+        return MA_INVALID_DATA;
 
     ma_uint64 hashcode = ma_ex_pointer_to_hashcode(data);
 
@@ -470,12 +470,12 @@ ma_result ma_ex_audio_source_play_from_memory(ma_ex_audio_source *source, const 
     return ma_sound_start(&source->sound);
 }
 
-void ma_ex_audio_source_stop(ma_ex_audio_source *source) {
+MA_API void ma_ex_audio_source_stop(ma_ex_audio_source *source) {
     if(source != NULL)
         ma_sound_stop(&source->sound);
 }
 
-void ma_ex_audio_source_apply_settings(ma_ex_audio_source *source) {
+MA_API void ma_ex_audio_source_apply_settings(ma_ex_audio_source *source) {
     if(source != NULL) {
         ma_sound_set_attenuation_model(&source->sound, source->settings.attenuationModel);
         ma_sound_set_direction(&source->sound, source->settings.direction.x, source->settings.direction.y, source->settings.direction.z);
@@ -491,44 +491,44 @@ void ma_ex_audio_source_apply_settings(ma_ex_audio_source *source) {
     }
 }
 
-void ma_ex_audio_source_set_volume(ma_ex_audio_source *source, float value) {
+MA_API void ma_ex_audio_source_set_volume(ma_ex_audio_source *source, float value) {
     if(source != NULL) {
         source->settings.volume = value;
         ma_sound_set_volume(&source->sound, value);
     }
 }
 
-float ma_ex_audio_source_get_volume(ma_ex_audio_source *source) {
+MA_API float ma_ex_audio_source_get_volume(ma_ex_audio_source *source) {
     if(source != NULL)
         return source->settings.volume;
     return 1.0f;
 }
 
-void ma_ex_audio_source_set_pitch(ma_ex_audio_source *source, float value) {
+MA_API void ma_ex_audio_source_set_pitch(ma_ex_audio_source *source, float value) {
     if(source != NULL) {
         source->settings.pitch = value;
         ma_sound_set_pitch(&source->sound, value);
     }
 }
 
-float ma_ex_audio_source_get_pitch(ma_ex_audio_source *source) {
+MA_API float ma_ex_audio_source_get_pitch(ma_ex_audio_source *source) {
     if(source != NULL)
         return source->settings.pitch;
     return 1.0f;
 }
 
-void ma_ex_audio_source_set_pcm_position(ma_ex_audio_source *source, ma_uint64 position) {
+MA_API void ma_ex_audio_source_set_pcm_position(ma_ex_audio_source *source, ma_uint64 position) {
     if(source != NULL)
         ma_sound_seek_to_pcm_frame(&source->sound, position);
 }
 
-ma_uint64 ma_ex_audio_source_get_pcm_position(ma_ex_audio_source *source) {
+MA_API ma_uint64 ma_ex_audio_source_get_pcm_position(ma_ex_audio_source *source) {
     if(source != NULL)
         return ma_sound_get_time_in_pcm_frames(&source->sound);
     return 0;
 }
 
-ma_uint64 ma_ex_audio_source_get_pcm_length(ma_ex_audio_source *source) {
+MA_API ma_uint64 ma_ex_audio_source_get_pcm_length(ma_ex_audio_source *source) {
     if(source != NULL) {
         ma_data_source *dataSource = ma_sound_get_data_source(&source->sound);
         if(dataSource != NULL) {
@@ -540,27 +540,27 @@ ma_uint64 ma_ex_audio_source_get_pcm_length(ma_ex_audio_source *source) {
     return 0;
 }
 
-void ma_ex_audio_source_set_loop(ma_ex_audio_source *source, ma_bool32 loop) {
+MA_API void ma_ex_audio_source_set_loop(ma_ex_audio_source *source, ma_bool32 loop) {
     if(source != NULL) {
         source->settings.loop = loop;
         ma_sound_set_looping(&source->sound, loop);
     }
 }
 
-ma_bool32 ma_ex_audio_source_get_loop(ma_ex_audio_source *source) {
+MA_API ma_bool32 ma_ex_audio_source_get_loop(ma_ex_audio_source *source) {
     if(source != NULL)
         return source->settings.loop;
     return MA_FALSE;
 }
 
-void ma_ex_audio_source_set_position(ma_ex_audio_source *source, float x, float y, float z) {
+MA_API void ma_ex_audio_source_set_position(ma_ex_audio_source *source, float x, float y, float z) {
     if(source != NULL) {
         ma_ex_vec3f_set(&source->settings.position, x, y, z);
         ma_sound_set_position(&source->sound, x, y, z);
     }
 }
 
-void ma_ex_audio_source_get_position(ma_ex_audio_source *source, float *x, float *y, float *z) {
+MA_API void ma_ex_audio_source_get_position(ma_ex_audio_source *source, float *x, float *y, float *z) {
     if(source != NULL) {
         ma_ex_vec3f_get(&source->settings.position, x, y, z);
     } else {
@@ -570,14 +570,14 @@ void ma_ex_audio_source_get_position(ma_ex_audio_source *source, float *x, float
     }
 }
 
-void ma_ex_audio_source_set_direction(ma_ex_audio_source *source, float x, float y, float z) {
+MA_API void ma_ex_audio_source_set_direction(ma_ex_audio_source *source, float x, float y, float z) {
     if(source != NULL) {
         ma_ex_vec3f_set(&source->settings.direction, x, y, z);
         ma_sound_set_direction(&source->sound, x, y, z);
     }
 }
 
-void ma_ex_audio_source_get_direction(ma_ex_audio_source *source, float *x, float *y, float *z) {
+MA_API void ma_ex_audio_source_get_direction(ma_ex_audio_source *source, float *x, float *y, float *z) {
     if(source != NULL) {
         ma_ex_vec3f_get(&source->settings.direction, x, y, z);
     } else {
@@ -587,14 +587,14 @@ void ma_ex_audio_source_get_direction(ma_ex_audio_source *source, float *x, floa
     }
 }
 
-void ma_ex_audio_source_set_velocity(ma_ex_audio_source *source, float x, float y, float z) {
+MA_API void ma_ex_audio_source_set_velocity(ma_ex_audio_source *source, float x, float y, float z) {
     if(source != NULL) {
         ma_ex_vec3f_set(&source->settings.velocity, x, y, z);
         ma_sound_set_velocity(&source->sound, x, y, z);
     }
 }
 
-void ma_ex_audio_source_get_velocity(ma_ex_audio_source *source, float *x, float *y, float *z) {
+MA_API void ma_ex_audio_source_get_velocity(ma_ex_audio_source *source, float *x, float *y, float *z) {
     if(source != NULL) {
         ma_ex_vec3f_get(&source->settings.velocity, x, y, z);
     } else {
@@ -604,78 +604,78 @@ void ma_ex_audio_source_get_velocity(ma_ex_audio_source *source, float *x, float
     }
 }
 
-void ma_ex_audio_source_set_spatialization(ma_ex_audio_source *source, ma_bool32 enabled) {
+MA_API void ma_ex_audio_source_set_spatialization(ma_ex_audio_source *source, ma_bool32 enabled) {
     if(source != NULL) {
         source->settings.spatialization = enabled;
         ma_sound_set_spatialization_enabled(&source->sound, enabled);
     }
 }
 
-ma_bool32 ma_ex_audio_source_get_spatialization(ma_ex_audio_source *source) {
+MA_API ma_bool32 ma_ex_audio_source_get_spatialization(ma_ex_audio_source *source) {
     if(source != NULL)
         return source->settings.spatialization;
     return MA_FALSE;
 }
 
-void ma_ex_audio_source_set_attenuation_model(ma_ex_audio_source *source, ma_attenuation_model model) {
+MA_API void ma_ex_audio_source_set_attenuation_model(ma_ex_audio_source *source, ma_attenuation_model model) {
     if(source != NULL) {
         source->settings.attenuationModel = model;
         ma_sound_set_attenuation_model(&source->sound, model);
     }
 }
 
-ma_attenuation_model ma_ex_audio_source_get_attenuation_model(ma_ex_audio_source *source) {
+MA_API ma_attenuation_model ma_ex_audio_source_get_attenuation_model(ma_ex_audio_source *source) {
     if(source != NULL)
         return source->settings.attenuationModel;
     return ma_attenuation_model_none;
 }
 
-void ma_ex_audio_source_set_doppler_factor(ma_ex_audio_source *source, float factor) {
+MA_API void ma_ex_audio_source_set_doppler_factor(ma_ex_audio_source *source, float factor) {
     if(source != NULL) {
         source->settings.dopplerFactor = factor;
         ma_sound_set_doppler_factor(&source->sound, factor);
     }
 }
 
-float ma_ex_audio_source_get_doppler_factor(ma_ex_audio_source *source) {
+MA_API float ma_ex_audio_source_get_doppler_factor(ma_ex_audio_source *source) {
     if(source != NULL)
         return source->settings.dopplerFactor;
     return 0.0f;
 }
 
-void ma_ex_audio_source_set_min_distance(ma_ex_audio_source *source, float distance) {
+MA_API void ma_ex_audio_source_set_min_distance(ma_ex_audio_source *source, float distance) {
     if(source != NULL) {
         source->settings.minDistance = distance;
         ma_sound_set_min_distance(&source->sound, distance);
     }
 }
 
-float ma_ex_audio_source_get_min_distance(ma_ex_audio_source *source) {
+MA_API float ma_ex_audio_source_get_min_distance(ma_ex_audio_source *source) {
     if(source != NULL)
         return source->settings.minDistance;
     return 1.0f;
 }
 
-void ma_ex_audio_source_set_max_distance(ma_ex_audio_source *source, float distance) {
+MA_API void ma_ex_audio_source_set_max_distance(ma_ex_audio_source *source, float distance) {
     if(source != NULL) {
         source->settings.maxDistance = distance;
         ma_sound_set_max_distance(&source->sound, distance);
     }
 }
 
-float ma_ex_audio_source_get_max_distance(ma_ex_audio_source *source) {
+MA_API float ma_ex_audio_source_get_max_distance(ma_ex_audio_source *source) {
     if(source != NULL)
         return source->settings.maxDistance;
     return MA_FLT_MAX;
 }
 
-ma_bool32 ma_ex_audio_source_get_is_playing(ma_ex_audio_source *source) {
+MA_API ma_bool32 ma_ex_audio_source_get_is_playing(ma_ex_audio_source *source) {
     if(source != NULL)
         return ma_sound_is_playing(&source->sound);
     return MA_FALSE;
 }
 
-ma_ex_audio_listener *ma_ex_audio_listener_init(ma_ex_context *context) {
+MA_API ma_ex_audio_listener *ma_ex_audio_listener_init(ma_ex_context *context) {
     MA_ASSERT(context != NULL);
 
     ma_int32 listenerIndex = -1;
@@ -717,7 +717,7 @@ ma_ex_audio_listener *ma_ex_audio_listener_init(ma_ex_context *context) {
     return listener;
 }
 
-void ma_ex_audio_listener_uninit(ma_ex_audio_listener *listener) {
+MA_API void ma_ex_audio_listener_uninit(ma_ex_audio_listener *listener) {
     if(listener != NULL) {
         if(listener->context != NULL && listener->index < MA_ENGINE_MAX_LISTENERS) {
             listener->context->listeners[listener->index] = -1;
@@ -726,18 +726,18 @@ void ma_ex_audio_listener_uninit(ma_ex_audio_listener *listener) {
     }
 }
 
-void ma_ex_audio_listener_set_spatialization(ma_ex_audio_listener *listener, ma_bool32 enabled) {
+MA_API void ma_ex_audio_listener_set_spatialization(ma_ex_audio_listener *listener, ma_bool32 enabled) {
     if(listener != NULL)
         ma_engine_listener_set_enabled(&listener->context->engine, listener->index, enabled);
 }
 
-ma_bool32 ma_ex_audio_listener_get_spatialization(ma_ex_audio_listener *listener) {
+MA_API ma_bool32 ma_ex_audio_listener_get_spatialization(ma_ex_audio_listener *listener) {
     if(listener != NULL)
         return listener->settings.spatialization;
     return MA_FALSE;
 }
 
-void ma_ex_audio_listener_set_position(ma_ex_audio_listener *listener, float x, float y, float z) {
+MA_API void ma_ex_audio_listener_set_position(ma_ex_audio_listener *listener, float x, float y, float z) {
     if(listener != NULL) {
         listener->settings.position.x = x;
         listener->settings.position.y = y;
@@ -746,7 +746,7 @@ void ma_ex_audio_listener_set_position(ma_ex_audio_listener *listener, float x, 
     }
 }
 
-void ma_ex_audio_listener_get_position(ma_ex_audio_listener *listener, float *x, float *y, float *z) {
+MA_API void ma_ex_audio_listener_get_position(ma_ex_audio_listener *listener, float *x, float *y, float *z) {
     if(listener != NULL) {
         ma_ex_vec3f_get(&listener->settings.position, x, y, z);
     } else {
@@ -756,7 +756,7 @@ void ma_ex_audio_listener_get_position(ma_ex_audio_listener *listener, float *x,
     }
 }
 
-void ma_ex_audio_listener_set_direction(ma_ex_audio_listener *listener, float x, float y, float z) {
+MA_API void ma_ex_audio_listener_set_direction(ma_ex_audio_listener *listener, float x, float y, float z) {
     if(listener != NULL) {
         listener->settings.direction.x = x;
         listener->settings.direction.y = y;
@@ -765,7 +765,7 @@ void ma_ex_audio_listener_set_direction(ma_ex_audio_listener *listener, float x,
     }
 }
 
-void ma_ex_audio_listener_get_direction(ma_ex_audio_listener *listener, float *x, float *y, float *z) {
+MA_API void ma_ex_audio_listener_get_direction(ma_ex_audio_listener *listener, float *x, float *y, float *z) {
     if(listener != NULL) {
         ma_ex_vec3f_get(&listener->settings.direction, x, y, z);
     } else {
@@ -775,7 +775,7 @@ void ma_ex_audio_listener_get_direction(ma_ex_audio_listener *listener, float *x
     }
 }
 
-void ma_ex_audio_listener_set_velocity(ma_ex_audio_listener *listener, float x, float y, float z) {
+MA_API void ma_ex_audio_listener_set_velocity(ma_ex_audio_listener *listener, float x, float y, float z) {
     if(listener != NULL) {
         listener->settings.velocity.x = x;
         listener->settings.velocity.y = y;
@@ -784,7 +784,7 @@ void ma_ex_audio_listener_set_velocity(ma_ex_audio_listener *listener, float x, 
     }
 }
 
-void ma_ex_audio_listener_get_velocity(ma_ex_audio_listener *listener, float *x, float *y, float *z) {
+MA_API void ma_ex_audio_listener_get_velocity(ma_ex_audio_listener *listener, float *x, float *y, float *z) {
     if(listener != NULL) {
         ma_ex_vec3f_get(&listener->settings.velocity, x, y, z);
     } else {
@@ -794,7 +794,7 @@ void ma_ex_audio_listener_get_velocity(ma_ex_audio_listener *listener, float *x,
     }
 }
 
-void ma_ex_audio_listener_set_world_up(ma_ex_audio_listener *listener, float x, float y, float z) {
+MA_API void ma_ex_audio_listener_set_world_up(ma_ex_audio_listener *listener, float x, float y, float z) {
     if(listener != NULL) {
         listener->settings.worldUp.x = x;
         listener->settings.worldUp.y = y;
@@ -803,7 +803,7 @@ void ma_ex_audio_listener_set_world_up(ma_ex_audio_listener *listener, float x, 
     }
 }
 
-void ma_ex_audio_listener_get_world_up(ma_ex_audio_listener *listener, float *x, float *y, float *z) {
+MA_API void ma_ex_audio_listener_get_world_up(ma_ex_audio_listener *listener, float *x, float *y, float *z) {
     if(listener != NULL) {
         ma_ex_vec3f_get(&listener->settings.worldUp, x, y, z);
     } else {
@@ -813,7 +813,7 @@ void ma_ex_audio_listener_get_world_up(ma_ex_audio_listener *listener, float *x,
     }
 }
 
-void ma_ex_audio_listener_set_cone(ma_ex_audio_listener *listener, float innerAngleInRadians, float outerAngleInRadians, float outerGain) {
+MA_API void ma_ex_audio_listener_set_cone(ma_ex_audio_listener *listener, float innerAngleInRadians, float outerAngleInRadians, float outerGain) {
     if(listener != NULL) {
         listener->settings.coneInnerAngleInRadians = innerAngleInRadians;
         listener->settings.coneOuterAngleInRadians = outerAngleInRadians;
@@ -822,7 +822,7 @@ void ma_ex_audio_listener_set_cone(ma_ex_audio_listener *listener, float innerAn
     }
 }
 
-void ma_ex_audio_listener_get_cone(ma_ex_audio_listener *listener, float *innerAngleInRadians, float *outerAngleInRadians, float *outerGain) {
+MA_API void ma_ex_audio_listener_get_cone(ma_ex_audio_listener *listener, float *innerAngleInRadians, float *outerAngleInRadians, float *outerGain) {
     if(listener != NULL) {
         *innerAngleInRadians = listener->settings.coneInnerAngleInRadians;
         *outerAngleInRadians = listener->settings.coneOuterAngleInRadians;
@@ -834,7 +834,7 @@ void ma_ex_audio_listener_get_cone(ma_ex_audio_listener *listener, float *innerA
     }
 }
 
-char *ma_ex_read_bytes_from_file(const char *filepath, size_t *size) {
+MA_API char *ma_ex_read_bytes_from_file(const char *filepath, size_t *size) {
     FILE *file = fopen(filepath, "rb");
     if (file == NULL) {
         fprintf(stderr, "Error opening file\n");
@@ -865,7 +865,7 @@ char *ma_ex_read_bytes_from_file(const char *filepath, size_t *size) {
     return buffer;
 }
 
-void ma_ex_free_bytes_from_file(char *pointer) {
+MA_API void ma_ex_free_bytes_from_file(char *pointer) {
     if(pointer != NULL)
-        free(pointer);
+        MA_FREE(pointer);
 }

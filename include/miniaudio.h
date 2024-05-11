@@ -7437,8 +7437,6 @@ typedef struct
     ma_uint64 loopPointBegInPCMFrames;
     ma_uint64 loopPointEndInPCMFrames;
     ma_bool32 isLooping;
-    ma_sound_end_proc endCallback;              /* Fired when the sound reaches the end. Will be fired from the audio thread. Do not restart, uninitialize or otherwise change the state of the sound from here. Instead fire an event or set a variable to indicate to a different thread to change the start of the sound. Will not be fired in response to a scheduled stop with ma_sound_set_stop_time_*(). */
-    void* pEndCallbackUserData;
 #ifndef MA_NO_RESOURCE_MANAGER
     ma_resource_manager_pipeline_notifications initNotifications;
 #endif
@@ -7667,7 +7665,6 @@ MA_API ma_result ma_sound_get_cursor_in_pcm_frames(ma_sound* pSound, ma_uint64* 
 MA_API ma_result ma_sound_get_length_in_pcm_frames(ma_sound* pSound, ma_uint64* pLength);
 MA_API ma_result ma_sound_get_cursor_in_seconds(ma_sound* pSound, float* pCursor);
 MA_API ma_result ma_sound_get_length_in_seconds(ma_sound* pSound, float* pLength);
-MA_API ma_result ma_sound_set_end_callback(ma_sound* pSound, ma_sound_end_proc callback, void* pUserData);
 MA_API ma_result ma_sound_set_notifications_userdata(ma_sound* pSound, void* pUserData);
 MA_API ma_result ma_sound_set_end_notification_callback(ma_sound* pSound, ma_sound_end_proc callback);
 MA_API ma_result ma_sound_set_load_notification_callback(ma_sound* pSound, ma_sound_load_proc callback);
