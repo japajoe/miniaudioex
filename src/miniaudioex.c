@@ -139,7 +139,7 @@ MA_API ma_ex_device_info *ma_ex_playback_devices_get(ma_uint32 *count) {
         return NULL;
     }
 
-    ma_device_info* pPlaybackInfos;
+    ma_device_info *pPlaybackInfos;
     ma_uint32 playbackCount;
     ma_device_info* pCaptureInfos;
     ma_uint32 captureCount;
@@ -151,26 +151,43 @@ MA_API ma_ex_device_info *ma_ex_playback_devices_get(ma_uint32 *count) {
 
     ma_ex_device_info *pDeviceInfo = NULL;
 
-    if(playbackCount > 0) {
-        pDeviceInfo = MA_MALLOC(sizeof(ma_ex_device_info) * playbackCount);
-        if(pDeviceInfo == NULL)
-            return NULL;
-    } else {
+    if(playbackCount == 0)
         return NULL;
-    }
 
-    *count = playbackCount;
+    size_t allocationSize = sizeof(ma_ex_device_info) * playbackCount;
+    pDeviceInfo = MA_MALLOC(allocationSize);
+    
+    if(pDeviceInfo == NULL)
+        return NULL;
 
-    for (ma_uint32 iDevice = 0; iDevice < playbackCount; iDevice += 1) {
+    MA_ZERO_MEMORY(pDeviceInfo, allocationSize);
+
+    ma_bool32 allocationError = MA_FALSE;
+
+    for (ma_uint32 iDevice = 0; iDevice < playbackCount; iDevice++) {
         pDeviceInfo[iDevice].index = iDevice;
         size_t len = strlen(pPlaybackInfos[iDevice].name) + 1;
         pDeviceInfo[iDevice].pName = MA_MALLOC(len);
+        if(pDeviceInfo[iDevice].pName == NULL) {
+            allocationError = MA_TRUE;
+            break;
+        }
         memset(pDeviceInfo[iDevice].pName, 0, len);
         memcpy(pDeviceInfo[iDevice].pName, pPlaybackInfos[iDevice].name, len);
     }
 
-    ma_context_uninit(&context);
+    if(allocationError == MA_TRUE) {
+        for(ma_uint32 i = 0; i < playbackCount; i++) {
+            if(pDeviceInfo[i].pName != NULL) {
+                MA_FREE(pDeviceInfo[i].pName);
+            }
+        }        
+        MA_FREE(pDeviceInfo);
+        return NULL;
+    }
 
+    ma_context_uninit(&context);
+    *count = playbackCount;
     return pDeviceInfo;
 }
 
