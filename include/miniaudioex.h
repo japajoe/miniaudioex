@@ -122,6 +122,8 @@ typedef struct {
     ma_ex_audio_listener_settings settings;
 } ma_ex_audio_listener;
 
+typedef void (*ma_ex_sigint_signal_handler)(int signalId);
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
@@ -187,6 +189,8 @@ MA_API void ma_ex_audio_listener_get_cone(ma_ex_audio_listener *listener, float 
 
 MA_API char *ma_ex_read_bytes_from_file(const char *filepath, size_t *size);
 MA_API void ma_ex_free_bytes_from_file(char *pointer);
+
+MA_API void ma_ex_register_sigint_signal(ma_ex_sigint_signal_handler handler);
 
 #if defined(__cplusplus)
 }

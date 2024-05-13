@@ -51,6 +51,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <signal.h>
 
 #define MA_ASSERT(condition) assert(condition)
 
@@ -466,8 +467,7 @@ MA_API ma_result ma_ex_audio_source_play_from_memory(ma_ex_audio_source *source,
             MA_ZERO_OBJECT(&source->decoder);
         }
 
-        ma_decoder_config config = ma_decoder_config_init(ma_format_f32, 2, source->context->engine.sampleRate);
-        ma_result result = ma_decoder_init_memory(data, dataSize, &config, &source->decoder);
+        ma_result result = ma_decoder_init_memory(data, dataSize, NULL, &source->decoder);
 
         if(result != MA_SUCCESS)
             return result;
@@ -885,4 +885,14 @@ MA_API char *ma_ex_read_bytes_from_file(const char *filepath, size_t *size) {
 MA_API void ma_ex_free_bytes_from_file(char *pointer) {
     if(pointer != NULL)
         MA_FREE(pointer);
+}
+
+MA_API void ma_ex_register_sigint_signal(ma_ex_sigint_signal_handler handler) {
+#ifdef MA_WIN32
+    __p_sig_fn_t h = (__p_sig_fn_t)handler;
+    signal(SIGINT, h);
+#else
+    __sighandler_t h = (__sighandler_t)handler;
+    signal(SIGINT, h);
+#endif
 }
