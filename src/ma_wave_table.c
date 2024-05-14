@@ -92,13 +92,12 @@ MA_API ma_result ma_wave_table_init(const ma_wave_table_config* pConfig, ma_wave
         fprintf(stderr, "pWavetable can not be NULL\n");
         return MA_INVALID_ARGS;
     }
-
-    MA_ZERO_OBJECT(pWavetable);
-
     if(pConfig->dataSampleCount == 0) {
         fprintf(stderr, "dataSampleCount can not be 0\n");
         return MA_INVALID_ARGS;
     }
+
+    MA_ZERO_OBJECT(pWavetable);
 
     if(pConfig->type == ma_wave_table_type_custom) {
         if(pConfig->pData == NULL) {
@@ -115,8 +114,13 @@ MA_API ma_result ma_wave_table_init(const ma_wave_table_config* pConfig, ma_wave
     pWavetable->dataSize = pWavetable->dataSampleCount * sizeof(ma_float);
     pWavetable->dataIndex = 0;
 
-    if(pWavetable->pData == NULL && pWavetable->type != ma_wave_table_type_custom) {
+    if(pWavetable->type != ma_wave_table_type_custom) {
         pWavetable->pData = (ma_float*)MA_MALLOC(pWavetable->dataSize);
+
+        if(pWavetable->pData == NULL) {
+            fprintf(stderr, "Failed to allocate memory for wave table\n");
+            return MA_ERROR;
+        }
 
         float (*wave_fn)(float);
         wave_fn = ma_wave_table_get_sine_sample;
@@ -148,6 +152,7 @@ MA_API ma_result ma_wave_table_init(const ma_wave_table_config* pConfig, ma_wave
 
 MA_API void ma_wave_table_uninit(ma_wave_table* pWavetable) {
     if(pWavetable != NULL) {
+        //Only frees memory if memory was not allocated by the user
         if(pWavetable->pData != NULL && pWavetable->dataSize > 0 && pWavetable->type != ma_wave_table_type_custom) {
             MA_FREE(pWavetable->pData);
         }
