@@ -1,4 +1,5 @@
 /build
 /.vscode
 /src/main.c
+/src/main.c.txt
 /res
