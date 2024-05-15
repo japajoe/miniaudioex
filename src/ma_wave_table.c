@@ -175,7 +175,11 @@ MA_API float ma_wave_table_get_sample(ma_wave_table* pWavetable, ma_uint64 time,
     int index = (int)(phase * length);
     pWavetable->dataIndex = index;
     float t = phase * length - index;
-    float value1 = pWavetable->pData[index % length];
-    float value2 = pWavetable->pData[(index + 1) % length];
+    int i1 = index % length;
+    int i2 = (index+1) % length;
+    if(i1 < 0 || i2 < 0)
+        return 0;
+    float value1 = pWavetable->pData[i1];
+    float value2 = pWavetable->pData[i2];
     return ma_wave_table_interpolate_sample(value1, value2, t);
 }

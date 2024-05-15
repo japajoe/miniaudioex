@@ -53,8 +53,7 @@
 
 typedef void (*ma_procedural_wave_proc)(void *pUserData, void* pFramesOut, ma_uint64 frameCount, ma_uint32 channels);
 
-typedef struct
-{
+typedef struct {
     ma_format format;
     ma_uint32 channels;
     ma_uint32 sampleRate;
@@ -62,8 +61,7 @@ typedef struct
     void *pUserData;
 } ma_procedural_wave_config;
 
-typedef struct 
-{
+typedef struct {
     ma_data_source_base ds;
     ma_procedural_wave_config config;
 } ma_procedural_wave;

@@ -151,6 +151,7 @@ MA_API void ma_procedural_wave_uninit(ma_procedural_wave* pWaveform) {
     }
 
     ma_data_source_uninit(&pWaveform->ds);
+    MA_ZERO_OBJECT(pWaveform);
 }
 
 MA_API ma_result ma_procedural_wave_read_pcm_frames(ma_procedural_wave* pWaveform, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead) {
