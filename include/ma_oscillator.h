@@ -46,41 +46,48 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef MA_WAVE_TABLE_H
-#define MA_WAVE_TABLE_H
+#ifndef MA_OSCILLATOR_H
+#define MA_OSCILLATOR_H
 
 #include "miniaudio.h"
 
-typedef enum {
-    ma_wave_table_type_sine,
-    ma_wave_table_type_saw,
-    ma_wave_table_type_square,
-    ma_wave_table_type_triangle,
-    ma_wave_table_type_custom
-} ma_wave_table_type;
+typedef float (*ma_oscillator_wave_function)(float);
 
 typedef struct {
-    ma_wave_table_type type;
-    float *pData;
-    ma_uint64 dataSampleCount;
-} ma_wave_table_config;
+    ma_waveform_type type;
+    float frequency;
+    float amplitude;
+    float sampleRate;
+} ma_oscillator_config;
 
 typedef struct {
-    float *pData;
-    ma_uint64 dataSize;
-    ma_uint64 dataSampleCount;
-    ma_uint64 dataIndex;
-    ma_wave_table_type type;
-} ma_wave_table;
+    ma_waveform_type type;
+    ma_oscillator_wave_function pWaveFunction;
+    float frequency;
+    float amplitude;
+    float sampleRate;
+    float phase;
+    float phaseIncrement;
+} ma_oscillator;
 
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
-MA_API ma_wave_table_config ma_wave_table_config_init(ma_wave_table_type type, float *pData, ma_uint64 dataSampleCount);
-MA_API ma_result ma_wave_table_init(const ma_wave_table_config* pConfig, ma_wave_table* pWavetable);
-MA_API void ma_wave_table_uninit(ma_wave_table* pWavetable);
-MA_API float ma_wave_table_get_sample(ma_wave_table* pWavetable, ma_uint64 time, float frequency, float sampleRate);
+MA_API ma_oscillator_config ma_oscillator_config_init(ma_waveform_type type, float frequency, float amplitude, float sampleRate);
+MA_API ma_result ma_oscillator_init(const ma_oscillator_config *pConfig, ma_oscillator *pOscillator);
+MA_API void ma_oscillator_set_type(ma_oscillator *pOscillator, ma_waveform_type type);
+MA_API ma_waveform_type ma_oscillator_get_type(const ma_oscillator *pOscillator);
+MA_API void ma_oscillator_set_frequency(ma_oscillator *pOscillator, float frequency);
+MA_API float ma_oscillator_get_frequency(const ma_oscillator *pOscillator);
+MA_API void ma_oscillator_set_amplitude(ma_oscillator *pOscillator, float amplitude);
+MA_API float ma_oscillator_get_amplitude(const ma_oscillator *pOscillator);
+MA_API void ma_oscillator_set_phase(ma_oscillator *pOscillator, float phase);
+MA_API float ma_oscillator_get_phase(const ma_oscillator *pOscillator);
+MA_API float ma_oscillator_get_value(ma_oscillator *pOscillator);
+MA_API float ma_oscillator_get_value_at_phase(ma_oscillator *pOscillator, float phase);
+MA_API float ma_oscillator_get_modulated_value(ma_oscillator *pOscillator, float phase);
+MA_API void ma_oscillator_uninit(ma_oscillator *pOscillator);
 
 #if defined(__cplusplus)
 }

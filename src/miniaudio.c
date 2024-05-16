@@ -776,7 +776,15 @@ Standard Library Stuff
 
 ******************************************************************************/
 #ifndef MA_ASSERT
-#define MA_ASSERT(condition)            assert(condition)
+//#define MA_ASSERT(condition)            assert(condition)
+#define __MA_SOURCE__ "miniaudio.c"
+#define MA_ASSERT(expr) \
+    do { \
+        if (!(expr)) { \
+            fprintf(stderr, "Assertion failed: (%s), at %s:%d\n", #expr, __MA_SOURCE__, __LINE__); \
+            exit(EXIT_FAILURE); \
+        } \
+    } while (0)
 #endif
 
 #ifndef MA_MALLOC
