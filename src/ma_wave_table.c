@@ -41,6 +41,10 @@ static MA_INLINE void ma_zero_memory_default(void* p, size_t sz)
 #define MA_PI 3.14159265359
 #endif
 
+#ifndef MA_TAU
+#define MA_TAU (3.14159265359 * 2)
+#endif
+
 #define ma_abs(x)                       (((x) > 0) ? (x) : -(x))
 
 static MA_INLINE int ma_sign(float num) {
@@ -53,19 +57,21 @@ static MA_INLINE int ma_sign(float num) {
 }
 
 static float ma_wave_table_get_saw_sample(float phase) {
-    return 2 * (phase - 0.5f);
+    phase = phase / MA_TAU;
+    return 2.0f * phase - 1.0f;
 }
 
 static float ma_wave_table_get_sine_sample(float phase) {
-    return sinf(2 * MA_PI * phase);
+    return sinf(phase);
 }
 
 static float ma_wave_table_get_square_sample(float phase) {
-    return (float)ma_sign(sinf(2 * MA_PI * phase));
+    return ma_sign(sinf(phase));
 }
 
 static float ma_wave_table_get_triangle_sample(float phase) {
-    return 2 * ma_abs(2 * (phase - 0.5)) - 1;
+    phase = phase / MA_TAU;
+    return (2.0 * ma_abs(2 * (phase - 0.5f)) - 1.0f);
 }
 
 MA_API ma_wave_table_config ma_wave_table_config_init(ma_wave_table_type type, float *pData, ma_uint64 dataSampleCount) {
@@ -115,6 +121,8 @@ MA_API ma_result ma_wave_table_init(const ma_wave_table_config* pConfig, ma_wave
     pWavetable->dataSampleCount = pConfig->dataSampleCount;
     pWavetable->dataSize = pWavetable->dataSampleCount * sizeof(ma_float);
     pWavetable->dataIndex = 0;
+    pWavetable->phase = 0;
+    pWavetable->phaseIncrement = 0;
 
     if(pWavetable->type != ma_wave_table_type_custom) {
         pWavetable->pData = (ma_float*)MA_MALLOC(pWavetable->dataSize);
@@ -144,8 +152,10 @@ MA_API ma_result ma_wave_table_init(const ma_wave_table_config* pConfig, ma_wave
                 break;
         }
 
+        const float phaseIncrement = MA_TAU / pWavetable->dataSampleCount;
+
         for(ma_uint32 i = 0; i < pWavetable->dataSampleCount; i++) {
-            pWavetable->pData[i] = wave_fn((float)i / pWavetable->dataSampleCount);
+            pWavetable->pData[i] = wave_fn(i * phaseIncrement);
         }
     }
 
@@ -167,12 +177,45 @@ static MA_INLINE float ma_wave_table_interpolate_sample(float value1, float valu
     return value1 + (value2 - value1) * t;
 }
 
-MA_API float ma_wave_table_get_sample(ma_wave_table* pWavetable, ma_uint64 time, float frequency, float sampleRate) {
+MA_API void ma_wave_table_reset(ma_wave_table* pWavetable) {
+    if(pWavetable == NULL)
+        return;
+    pWavetable->phase = 0.0f;
+}
+
+MA_API float ma_wave_table_get_sample(ma_wave_table* pWavetable, float frequency, float sampleRate) {
     if(pWavetable == NULL)
         return 0.0f;
     if(pWavetable->pData == NULL)
         return 0.0f;
-    float phase = time * frequency / sampleRate;
+
+    float phase = pWavetable->phase > 0.0f ? (pWavetable->phase / MA_TAU) : 0.0f;
+    
+    pWavetable->phaseIncrement = MA_TAU * frequency / sampleRate;
+    pWavetable->phase += pWavetable->phaseIncrement;
+    pWavetable->phase = fmodf(pWavetable->phase, MA_TAU);
+
+    int length = pWavetable->dataSampleCount;
+    int index = (int)(phase * length);
+    pWavetable->dataIndex = index;
+    float t = phase * length - index;
+    int i1 = index % length;
+    int i2 = (index+1) % length;
+    if(i1 < 0 || i2 < 0)
+        return 0;
+    float value1 = pWavetable->pData[i1];
+    float value2 = pWavetable->pData[i2];
+    return ma_wave_table_interpolate_sample(value1, value2, t);
+}
+
+MA_API float ma_wave_table_get_sample_at_phase(ma_wave_table* pWavetable, float phase) {
+    if(pWavetable == NULL)
+        return 0.0f;
+    if(pWavetable->pData == NULL)
+        return 0.0f;
+
+    phase = phase > 0.0f ? (phase / MA_TAU) : 0.0f;
+
     int length = pWavetable->dataSampleCount;
     int index = (int)(phase * length);
     pWavetable->dataIndex = index;

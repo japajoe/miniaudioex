@@ -71,6 +71,8 @@ typedef struct {
     ma_uint64 dataSampleCount;
     ma_uint64 dataIndex;
     ma_wave_table_type type;
+    float phase;
+    float phaseIncrement;
 } ma_wave_table;
 
 #if defined(__cplusplus)
@@ -80,7 +82,9 @@ extern "C" {
 MA_API ma_wave_table_config ma_wave_table_config_init(ma_wave_table_type type, float *pData, ma_uint64 dataSampleCount);
 MA_API ma_result ma_wave_table_init(const ma_wave_table_config* pConfig, ma_wave_table* pWavetable);
 MA_API void ma_wave_table_uninit(ma_wave_table* pWavetable);
-MA_API float ma_wave_table_get_sample(ma_wave_table* pWavetable, ma_uint64 time, float frequency, float sampleRate);
+MA_API void ma_wave_table_reset(ma_wave_table* pWavetable);
+MA_API float ma_wave_table_get_sample(ma_wave_table* pWavetable, float frequency, float sampleRate);
+MA_API float ma_wave_table_get_sample_at_phase(ma_wave_table* pWavetable, float phase);
 
 #if defined(__cplusplus)
 }
