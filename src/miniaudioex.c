@@ -54,15 +54,7 @@
 #include <signal.h>
 
 #ifndef MA_ASSERT
-//#define MA_ASSERT(condition) assert(condition)
-#define __MA_SOURCE__ "miniaudioex.c"
-#define MA_ASSERT(expr) \
-    do { \
-        if (!(expr)) { \
-            fprintf(stderr, "Assertion failed: (%s), at %s:%d\n", #expr, __MA_SOURCE__, __LINE__); \
-            exit(EXIT_FAILURE); \
-        } \
-    } while (0)
+#define MA_ASSERT(condition) assert(condition)
 #endif
 
 static MA_INLINE void ma_zero_memory_default(void* p, size_t sz)
