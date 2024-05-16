@@ -56,7 +56,7 @@
 #define MA_ASSERT(condition) assert(condition)
 #endif
 
-static MA_INLINE void ma_zero_memory_default(void* p, size_t sz)
+static MA_INLINE void ma_zero_memory_default(void* p, size_t sz) 
 {
     if (p == NULL) {
         MA_ASSERT(sz == 0); /* If this is triggered there's an error with the calling code. */
