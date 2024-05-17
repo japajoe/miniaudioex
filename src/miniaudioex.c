@@ -222,7 +222,7 @@ MA_API ma_ex_context_config ma_ex_context_config_init(ma_uint32 sampleRate, ma_u
 }
 
 MA_API ma_ex_context *ma_ex_context_init(const ma_ex_context_config *config) {
-    
+    MA_ASSERT(config != NULL);
     MA_ASSERT(config->sampleRate > 0);
     MA_ASSERT(config->channels > 0);
 

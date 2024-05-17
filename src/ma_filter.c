@@ -195,7 +195,7 @@ static void ma_filter_peak_calculate_biquad_coefficients(ma_biquad_filter *pFilt
         pFilter->a0 = (1.0f + v / q * k + k * k) * norm;
         pFilter->a1 = 2.0f * (k * k - 1.0f) * norm;
         pFilter->a2 = (1.0f - v / q * k + k * k) * norm;
-        pFilter->a1 = pFilter->a1;
+        pFilter->b1 = pFilter->a1;
         pFilter->b2 = (1.0f - 1.0f / q * k + k * k) * norm;
     }  else {
         //cut
@@ -271,6 +271,7 @@ MA_API ma_result ma_filter_init(const ma_filter_config *pConfig, ma_biquad_filte
 
     MA_ZERO_OBJECT(pFilter);
 
+    pFilter->type = pConfig->type;
     pFilter->sampleRate = pConfig->sampleRate;
     pFilter->frequency = pConfig->frequency;
     pFilter->q = pConfig->q;
