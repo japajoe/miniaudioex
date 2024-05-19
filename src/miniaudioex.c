@@ -889,6 +889,33 @@ MA_API void ma_ex_free_bytes_from_file(char *pointer) {
         MA_FREE(pointer);
 }
 
+MA_API void ma_ex_free(void *pointer) {
+    if(pointer != NULL)
+        MA_FREE(pointer);
+}
+
+MA_API float *ma_ex_decode_file(const char *pFilePath, ma_uint64 *dataLength, ma_uint32 *channels, ma_uint32 *sampleRate, ma_uint32 desiredChannels, ma_uint32 desiredSampleRate) {
+    ma_decoder_config config = ma_decoder_config_init_default();
+    config.format = ma_format_f32;
+    
+    if(desiredChannels > 0)
+        config.channels = desiredChannels;
+
+    if(desiredSampleRate > 0)
+        config.sampleRate = desiredSampleRate;
+
+    void* pPCMFrames;
+    ma_uint64 frameCount;
+
+    if(ma_decode_file(pFilePath, &config, &frameCount, &pPCMFrames) == MA_SUCCESS) {
+        *channels = config.channels;
+        *sampleRate = config.sampleRate;
+        *dataLength = config.channels * frameCount;
+        return (float*)pPCMFrames;
+    }
+    return NULL;
+}
+
 MA_API void ma_ex_register_sigint_signal(ma_ex_sigint_signal_handler handler) {
 #ifdef MA_WIN32
     __p_sig_fn_t h = (__p_sig_fn_t)handler;

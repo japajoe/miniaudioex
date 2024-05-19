@@ -189,6 +189,9 @@ MA_API void ma_ex_audio_listener_get_cone(ma_ex_audio_listener *listener, float 
 
 MA_API char *ma_ex_read_bytes_from_file(const char *filepath, size_t *size);
 MA_API void ma_ex_free_bytes_from_file(char *pointer);
+MA_API void ma_ex_free(void *pointer);
+
+MA_API float *ma_ex_decode_file(const char *pFilePath, ma_uint64 *dataLength, ma_uint32 *channels, ma_uint32 *sampleRate, ma_uint32 desiredChannels, ma_uint32 desiredSampleRate);
 
 MA_API void ma_ex_register_sigint_signal(ma_ex_sigint_signal_handler handler);
 
