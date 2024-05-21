@@ -98,6 +98,7 @@ extern "C" {
 MA_API ma_filter_config ma_filter_config_init(ma_filter_type type, ma_int32 sampleRate, float frequency, float q, float gainDB);
 MA_API ma_result ma_filter_init(const ma_filter_config *pConfig, ma_biquad_filter *pFilter);
 MA_API void ma_filter_uninit(ma_biquad_filter *pFilter);
+MA_API void ma_filter_set_type(ma_biquad_filter *pFilter, ma_filter_type type);
 MA_API ma_filter_type ma_filter_get_type(const ma_biquad_filter *pFilter);
 MA_API void ma_filter_set_frequency(ma_biquad_filter *pFilter, float frequency);
 MA_API float ma_filter_get_frequency(const ma_biquad_filter *pFilter);

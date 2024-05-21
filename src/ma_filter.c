@@ -312,6 +312,39 @@ MA_API void ma_filter_uninit(ma_biquad_filter *pFilter) {
     MA_ZERO_OBJECT(pFilter);
 }
 
+MA_API void ma_filter_set_type(ma_biquad_filter *pFilter, ma_filter_type type) {
+    if(pFilter == NULL)
+        return;
+    
+    pFilter->type = type;
+    
+    switch(pFilter->type) {
+        case ma_filter_type_lowpass:
+            pFilter->vtable = g_ma_filter_lowpass_vtable;
+            break;
+        case ma_filter_type_highpass:
+            pFilter->vtable = g_ma_filter_highpass_vtable;
+            break;
+        case ma_filter_type_bandpass:
+            pFilter->vtable = g_ma_filter_bandpass_vtable;
+            break;
+        case ma_filter_type_lowshelf:
+            pFilter->vtable = g_ma_filter_lowshelf_vtable;
+            break;
+        case ma_filter_type_highshelf:
+            pFilter->vtable = g_ma_filter_highshelf_vtable;
+            break;
+        case ma_filter_type_peak:
+            pFilter->vtable = g_ma_filter_peak_vtable;
+            break;
+        case ma_filter_type_notch:
+            pFilter->vtable = g_ma_filter_notch_vtable;
+            break;
+    }
+
+    pFilter->vtable.onCalculateBiQuadCoefficients(pFilter);
+}
+
 MA_API ma_filter_type ma_filter_get_type(const ma_biquad_filter *pFilter) {
     if(pFilter == NULL)
         return ma_filter_type_lowpass;
