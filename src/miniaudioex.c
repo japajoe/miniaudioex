@@ -127,6 +127,17 @@ static MA_INLINE void ma_ex_vec3f_get(const ma_vec3f *v, float *x, float *y, flo
     *z = v->z;
 }
 
+static ma_uint32 ma_next_power_of_two(ma_uint32 value) {
+    value--;
+    value |= value >> 1;
+    value |= value >> 2;
+    value |= value >> 4;
+    value |= value >> 8;
+    value |= value >> 16;
+    value++;
+    return value;
+}
+
 static void ma_ex_on_data_proc(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount) {
     ma_engine_read_pcm_frames((ma_engine *)pDevice->pUserData, pOutput, frameCount, NULL);
     (void)pInput;
@@ -204,13 +215,14 @@ MA_API void *ma_ex_playback_devices_free(ma_ex_device_info *pDeviceInfo, ma_uint
     }
 }
 
-MA_API ma_ex_context_config ma_ex_context_config_init(ma_uint32 sampleRate, ma_uint8 channels, const ma_ex_device_info *pDeviceInfo) {
+MA_API ma_ex_context_config ma_ex_context_config_init(ma_uint32 sampleRate, ma_uint8 channels, ma_uint32 periodSizeInFrames, const ma_ex_device_info *pDeviceInfo) {
     MA_ASSERT(sampleRate > 0);
     MA_ASSERT(channels > 0);
 
     ma_ex_context_config config;
     config.sampleRate = sampleRate;
     config.channels = channels;
+    config.periodSizeInFrames = periodSizeInFrames == 0 ? 0 : ma_next_power_of_two(periodSizeInFrames);
 
     if(pDeviceInfo == NULL) {
         config.deviceInfo.index = 0;
@@ -247,6 +259,7 @@ MA_API ma_ex_context *ma_ex_context_init(const ma_ex_context_config *config) {
     deviceConfig.playback.channels = context->channels;
     deviceConfig.sampleRate = context->sampleRate;
     deviceConfig.dataCallback = &ma_ex_on_data_proc;
+    deviceConfig.periodSizeInFrames = config->periodSizeInFrames;
 
     ma_device_info* pPlaybackInfos;
     ma_uint32 playbackCount;
@@ -427,7 +440,7 @@ MA_API ma_result ma_ex_audio_source_play_from_file(ma_ex_audio_source *source, c
     if(streamFromDisk)
         flags |= MA_SOUND_FLAG_STREAM;
 
-    ma_uint64 hashcode = ma_ex_pointer_to_hashcode(filePath);
+    ma_uint64 hashcode = ma_ex_create_hashcode(filePath, strlen(filePath));
 
     if(ma_ex_hashcode_is_same(hashcode, source->soundHash) != MA_TRUE) {
         ma_data_source *dataSource = ma_sound_get_data_source(&source->sound);

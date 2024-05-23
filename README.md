@@ -14,7 +14,7 @@ This shows how to play audio from a given file path.
 int main(int argc, char **argv) {
     const char *file = "some_audio.mp3";
 
-    ma_ex_context_config contextConfig = ma_ex_context_config_init(44100, 2, NULL);
+    ma_ex_context_config contextConfig = ma_ex_context_config_init(44100, 2, 0, NULL);
     ma_ex_context *context = ma_ex_context_init(&contextConfig);
 
     ma_ex_audio_source *source = ma_ex_audio_source_init(context);
@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
     if(file == NULL)
         return 1;
 
-    ma_ex_context_config contextConfig = ma_ex_context_config_init(SAMPLE_RATE, NUM_CHANNELS, NULL);
+    ma_ex_context_config contextConfig = ma_ex_context_config_init(SAMPLE_RATE, NUM_CHANNELS, 0, NULL);
     ma_ex_context *context = ma_ex_context_init(&contextConfig);
 
     ma_ex_audio_source *source = ma_ex_audio_source_init(context);

@@ -61,6 +61,7 @@ typedef struct {
     ma_ex_device_info deviceInfo;
     ma_uint32 sampleRate;
     ma_uint8 channels;
+    ma_uint32 periodSizeInFrames;
 } ma_ex_context_config;
 
 typedef struct {
@@ -131,7 +132,7 @@ extern "C" {
 MA_API ma_ex_device_info *ma_ex_playback_devices_get(ma_uint32 *count);
 MA_API void *ma_ex_playback_devices_free(ma_ex_device_info *pDeviceInfo, ma_uint32 count);
 
-MA_API ma_ex_context_config ma_ex_context_config_init(ma_uint32 sampleRate, ma_uint8 channels, const ma_ex_device_info *pDeviceInfo);
+MA_API ma_ex_context_config ma_ex_context_config_init(ma_uint32 sampleRate, ma_uint8 channels, ma_uint32 periodSizeInFrames, const ma_ex_device_info *pDeviceInfo);
 MA_API ma_ex_context *ma_ex_context_init(const ma_ex_context_config *config);
 MA_API void ma_ex_context_uninit(ma_ex_context *context);
 MA_API void ma_ex_context_set_master_volume(ma_ex_context *context, float volume);
