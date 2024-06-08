@@ -51,7 +51,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-#include <signal.h>
 
 #ifndef MA_ASSERT
 #define MA_ASSERT(condition) assert(condition)
@@ -927,14 +926,4 @@ MA_API float *ma_ex_decode_file(const char *pFilePath, ma_uint64 *dataLength, ma
         return (float*)pPCMFrames;
     }
     return NULL;
-}
-
-MA_API void ma_ex_register_sigint_signal(ma_ex_sigint_signal_handler handler) {
-#ifdef MA_WIN32
-    __p_sig_fn_t h = (__p_sig_fn_t)handler;
-    signal(SIGINT, h);
-#else
-    __sighandler_t h = (__sighandler_t)handler;
-    signal(SIGINT, h);
-#endif
 }
