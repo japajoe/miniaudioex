@@ -50,7 +50,21 @@
 #define MINIAUDIOEX_H
 
 #include "miniaudio.h"
-#include "ma_procedural_wave.h"
+
+typedef void (*ma_procedural_wave_proc)(void *pUserData, void* pFramesOut, ma_uint64 frameCount, ma_uint32 channels);
+
+typedef struct {
+    ma_format format;
+    ma_uint32 channels;
+    ma_uint32 sampleRate;
+    ma_procedural_wave_proc waveformCallback;
+    void *pUserData;
+} ma_procedural_wave_config;
+
+typedef struct {
+    ma_data_source_base ds;
+    ma_procedural_wave_config config;
+} ma_procedural_wave;
 
 typedef struct {
     char *pName;
@@ -191,6 +205,11 @@ MA_API void ma_ex_free_bytes_from_file(char *pointer);
 MA_API void ma_ex_free(void *pointer);
 
 MA_API float *ma_ex_decode_file(const char *pFilePath, ma_uint64 *dataLength, ma_uint32 *channels, ma_uint32 *sampleRate, ma_uint32 desiredChannels, ma_uint32 desiredSampleRate);
+
+MA_API ma_procedural_wave_config ma_procedural_wave_config_init(ma_format format, ma_uint32 channels, ma_uint32 sampleRate, ma_procedural_wave_proc pWaveformProc, void *pUserData);
+MA_API ma_result ma_procedural_wave_init(const ma_procedural_wave_config* pConfig, ma_procedural_wave* pWaveform);
+MA_API void ma_procedural_wave_uninit(ma_procedural_wave* pWaveform);
+MA_API ma_result ma_procedural_wave_read_pcm_frames(ma_procedural_wave* pWaveform, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead);
 
 #if defined(__cplusplus)
 }

@@ -927,3 +927,110 @@ MA_API float *ma_ex_decode_file(const char *pFilePath, ma_uint64 *dataLength, ma
     }
     return NULL;
 }
+
+static ma_result ma_procedural_wave__data_source_on_read(ma_data_source* pDataSource, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead) {
+    return ma_procedural_wave_read_pcm_frames((ma_procedural_wave*)pDataSource, pFramesOut, frameCount, pFramesRead);
+}
+
+static ma_result ma_procedural_wave__data_source_on_seek(ma_data_source* pDataSource, ma_uint64 frameIndex) {
+    return MA_NOT_IMPLEMENTED;
+}
+
+static ma_result ma_procedural_wave__data_source_on_get_data_format(ma_data_source* pDataSource, ma_format* pFormat, ma_uint32* pChannels, ma_uint32* pSampleRate, ma_channel* pChannelMap, size_t channelMapCap) {
+    ma_procedural_wave* pWaveform = (ma_procedural_wave*)pDataSource;
+
+    *pFormat     = pWaveform->config.format;
+    *pChannels   = pWaveform->config.channels;
+    *pSampleRate = pWaveform->config.sampleRate;
+    ma_channel_map_init_standard(ma_standard_channel_map_default, pChannelMap, channelMapCap, pWaveform->config.channels);
+
+    return MA_SUCCESS;
+}
+
+static ma_result ma_procedural_wave__data_source_on_get_cursor(ma_data_source* pDataSource, ma_uint64* pCursor) {
+    *pCursor = 0;
+    return MA_NOT_IMPLEMENTED;
+}
+
+static ma_data_source_vtable g_ma_procedural_wave_data_source_vtable = {
+    ma_procedural_wave__data_source_on_read,
+    ma_procedural_wave__data_source_on_seek,
+    ma_procedural_wave__data_source_on_get_data_format,
+    ma_procedural_wave__data_source_on_get_cursor,
+    NULL,   /* onGetLength. There's no notion of a length in waveforms. */
+    NULL,   /* onSetLooping */
+    0
+};
+
+MA_API ma_procedural_wave_config ma_procedural_wave_config_init(ma_format format, ma_uint32 channels, ma_uint32 sampleRate, ma_procedural_wave_proc pWaveformProc, void *pUserData) {
+    MA_ASSERT(pWaveformProc != NULL);
+
+    ma_procedural_wave_config config;
+
+    MA_ZERO_OBJECT(&config);
+    config.format           = format;
+    config.channels         = channels;
+    config.sampleRate       = sampleRate;
+    config.waveformCallback = pWaveformProc;
+    config.pUserData        = pUserData;
+
+    return config;
+}
+
+MA_API ma_result ma_procedural_wave_init(const ma_procedural_wave_config* pConfig, ma_procedural_wave* pWaveform) {
+    ma_result result;
+    ma_data_source_config dataSourceConfig;
+
+    if (pWaveform == NULL) {
+        return MA_INVALID_ARGS;
+    }
+
+    MA_ZERO_OBJECT(pWaveform);
+
+    dataSourceConfig = ma_data_source_config_init();
+    dataSourceConfig.vtable = &g_ma_procedural_wave_data_source_vtable;
+
+    result = ma_data_source_init(&dataSourceConfig, &pWaveform->ds);
+    if (result != MA_SUCCESS) {
+        return result;
+    }
+
+    pWaveform->config  = *pConfig;
+
+    return MA_SUCCESS;
+}
+
+MA_API void ma_procedural_wave_uninit(ma_procedural_wave* pWaveform) {
+    if (pWaveform == NULL) {
+        return;
+    }
+
+    ma_data_source_uninit(&pWaveform->ds);
+    MA_ZERO_OBJECT(pWaveform);
+}
+
+MA_API ma_result ma_procedural_wave_read_pcm_frames(ma_procedural_wave* pWaveform, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead) {
+    if (pFramesRead != NULL) {
+        *pFramesRead = 0;
+    }
+
+    if (frameCount == 0) {
+        return MA_INVALID_ARGS;
+    }
+
+    if (pWaveform == NULL) {
+        return MA_INVALID_ARGS;
+    }
+
+    if (pFramesOut != NULL) {
+        if(pWaveform->config.waveformCallback != NULL) {
+            pWaveform->config.waveformCallback(pWaveform->config.pUserData, pFramesOut, frameCount, pWaveform->config.channels);
+        }
+    }
+
+    if (pFramesRead != NULL) {
+        *pFramesRead = frameCount;
+    }
+
+    return MA_SUCCESS;
+}
