@@ -76,6 +76,7 @@ typedef struct {
     ma_uint32 sampleRate;
     ma_uint8 channels;
     ma_uint32 periodSizeInFrames;
+    ma_device_data_proc deviceDataProc;
 } ma_ex_context_config;
 
 typedef struct {
@@ -149,6 +150,9 @@ MA_API ma_ex_context *ma_ex_context_init(const ma_ex_context_config *config);
 MA_API void ma_ex_context_uninit(ma_ex_context *context);
 MA_API void ma_ex_context_set_master_volume(ma_ex_context *context, float volume);
 MA_API float ma_ex_context_get_master_volume(ma_ex_context *context);
+MA_API ma_engine *ma_ex_context_get_engine(ma_ex_context *context);
+
+MA_API void *ma_ex_device_get_user_data(ma_device *pDevice);
 
 MA_API ma_ex_audio_source *ma_ex_audio_source_init(ma_ex_context *context);
 MA_API void ma_ex_audio_source_uninit(ma_ex_audio_source *source);

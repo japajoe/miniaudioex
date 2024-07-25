@@ -222,6 +222,7 @@ MA_API ma_ex_context_config ma_ex_context_config_init(ma_uint32 sampleRate, ma_u
     config.sampleRate = sampleRate;
     config.channels = channels;
     config.periodSizeInFrames = periodSizeInFrames == 0 ? 0 : ma_next_power_of_two(periodSizeInFrames);
+    config.deviceDataProc = NULL;
 
     if(pDeviceInfo == NULL) {
         config.deviceInfo.index = 0;
@@ -257,7 +258,7 @@ MA_API ma_ex_context *ma_ex_context_init(const ma_ex_context_config *config) {
     deviceConfig.playback.format = context->format;
     deviceConfig.playback.channels = context->channels;
     deviceConfig.sampleRate = context->sampleRate;
-    deviceConfig.dataCallback = &ma_ex_on_data_proc;
+    deviceConfig.dataCallback = config->deviceDataProc == NULL ? &ma_ex_on_data_proc : config->deviceDataProc;
     deviceConfig.periodSizeInFrames = config->periodSizeInFrames;
 
     ma_device_info* pPlaybackInfos;
@@ -336,6 +337,18 @@ MA_API float ma_ex_context_get_master_volume(ma_ex_context *context) {
     if(context != NULL)
         return ma_engine_get_volume(&context->engine);
     return 0.0f;
+}
+
+MA_API ma_engine *ma_ex_context_get_engine(ma_ex_context *context) {
+    if(context != NULL)
+        return &context->engine;
+    return NULL;
+}
+
+MA_API void *ma_ex_device_get_user_data(ma_device *pDevice) {
+    if(pDevice != NULL)
+        return pDevice->pUserData;
+    return NULL;
 }
 
 MA_API ma_ex_audio_source *ma_ex_audio_source_init(ma_ex_context *context) {
