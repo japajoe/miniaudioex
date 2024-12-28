@@ -1,4 +1,4 @@
-name: Build for macOS ARM64
+name: Build for MacOS ARM64 and Intel
 
 on: [push, pull_request]
 
@@ -7,20 +7,20 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        arch: [arm64]
+        arch: [arm64, x86_64]
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Set up dependencies on macOS ARM
+    - name: Set up dependencies on MacOS ARM
       run: |
-        echo "Setting up dependencies on macOS ARM"
+        echo "Setting up dependencies on macOS ${{ matrix.arch }}"
         brew install cmake
 
-    - name: Build the project on macOS ARM
+    - name: Build the project on MacOS ARM
       run: |
-        echo "Building project on macOS ARM"
+        echo "Building project on MacOS ${{ matrix.arch }}"
         mkdir build
         cd build
         cmake -DBUILD_PLATFORM=mac -DCMAKE_BUILD_TYPE=Release ..
@@ -29,5 +29,5 @@ jobs:
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: build-macos-arm64
+        name: build-macos-${{ matrix.arch }}
         path: build/
