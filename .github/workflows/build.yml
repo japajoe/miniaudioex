@@ -1,26 +1,26 @@
-name: Build for MacOS ARM64 and Intel
+name: Build for macOS and Linux (ARM64 and x64)
 
 on: [push, pull_request]
 
 jobs:
-  build:
+  build-macos:
     runs-on: macos-latest
     strategy:
       matrix:
-        arch: [arm64, x86_64]
+        arch: [arm64, x86_64]  # Mac architectures: ARM and Intel
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Set up dependencies on MacOS ARM
+    - name: Set up dependencies on macOS
       run: |
         echo "Setting up dependencies on macOS ${{ matrix.arch }}"
         brew install cmake
 
-    - name: Build the project on MacOS ARM
+    - name: Build the project on macOS
       run: |
-        echo "Building project on MacOS ${{ matrix.arch }}"
+        echo "Building project on macOS ${{ matrix.arch }}"
         mkdir build
         cd build
         cmake -DBUILD_PLATFORM=mac -DCMAKE_BUILD_TYPE=Release ..
@@ -30,4 +30,34 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: build-macos-${{ matrix.arch }}
+        path: build/
+
+  build-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [x86_64, arm64]  # Linux architectures: x64 and ARM
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up dependencies on Linux
+      run: |
+        echo "Setting up dependencies on Linux ${{ matrix.arch }}"
+        sudo apt-get update
+        sudo apt-get install -y cmake
+
+    - name: Build the project on Linux
+      run: |
+        echo "Building project on Linux ${{ matrix.arch }}"
+        mkdir build
+        cd build
+        cmake -DBUILD_PLATFORM=linux -DCMAKE_BUILD_TYPE=Release ..
+        cmake --build .
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-linux-${{ matrix.arch }}
         path: build/
