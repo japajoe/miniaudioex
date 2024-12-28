@@ -1,4 +1,4 @@
-name: Build for macOS and Linux (ARM64 and x64)
+name: Build for MacOS, Linux, and Windows (ARM64 and x64)
 
 on: [push, pull_request]
 
@@ -15,12 +15,12 @@ jobs:
 
     - name: Set up dependencies on macOS
       run: |
-        echo "Setting up dependencies on macOS ${{ matrix.arch }}"
+        echo "Setting up dependencies on MacOS ${{ matrix.arch }}"
         brew install cmake
 
-    - name: Build the project on macOS
+    - name: Build the project on MacOS
       run: |
-        echo "Building project on macOS ${{ matrix.arch }}"
+        echo "Building project on MacOS ${{ matrix.arch }}"
         mkdir build
         cd build
         cmake -DBUILD_PLATFORM=mac -DCMAKE_BUILD_TYPE=Release ..
@@ -60,4 +60,33 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: build-linux-${{ matrix.arch }}
+        path: build/
+
+  build-windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        arch: [x86_64]  # Windows architecture: x64 only
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up dependencies on Windows
+      run: |
+        echo "Setting up dependencies on Windows ${{ matrix.arch }}"
+        choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
+
+    - name: Build the project on Windows
+      run: |
+        echo "Building project on Windows ${{ matrix.arch }}"
+        mkdir build
+        cd build
+        cmake -DBUILD_PLATFORM=windows -DCMAKE_BUILD_TYPE=Release ..
+        cmake --build .
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-windows-${{ matrix.arch }}
         path: build/
