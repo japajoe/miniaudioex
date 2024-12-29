@@ -87,11 +87,11 @@ jobs:
         echo "Building project on Windows ${{ matrix.arch }}"
         mkdir build
         cd build
-        if [ "${{ matrix.arch }}" == "x86" ]; then
+        if (${{ matrix.arch }} -eq 'x86') {
           cmake -A Win32 -DBUILD_PLATFORM=windows -DCMAKE_BUILD_TYPE=Release ..
-        else
+        } else {
           cmake -DBUILD_PLATFORM=windows -DCMAKE_BUILD_TYPE=Release ..
-        fi
+        }
         cmake --build . --config Release
 
     - name: Upload build artifacts
