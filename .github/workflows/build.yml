@@ -71,7 +71,8 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        arch: [x86, x86_64]  # Windows architectures: x86 (32-bit) and x64 (64-bit)
+        name: [win32, x64]
+        #arch: [x86, x86_64]  # Windows architectures: x86 (32-bit) and x64 (64-bit)
 
     steps:
     - name: Checkout code
@@ -79,23 +80,19 @@ jobs:
 
     - name: Set up dependencies on Windows
       run: |
-        echo "Setting up dependencies on Windows ${{ matrix.arch }}"
+        echo "Setting up dependencies on Windows ${{ matrix.name }}"
         choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
 
     - name: Build the project on Windows
       run: |
-        echo "Building project on Windows ${{ matrix.arch }}"
+        echo "Building project on Windows ${{ matrix.name }}"
         mkdir build
         cd build
-        if "%matrix_arch%"=="x86" (
-          cmake -A Win32 -DBUILD_PLATFORM=windows -DCMAKE_BUILD_TYPE=Release ..
-        ) else (
-          cmake -DBUILD_PLATFORM=windows -DCMAKE_BUILD_TYPE=Release ..
-        )
+        cmake -A ${{ matrix.name }} -DBUILD_PLATFORM=windows -DCMAKE_BUILD_TYPE=Release ..
         cmake --build . --config Release
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: build-windows-${{ matrix.arch }}
+        name: build-windows-${{ matrix.name }}
         path: build/
