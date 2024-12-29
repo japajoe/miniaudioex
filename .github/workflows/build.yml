@@ -1,4 +1,4 @@
-name: Build for MacOS, Linux, and Windows (ARM64, ARMv7, and x64)
+name: Build for MacOS, Linux, and Windows
 
 on: [push, pull_request]
 
@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [x86_64, arm64, armv7]  # Linux architectures: x64, ARM64, and ARMv7 (32-bit)
+        arch: [x86_64, arm64]  # Linux architectures: x64 and ARM64
 
     steps:
     - name: Checkout code
@@ -53,7 +53,7 @@ jobs:
         echo "Building project on Linux ${{ matrix.arch }}"
         mkdir build
         cd build
-        cmake -DBUILD_PLATFORM=linux -DCMAKE_BUILD_TYPE=Release ..
+        cmake -DBUILD_PLATFORM=linux -DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_PROCESSOR=${{ matrix.arch }} ..
         cmake --build .
 
     - name: Upload build artifacts
