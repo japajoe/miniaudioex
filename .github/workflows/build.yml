@@ -1,4 +1,4 @@
-name: Build for MacOS, Linux, and Windows (ARM64 and x64)
+name: Build for MacOS, Linux, and Windows (ARM64, ARMv7, and x64)
 
 on: [push, pull_request]
 
@@ -13,7 +13,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Set up dependencies on macOS
+    - name: Set up dependencies on MacOS
       run: |
         echo "Setting up dependencies on MacOS ${{ matrix.arch }}"
         brew install cmake
@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [x86_64, arm64]  # Linux architectures: x64 and ARM
+        arch: [x86_64, arm64, armv7]  # Linux architectures: x64, ARM64, and ARMv7 (32-bit)
 
     steps:
     - name: Checkout code
