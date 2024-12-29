@@ -5,14 +5,10 @@ project(miniaudioex)
 set(BUILD_PLATFORM "unknown" CACHE STRING "Target platform for the build")
 set(CMAKE_C_FLAGS_RELEASE "-O3")
 
-if(BUILD_PLATFORM STREQUAL "windows")
-    message("Configuring for platform: ${BUILD_PLATFORM}")
-elseif(BUILD_PLATFORM STREQUAL "linux")
-    message("Configuring for platform: ${BUILD_PLATFORM}")
-elseif(BUILD_PLATFORM STREQUAL "mac")
-    message("Configuring for platform: ${BUILD_PLATFORM}")
-else()
+if(BUILD_PLATFORM STREQUAL "unknown")
     message(FATAL_ERROR "Unsupported platform: ${BUILD_PLATFORM}")
+else()
+    message("Configuring for platform: ${BUILD_PLATFORM}")
 endif()
 
 file(GLOB SOURCES
@@ -26,8 +22,11 @@ include_directories(
 add_definitions(-DNDEBUG)
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
-#add_executable(${PROJECT_NAME} ${SOURCES})
 
-if(BUILD_PLATFORM STREQUAL "linux")
+if(BUILD_PLATFORM STREQUAL "linux-x86_64")
     target_link_libraries(${PROJECT_NAME} -lpthread -lm -ldl)
+elseif(BUILD_PLATFORM STREQUAL "linux-arm")
+    target_link_libraries(${PROJECT_NAME} -lpthread -lm -ldl -latomic)
+elseif(BUILD_PLATFORM STREQUAL "linux-arm64")
+    target_link_libraries(${PROJECT_NAME} -lpthread -lm -ldl -latomic)
 endif()

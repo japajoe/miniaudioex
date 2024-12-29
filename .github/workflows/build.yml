@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [x86, x86_64]  # Linux architectures: x86 (32-bit) and x64 (64-bit)
+        arch: [x86_64]  # Linux architectures: x64
 
     steps:
     - name: Checkout code
@@ -45,20 +45,15 @@ jobs:
     - name: Set up dependencies on Linux
       run: |
         echo "Setting up dependencies on Linux ${{ matrix.arch }}"
-        sudo dpkg --add-architecture i386
         sudo apt-get update
-        sudo apt-get install -y cmake gcc-multilib g++-multilib
+        sudo apt-get install -y cmake
 
     - name: Build the project on Linux
       run: |
         echo "Building project on Linux ${{ matrix.arch }}"
         mkdir build
         cd build
-        if [ "${{ matrix.arch }}" == "x86" ]; then
-          cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_FLAGS="-m32" -DCMAKE_CXX_FLAGS="-m32" -DBUILD_PLATFORM=linux -DCMAKE_BUILD_TYPE=Release ..
-        else
-          cmake -DBUILD_PLATFORM=linux -DCMAKE_BUILD_TYPE=Release ..
-        fi
+        cmake -DBUILD_PLATFORM=linux -DCMAKE_BUILD_TYPE=Release ..
         cmake --build .
 
     - name: Upload build artifacts
@@ -71,8 +66,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        name: [win32, x64]
-        #arch: [x86, x86_64]  # Windows architectures: x86 (32-bit) and x64 (64-bit)
+        arch: [x86_64]  # Windows architectures: x64
 
     steps:
     - name: Checkout code
@@ -80,19 +74,19 @@ jobs:
 
     - name: Set up dependencies on Windows
       run: |
-        echo "Setting up dependencies on Windows ${{ matrix.name }}"
+        echo "Setting up dependencies on Windows ${{ matrix.arch }}"
         choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
 
     - name: Build the project on Windows
       run: |
-        echo "Building project on Windows ${{ matrix.name }}"
+        echo "Building project on Windows ${{ matrix.arch }}"
         mkdir build
         cd build
-        cmake -A ${{ matrix.name }} -DBUILD_PLATFORM=windows -DCMAKE_BUILD_TYPE=Release ..
+        cmake -DBUILD_PLATFORM=windows -DCMAKE_BUILD_TYPE=Release ..
         cmake --build . --config Release
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: build-windows-${{ matrix.name }}
+        name: build-windows-${{ matrix.arch }}
         path: build/
