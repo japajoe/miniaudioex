@@ -93,11 +93,11 @@ jobs:
         name: build-linux-${{ matrix.arch }}
         path: build/
 
-build-linux-arm32:
+  build-linux-arm32:
     runs-on: ubuntu-22.04-arm
     strategy:
       matrix:
-        arch: [arm32]  # Linux architecture: ARM32
+        arch: [arm64]  # Linux architecture: ARM32
 
     steps:
     - name: Checkout code
