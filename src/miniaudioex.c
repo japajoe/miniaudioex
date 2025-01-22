@@ -179,6 +179,7 @@ MA_API ma_ex_device_info *ma_ex_playback_devices_get(ma_uint32 *count) {
 
     for (ma_uint32 iDevice = 0; iDevice < playbackCount; iDevice++) {
         pDeviceInfo[iDevice].index = iDevice;
+        pDeviceInfo[iDevice].isDefault = pPlaybackInfos[iDevice].isDefault;
         size_t len = strlen(pPlaybackInfos[iDevice].name) + 1;
         pDeviceInfo[iDevice].pName = MA_MALLOC(len);
         if(pDeviceInfo[iDevice].pName == NULL) {
