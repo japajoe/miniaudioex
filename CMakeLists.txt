@@ -23,10 +23,10 @@ add_definitions(-DNDEBUG)
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
-if(BUILD_PLATFORM STREQUAL "linux-x86_64")
+if(BUILD_PLATFORM STREQUAL "linux_x86_64")
     target_link_libraries(${PROJECT_NAME} -lpthread -lm -ldl)
-elseif(BUILD_PLATFORM STREQUAL "linux-arm")
+elseif(BUILD_PLATFORM STREQUAL "linux_arm")
     target_link_libraries(${PROJECT_NAME} -lpthread -lm -ldl -latomic)
-elseif(BUILD_PLATFORM STREQUAL "linux-arm64")
+elseif(BUILD_PLATFORM STREQUAL "linux_arm64")
     target_link_libraries(${PROJECT_NAME} -lpthread -lm -ldl -latomic)
 endif()

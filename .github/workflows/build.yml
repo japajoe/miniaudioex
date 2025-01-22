@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [x86_64, arm64]  # Linux architectures: x64
+        arch: [x86_64]  # Linux architectures: x64
 
     steps:
     - name: Checkout code
@@ -53,7 +53,38 @@ jobs:
         echo "Building project on Linux ${{ matrix.arch }}"
         mkdir build
         cd build
-        cmake -DBUILD_PLATFORM=linux -DCMAKE_BUILD_TYPE=Release ..
+        cmake -DBUILD_PLATFORM=linux_x86_64 -DCMAKE_BUILD_TYPE=Release ..
+        cmake --build .
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-linux-${{ matrix.arch }}
+        path: build/
+
+
+  build-linux-arm64:
+    runs-on: ubuntu-22.04-arm
+    strategy:
+      matrix:
+        arch: [arm64]  # Linux architecture: ARM64
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up dependencies on Linux ARM64
+      run: |
+        echo "Setting up dependencies on Linux ARM64 ${{ matrix.arch }}"
+        sudo apt-get update
+        sudo apt-get install -y cmake
+
+    - name: Build the project on Linux ARM64
+      run: |
+        echo "Building project on Linux ARM64 ${{ matrix.arch }}"
+        mkdir build
+        cd build
+        cmake -DBUILD_PLATFORM=linux_arm64 -DCMAKE_BUILD_TYPE=Release ..
         cmake --build .
 
     - name: Upload build artifacts
