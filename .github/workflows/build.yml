@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [x86_64]  # Linux architectures: x64
+        arch: [x86_64, arm64]  # Linux architectures: x64
 
     steps:
     - name: Checkout code
