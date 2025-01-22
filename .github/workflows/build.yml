@@ -93,6 +93,36 @@ jobs:
         name: build-linux-${{ matrix.arch }}
         path: build/
 
+build-linux-arm32:
+    runs-on: ubuntu-22.04-arm
+    strategy:
+      matrix:
+        arch: [arm32]  # Linux architecture: ARM32
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up dependencies on Linux ARM32
+      run: |
+        echo "Setting up dependencies on Linux ARM32 ${{ matrix.arch }}"
+        sudo apt-get update
+        sudo apt-get install -y cmake gcc-arm-linux-gnueabihf
+
+    - name: Build the project on Linux ARM32
+      run: |
+        echo "Building project on Linux ARM32 ${{ matrix.arch }}"
+        mkdir build
+        cd build
+        cmake -DBUILD_PLATFORM=linux_arm -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=arm-linux-gnueabihf-gcc -DCMAKE_CXX_COMPILER=arm-linux-gnueabihf-g++ ..
+        cmake --build .
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-linux-${{ matrix.arch }}
+        path: build/
+
   build-windows:
     runs-on: windows-latest
     strategy:
