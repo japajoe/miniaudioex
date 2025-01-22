@@ -68,7 +68,7 @@ typedef struct {
 
 typedef struct {
     char *pName;
-    ma_uint32 index;
+    ma_int32 index;
 } ma_ex_device_info;
 
 typedef struct {

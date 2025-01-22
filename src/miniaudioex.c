@@ -225,7 +225,7 @@ MA_API ma_ex_context_config ma_ex_context_config_init(ma_uint32 sampleRate, ma_u
     config.deviceDataProc = NULL;
 
     if(pDeviceInfo == NULL) {
-        config.deviceInfo.index = 0;
+        config.deviceInfo.index = -1;
     } else {
         config.deviceInfo = *pDeviceInfo;
     }
@@ -273,14 +273,30 @@ MA_API ma_ex_context *ma_ex_context_init(const ma_ex_context_config *config) {
         return NULL;
     }
 
-    if(config->deviceInfo.index >= playbackCount) {
+    if(config->deviceInfo.index >= (ma_int32)playbackCount) {
         fprintf(stderr, "Device index is greater than or equal to the number of playback devices\n");
         ma_context_uninit(&context->context);
         MA_FREE(context);
         return NULL;
     }
     
-    deviceConfig.playback.pDeviceID = &pPlaybackInfos[config->deviceInfo.index].id;
+    ma_device_id *pSelectedDevice = NULL;
+
+    //Use selected device    
+    if(config->deviceInfo.index >= 0) {
+        pSelectedDevice = &pPlaybackInfos[config->deviceInfo.index].id;
+    } else { //Use default device
+        //Initially set to first device that was found
+        pSelectedDevice = &pPlaybackInfos[0].id;
+        for(ma_uint32 i = 0; i < playbackCount; i++) {
+            if(pPlaybackInfos[i].isDefault == MA_TRUE) {
+                pSelectedDevice = &pPlaybackInfos[i].id;
+                break;
+            }
+        }
+    }
+
+    deviceConfig.playback.pDeviceID = pSelectedDevice;
 
     if(ma_device_init(&context->context, &deviceConfig, &context->device) != MA_SUCCESS) {
         fprintf(stderr, "Failed to initialize ma_device\n");
