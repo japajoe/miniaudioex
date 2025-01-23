@@ -29,7 +29,7 @@
 // ===============================================================================
 // ALTERNATIVE 2 - MIT No Attribution
 // ===============================================================================
-// Copyright 2024 W.M.R Jap-A-Joe
+// Copyright 2025 W.M.R Jap-A-Joe
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy of
 // this software and associated documentation files (the "Software"), to deal in
@@ -205,7 +205,7 @@ MA_API ma_ex_device_info *ma_ex_playback_devices_get(ma_uint32 *count) {
     return pDeviceInfo;
 }
 
-MA_API void *ma_ex_playback_devices_free(ma_ex_device_info *pDeviceInfo, ma_uint32 count) {
+MA_API void ma_ex_playback_devices_free(ma_ex_device_info *pDeviceInfo, ma_uint32 count) {
     if(pDeviceInfo != NULL) {
         for(ma_uint32 i = 0; i < count; i++) {
             if(pDeviceInfo[i].pName != NULL)

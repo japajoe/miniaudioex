@@ -5,11 +5,7 @@ project(miniaudioex)
 set(BUILD_PLATFORM "unknown" CACHE STRING "Target platform for the build")
 set(CMAKE_C_FLAGS_RELEASE "-O3")
 
-if(BUILD_PLATFORM STREQUAL "unknown")
-    message(FATAL_ERROR "Unsupported platform: ${BUILD_PLATFORM}")
-else()
-    message("Configuring for platform: ${BUILD_PLATFORM}")
-endif()
+message("Configuring for platform: ${BUILD_PLATFORM}")
 
 file(GLOB SOURCES
     "${PROJECT_SOURCE_DIR}/src/*.c"
