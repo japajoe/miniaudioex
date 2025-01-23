@@ -23,7 +23,7 @@ jobs:
         echo "Building project on MacOS ${{ matrix.arch }}"
         mkdir build
         cd build
-        cmake -DBUILD_PLATFORM=mac -DCMAKE_BUILD_TYPE=Release ..
+        cmake -DBUILD_PLATFORM=mac -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} ..
         cmake --build .
 
     - name: Upload build artifacts
