@@ -49,6 +49,7 @@
 #ifndef MINIAUDIOEX_H
 #define MINIAUDIOEX_H
 
+#define MINIAUDIO_IMPLEMENTATION
 #include "miniaudio.h"
 
 typedef void (*ma_procedural_wave_proc)(void *pUserData, void* pFramesOut, ma_uint64 frameCount, ma_uint32 channels);
