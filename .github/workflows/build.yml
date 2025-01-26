@@ -1,181 +1,287 @@
-name: Build for MacOS, Linux, and Windows
+name: Cross-Platform Build
 
 on: [push, pull_request]
 
 jobs:
-  build-macos-arm64:
-    runs-on: macos-latest
+  build:
+    name: Build ${{ matrix.platform }} (${{ matrix.arch }})
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        arch: [arm64]  # Mac architectures: ARM
+        include:
+          # macOS
+          - os: macos-latest
+            platform: macos
+            arch: arm64
+          - os: macos-13
+            platform: macos
+            arch: x86_64
+
+          # Linux
+          - os: ubuntu-latest
+            platform: linux
+            arch: x86_64
+          - os: ubuntu-22.04-arm
+            platform: linux
+            arch: arm64
+          - os: ubuntu-22.04-arm  # Use ARM64 runner to cross-compile for ARM32
+            platform: linux
+            arch: arm32  # Target architecture (not runner architecture)
+
+          # Windows
+          - os: windows-latest
+            platform: windows
+            arch: x86
+          - os: windows-latest
+            platform: windows
+            arch: x86_64
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up dependencies on MacOS
-      run: |
-        echo "Setting up dependencies on MacOS ${{ matrix.arch }}"
-        brew install cmake
+      # Install ARM32 cross-compiler (only for Linux ARM32 target)
+      - name: Install ARM32 toolchain
+        if: matrix.platform == 'linux' && matrix.arch == 'arm32'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
 
-    - name: Build the project on MacOS
-      run: |
-        echo "Building project on MacOS ${{ matrix.arch }}"
-        mkdir build
-        cd build
-        cmake -DBUILD_PLATFORM=mac -DCMAKE_BUILD_TYPE=Release ..
-        cmake --build .
+      # Configure CMake
+      - name: Configure CMake
+        run: |
+          mkdir build
+          cd build
 
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: miniaudioex-build-macos-arm64
-        path: build/
+          # Linux-specific linker flags
+          LINKER_FLAGS=""
+          if [ "${{ matrix.platform }}" = "linux" ]; then
+            LINKER_FLAGS="-lpthread -lm -ldl -latomic"
+          fi
 
-  build-macos-x86_64:
-    runs-on: macos-13
-    strategy:
-      matrix:
-        arch: [x86_64]  # Mac architecture: Intel
+          # ARM32 cross-compilation setup
+          if [ "${{ matrix.arch }}" = "arm32" ]; then
+            cmake .. \
+              -DCMAKE_C_COMPILER=arm-linux-gnueabihf-gcc \
+              -DCMAKE_CXX_COMPILER=arm-linux-gnueabihf-g++ \
+              -DCMAKE_C_FLAGS="-marm -march=armv7-a" \
+              -DCMAKE_EXE_LINKER_FLAGS="$LINKER_FLAGS" \
+              -DBUILD_PLATFORM=linux_arm32 \
+              -DCMAKE_BUILD_TYPE=Release
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+          # Windows setup
+          elif [ "${{ matrix.platform }}" = "windows" ]; then
+            cmake .. \
+              -G "Visual Studio 17 2022" \
+              -A ${{ matrix.arch }} \
+              -DBUILD_PLATFORM=windows \
+              -DCMAKE_BUILD_TYPE=Release
 
-    - name: Set up dependencies on MacOS
-      run: |
-        echo "Setting up dependencies on MacOS ${{ matrix.arch }}"
-        brew install cmake
+          # macOS and non-ARM32 Linux
+          else
+            cmake .. \
+              -DBUILD_PLATFORM=${{ matrix.platform }}_${{ matrix.arch }} \
+              -DCMAKE_EXE_LINKER_FLAGS="$LINKER_FLAGS" \
+              -DCMAKE_BUILD_TYPE=Release
+          fi
 
-    - name: Build the project on MacOS
-      run: |
-        echo "Building project on MacOS ${{ matrix.arch }}"
-        mkdir build
-        cd build
-        cmake -DBUILD_PLATFORM=mac -DCMAKE_BUILD_TYPE=Release ..
-        cmake --build .
+      # Build project
+      - name: Build
+        run: |
+          cd build
+          cmake --build . --config Release
 
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: miniaudioex-build-macos-x86_64
-        path: build/
-
-  build-linux:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        arch: [x86_64]  # Linux architectures: x64
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Set up dependencies on Linux
-      run: |
-        echo "Setting up dependencies on Linux ${{ matrix.arch }}"
-        sudo apt-get update
-        sudo apt-get install -y cmake
-
-    - name: Build the project on Linux
-      run: |
-        echo "Building project on Linux ${{ matrix.arch }}"
-        mkdir build
-        cd build
-        cmake -DBUILD_PLATFORM=linux_x86_64 -DCMAKE_BUILD_TYPE=Release ..
-        cmake --build .
-
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: miniaudioex-build-linux-x86_64
-        path: build/
+      # Upload artifacts
+      - name: Upload binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: miniaudioex-${{ matrix.platform }}-${{ matrix.arch }}
+          path: |
+            build/Release/miniaudioex*
+            build/miniaudioex*
 
 
-  build-linux-arm64:
-    runs-on: ubuntu-22.04-arm
-    strategy:
-      matrix:
-        arch: [arm64]  # Linux architecture: ARM64
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
 
-    - name: Set up dependencies on Linux ARM64
-      run: |
-        echo "Setting up dependencies on Linux ARM64 ${{ matrix.arch }}"
-        sudo apt-get update
-        sudo apt-get install -y cmake
 
-    - name: Build the project on Linux ARM64
-      run: |
-        echo "Building project on Linux ARM64 ${{ matrix.arch }}"
-        mkdir build
-        cd build
-        cmake -DBUILD_PLATFORM=linux_arm64 -DCMAKE_BUILD_TYPE=Release ..
-        cmake --build .
+# name: Build for MacOS, Linux, and Windows
 
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: miniaudioex-build-linux-arm64
-        path: build/
+# on: [push, pull_request]
 
-  build-linux-arm32:
-    runs-on: ubuntu-22.04-arm
-    strategy:
-      matrix:
-        arch: [arm64]  # Linux architecture: ARM32
+# jobs:
+#   build-macos-arm64:
+#     runs-on: macos-latest
+#     strategy:
+#       matrix:
+#         arch: [arm64]  # Mac architectures: ARM
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+#     steps:
+#     - name: Checkout code
+#       uses: actions/checkout@v2
 
-    - name: Set up dependencies on Linux ARM32
-      run: |
-        echo "Setting up dependencies on Linux ARM32 ${{ matrix.arch }}"
-        sudo apt-get update
-        sudo apt-get install -y cmake gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
+#     - name: Set up dependencies on MacOS
+#       run: |
+#         echo "Setting up dependencies on MacOS ${{ matrix.arch }}"
+#         brew install cmake
 
-    - name: Build the project on Linux ARM32
-      run: |
-        echo "Building project on Linux ARM32 ${{ matrix.arch }}"
-        mkdir build
-        cd build
-        cmake -DBUILD_PLATFORM=linux_arm -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=arm-linux-gnueabihf-gcc -DCMAKE_CXX_COMPILER=arm-linux-gnueabihf-g++ ..
-        cmake --build .
+#     - name: Build the project on MacOS
+#       run: |
+#         echo "Building project on MacOS ${{ matrix.arch }}"
+#         mkdir build
+#         cd build
+#         cmake -DBUILD_PLATFORM=mac -DCMAKE_BUILD_TYPE=Release ..
+#         cmake --build .
 
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: miniaudioex-build-linux-arm
-        path: build/
+#     - name: Upload build artifacts
+#       uses: actions/upload-artifact@v3
+#       with:
+#         name: miniaudioex-build-macos-arm64
+#         path: build/
 
-  build-windows:
-    runs-on: windows-latest
-    strategy:
-      matrix:
-        name: [win32, x64]
-        #arch: [x86, x86_64]  # Windows architectures: x86 (32-bit) and x64 (64-bit)
+#   build-macos-x86_64:
+#     runs-on: macos-13
+#     strategy:
+#       matrix:
+#         arch: [x86_64]  # Mac architecture: Intel
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+#     steps:
+#     - name: Checkout code
+#       uses: actions/checkout@v2
 
-    - name: Set up dependencies on Windows
-      run: |
-        echo "Setting up dependencies on Windows ${{ matrix.name }}"
-        choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
-    - name: Build the project on Windows
-      run: |
-        echo "Building project on Windows ${{ matrix.name }}"
-        mkdir build
-        cd build
-        cmake -A ${{ matrix.name }} -DBUILD_PLATFORM=windows -DCMAKE_BUILD_TYPE=Release ..
-        cmake --build . --config Release
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: miniaudioex-build-windows-${{ matrix.name }}
-        path: build/
+#     - name: Set up dependencies on MacOS
+#       run: |
+#         echo "Setting up dependencies on MacOS ${{ matrix.arch }}"
+#         brew install cmake
+
+#     - name: Build the project on MacOS
+#       run: |
+#         echo "Building project on MacOS ${{ matrix.arch }}"
+#         mkdir build
+#         cd build
+#         cmake -DBUILD_PLATFORM=mac -DCMAKE_BUILD_TYPE=Release ..
+#         cmake --build .
+
+#     - name: Upload build artifacts
+#       uses: actions/upload-artifact@v3
+#       with:
+#         name: miniaudioex-build-macos-x86_64
+#         path: build/
+
+#   build-linux:
+#     runs-on: ubuntu-latest
+#     strategy:
+#       matrix:
+#         arch: [x86_64]  # Linux architectures: x64
+
+#     steps:
+#     - name: Checkout code
+#       uses: actions/checkout@v2
+
+#     - name: Set up dependencies on Linux
+#       run: |
+#         echo "Setting up dependencies on Linux ${{ matrix.arch }}"
+#         sudo apt-get update
+#         sudo apt-get install -y cmake
+
+#     - name: Build the project on Linux
+#       run: |
+#         echo "Building project on Linux ${{ matrix.arch }}"
+#         mkdir build
+#         cd build
+#         cmake -DBUILD_PLATFORM=linux_x86_64 -DCMAKE_BUILD_TYPE=Release ..
+#         cmake --build .
+
+#     - name: Upload build artifacts
+#       uses: actions/upload-artifact@v3
+#       with:
+#         name: miniaudioex-build-linux-x86_64
+#         path: build/
+
+
+#   build-linux-arm64:
+#     runs-on: ubuntu-22.04-arm
+#     strategy:
+#       matrix:
+#         arch: [arm64]  # Linux architecture: ARM64
+
+#     steps:
+#     - name: Checkout code
+#       uses: actions/checkout@v2
+
+#     - name: Set up dependencies on Linux ARM64
+#       run: |
+#         echo "Setting up dependencies on Linux ARM64 ${{ matrix.arch }}"
+#         sudo apt-get update
+#         sudo apt-get install -y cmake
+
+#     - name: Build the project on Linux ARM64
+#       run: |
+#         echo "Building project on Linux ARM64 ${{ matrix.arch }}"
+#         mkdir build
+#         cd build
+#         cmake -DBUILD_PLATFORM=linux_arm64 -DCMAKE_BUILD_TYPE=Release ..
+#         cmake --build .
+
+#     - name: Upload build artifacts
+#       uses: actions/upload-artifact@v3
+#       with:
+#         name: miniaudioex-build-linux-arm64
+#         path: build/
+
+#   build-linux-arm32:
+#     runs-on: ubuntu-22.04-arm
+#     strategy:
+#       matrix:
+#         arch: [arm64]  # Linux architecture: ARM32
+
+#     steps:
+#     - name: Checkout code
+#       uses: actions/checkout@v2
+
+#     - name: Set up dependencies on Linux ARM32
+#       run: |
+#         echo "Setting up dependencies on Linux ARM32 ${{ matrix.arch }}"
+#         sudo apt-get update
+#         sudo apt-get install -y cmake gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
+
+#     - name: Build the project on Linux ARM32
+#       run: |
+#         echo "Building project on Linux ARM32 ${{ matrix.arch }}"
+#         mkdir build
+#         cd build
+#         cmake -DBUILD_PLATFORM=linux_arm -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=arm-linux-gnueabihf-gcc -DCMAKE_CXX_COMPILER=arm-linux-gnueabihf-g++ ..
+#         cmake --build .
+
+#     - name: Upload build artifacts
+#       uses: actions/upload-artifact@v3
+#       with:
+#         name: miniaudioex-build-linux-arm
+#         path: build/
+
+#   build-windows:
+#     runs-on: windows-latest
+#     strategy:
+#       matrix:
+#         name: [win32, x64]
+#         #arch: [x86, x86_64]  # Windows architectures: x86 (32-bit) and x64 (64-bit)
+
+#     steps:
+#     - name: Checkout code
+#       uses: actions/checkout@v2
+
+#     - name: Set up dependencies on Windows
+#       run: |
+#         echo "Setting up dependencies on Windows ${{ matrix.name }}"
+#         choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
+#     - name: Build the project on Windows
+#       run: |
+#         echo "Building project on Windows ${{ matrix.name }}"
+#         mkdir build
+#         cd build
+#         cmake -A ${{ matrix.name }} -DBUILD_PLATFORM=windows -DCMAKE_BUILD_TYPE=Release ..
+#         cmake --build . --config Release
+#     - name: Upload build artifacts
+#       uses: actions/upload-artifact@v3
+#       with:
+#         name: miniaudioex-build-windows-${{ matrix.name }}
+#         path: build/
