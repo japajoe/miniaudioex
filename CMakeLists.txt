@@ -6,6 +6,10 @@ project(miniaudioex)
 set(BUILD_PLATFORM "unknown" CACHE STRING "Target platform for the build")
 set(CMAKE_C_FLAGS_RELEASE "-O3")
 
+if(WIN32)
+    add_definitions(-DMA_DLL)
+endif()
+
 message("Configuring for platform: ${BUILD_PLATFORM}")
 
 file(GLOB SOURCES
