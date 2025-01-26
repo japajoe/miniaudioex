@@ -7,6 +7,8 @@ jobs:
     name: Build ${{ matrix.platform }} (${{ matrix.arch }})
     runs-on: ${{ matrix.os }}
     strategy:
+      # Prevent jobs from being cancelled if one fails
+      fail-fast: false
       matrix:
         include:
           # macOS
@@ -24,23 +26,23 @@ jobs:
           - os: ubuntu-22.04-arm
             platform: linux
             arch: arm64
-          - os: ubuntu-22.04-arm  # Use ARM64 runner to cross-compile for ARM32
+          - os: ubuntu-22.04-arm  # Cross-compile ARM32 from ARM64 runner
             platform: linux
-            arch: arm32  # Target architecture (not runner architecture)
+            arch: arm32
 
-          # Windows
+          # Windows (use CMake-compatible arch names)
           - os: windows-latest
             platform: windows
-            arch: x86
+            arch: Win32  # Not "x86" (CMake expects "Win32")
           - os: windows-latest
             platform: windows
-            arch: x86_64
+            arch: x64    # Not "x86_64"
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Install ARM32 cross-compiler (only for Linux ARM32 target)
+      # Install ARM32 cross-compiler (Linux ARM32 only)
       - name: Install ARM32 toolchain
         if: matrix.platform == 'linux' && matrix.arch == 'arm32'
         run: |
@@ -59,7 +61,7 @@ jobs:
             LINKER_FLAGS="-lpthread -lm -ldl -latomic"
           fi
 
-          # ARM32 cross-compilation setup
+          # ARM32 cross-compilation
           if [ "${{ matrix.arch }}" = "arm32" ]; then
             cmake .. \
               -DCMAKE_C_COMPILER=arm-linux-gnueabihf-gcc \
@@ -73,7 +75,7 @@ jobs:
           elif [ "${{ matrix.platform }}" = "windows" ]; then
             cmake .. \
               -G "Visual Studio 17 2022" \
-              -A ${{ matrix.arch }} \
+              -A ${{ matrix.arch }} \  # Now uses "Win32" or "x64"
               -DBUILD_PLATFORM=windows \
               -DCMAKE_BUILD_TYPE=Release
 
@@ -91,7 +93,7 @@ jobs:
           cd build
           cmake --build . --config Release
 
-      # Upload artifacts
+      # Upload artifacts (adjust binary name/path)
       - name: Upload binary
         uses: actions/upload-artifact@v3
         with:
@@ -99,6 +101,7 @@ jobs:
           path: |
             build/Release/miniaudioex*
             build/miniaudioex*
+            build/miniaudioex  # Explicit fallback path
 
 
 
