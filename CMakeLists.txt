@@ -7,6 +7,7 @@ set(BUILD_PLATFORM "unknown" CACHE STRING "Target platform for the build")
 set(CMAKE_C_FLAGS_RELEASE "-O3")
 
 if(WIN32)
+    add_definitions(-UMA_API)
     add_definitions(-DMA_DLL)
 endif()
 
