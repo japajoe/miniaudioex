@@ -273,11 +273,12 @@ typedef ma_uint16 wchar_t;
 
 #if !defined(MA_API)
     #if defined(MA_DLL)
-        #if defined(MINIAUDIO_IMPLEMENTATION) || defined(MA_IMPLEMENTATION)
-            #define MA_API  MA_DLL_EXPORT
-        #else
-            #define MA_API  MA_DLL_IMPORT
-        #endif
+        #define MA_API  MA_DLL_EXPORT
+        // #if defined(MINIAUDIO_IMPLEMENTATION) || defined(MA_IMPLEMENTATION)
+        //     #define MA_API  MA_DLL_EXPORT
+        // #else
+        //     #define MA_API  MA_DLL_IMPORT
+        // #endif
     #else
         #define MA_API extern
     #endif
