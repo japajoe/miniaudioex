@@ -251,16 +251,16 @@ typedef ma_uint16 wchar_t;
 /* MA_DLL is not officially supported. You're on your own if you want to use this. */
 #if defined(MA_DLL)
     #if defined(_WIN32)
-        #define MA_DLL_IMPORT  __declspec(dllimport)
+        //#define MA_DLL_IMPORT  __declspec(dllimport)
         #define MA_DLL_EXPORT  __declspec(dllexport)
         #define MA_DLL_PRIVATE static
     #else
         #if defined(__GNUC__) && __GNUC__ >= 4
-            #define MA_DLL_IMPORT  __attribute__((visibility("default")))
+            //#define MA_DLL_IMPORT  __attribute__((visibility("default")))
             #define MA_DLL_EXPORT  __attribute__((visibility("default")))
             #define MA_DLL_PRIVATE __attribute__((visibility("hidden")))
         #else
-            #define MA_DLL_IMPORT
+            //#define MA_DLL_IMPORT
             #define MA_DLL_EXPORT
             #define MA_DLL_PRIVATE static
         #endif
@@ -272,7 +272,7 @@ typedef ma_uint16 wchar_t;
         #if defined(MINIAUDIO_IMPLEMENTATION) || defined(MA_IMPLEMENTATION)
             #define MA_API  MA_DLL_EXPORT
         #else
-            #define MA_API  MA_DLL_IMPORT
+            //#define MA_API  MA_DLL_IMPORT
         #endif
     #else
         #define MA_API extern
