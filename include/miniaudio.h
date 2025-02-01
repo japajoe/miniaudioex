@@ -248,11 +248,6 @@ typedef ma_uint16 wchar_t;
     #define MA_NO_INLINE
 #endif
 
-// //To do: Might have to rework this exporting mechanism
-// #ifndef MA_DLL
-// #define MA_DLL
-// #endif
-
 /* MA_DLL is not officially supported. You're on your own if you want to use this. */
 #if defined(MA_DLL)
     #if defined(_WIN32)
@@ -274,7 +269,6 @@ typedef ma_uint16 wchar_t;
 
 #if !defined(MA_API)
     #if defined(MA_DLL)
-        //#define MA_API  MA_DLL_EXPORT
         #if defined(MINIAUDIO_IMPLEMENTATION) || defined(MA_IMPLEMENTATION)
             #define MA_API  MA_DLL_EXPORT
         #else
