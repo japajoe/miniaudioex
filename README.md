@@ -77,7 +77,7 @@ Generating audio with a callback function.
 #define SAMPLE_RATE 44100
 #define NUM_CHANNELS 2
 
-void on_waveform(void *pUserData, void* pFramesOut, ma_uint64 frameCount, ma_uint32 channels, NULL);
+void on_waveform(void *pUserData, void* pFramesOut, ma_uint64 frameCount, ma_uint32 channels);
 
 int main(int argc, char **argv) {
     ma_ex_context_config contextConfig = ma_ex_context_config_init(SAMPLE_RATE, NUM_CHANNELS, 0, NULL);
