@@ -66290,6 +66290,8 @@ MA_API ma_result ma_sound_set_notifications_userdata(ma_sound* pSound, void* pUs
     } else {
         pSound->notifications.pUserData = NULL;
     }
+
+    return MA_SUCCESS;
 }
 
 MA_API ma_result ma_sound_set_end_notification_callback(ma_sound* pSound, ma_sound_end_proc callback)
@@ -66307,6 +66309,8 @@ MA_API ma_result ma_sound_set_end_notification_callback(ma_sound* pSound, ma_sou
     } else {
         pSound->notifications.onAtEnd = NULL;
     }
+
+    return MA_SUCCESS;
 }
 
 MA_API ma_result ma_sound_set_load_notification_callback(ma_sound* pSound, ma_sound_load_proc callback)
@@ -66324,6 +66328,8 @@ MA_API ma_result ma_sound_set_load_notification_callback(ma_sound* pSound, ma_so
     } else {
         pSound->notifications.onLoaded = NULL;
     }
+
+    return MA_SUCCESS;
 }
 
 MA_API ma_result ma_sound_set_process_notification_callback(ma_sound* pSound, ma_sound_process_proc callback)
@@ -66341,6 +66347,8 @@ MA_API ma_result ma_sound_set_process_notification_callback(ma_sound* pSound, ma
     } else {
         pSound->notifications.onProcess = NULL;
     }
+
+    return MA_SUCCESS;
 }
 
 
