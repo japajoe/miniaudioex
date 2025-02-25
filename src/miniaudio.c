@@ -1,6 +1,6 @@
 /*
 Audio playback and capture library. Choice of public domain or MIT-0. See license statements at the end of this file.
-miniaudio - v0.11.21 - 2023-11-15
+miniaudio - v0.11.22 - TBD
 
 David Reid - mackron@gmail.com
 
@@ -776,7 +776,7 @@ Standard Library Stuff
 
 ******************************************************************************/
 #ifndef MA_ASSERT
-#define MA_ASSERT(condition)            assert(condition)
+#define MA_ASSERT(condition) assert(condition)
 #endif
 
 #ifndef MA_MALLOC
@@ -12600,9 +12600,12 @@ static ma_result ma_context_create_IDirectSound__dsound(ma_context* pContext, ma
     }
 
     /* The cooperative level must be set before doing anything else. */
-    hWnd = ((MA_PFN_GetForegroundWindow)pContext->win32.GetForegroundWindow)();
+    hWnd = (HWND)pContext->dsound.hWnd;
     if (hWnd == 0) {
-        hWnd = ((MA_PFN_GetDesktopWindow)pContext->win32.GetDesktopWindow)();
+        hWnd = ((MA_PFN_GetForegroundWindow)pContext->win32.GetForegroundWindow)();
+        if (hWnd == 0) {
+            hWnd = ((MA_PFN_GetDesktopWindow)pContext->win32.GetDesktopWindow)();
+        }
     }
 
     hr = ma_IDirectSound_SetCooperativeLevel(pDirectSound, hWnd, (shareMode == ma_share_mode_exclusive) ? MA_DSSCL_EXCLUSIVE : MA_DSSCL_PRIORITY);
@@ -13918,6 +13921,8 @@ static ma_result ma_context_init__dsound(ma_context* pContext, const ma_context_
         pContext->dsound.DirectSoundCaptureEnumerateA == NULL) {
         return MA_API_NOT_FOUND;
     }
+
+    pContext->dsound.hWnd = pConfig->dsound.hWnd;
 
     pCallbacks->onContextInit             = ma_context_init__dsound;
     pCallbacks->onContextUninit           = ma_context_uninit__dsound;
@@ -16639,6 +16644,7 @@ static ma_result ma_device_stop__alsa(ma_device* pDevice)
     a small chance that our wakeupfd has not been cleared. We'll clear that out now if applicable.
     */
     int resultPoll;
+    int resultRead;
 
     if (pDevice->type == ma_device_type_capture || pDevice->type == ma_device_type_duplex) {
         ma_log_postf(ma_device_get_log(pDevice), MA_LOG_LEVEL_DEBUG, "[ALSA] Dropping capture device...\n");
@@ -16653,12 +16659,15 @@ static ma_result ma_device_stop__alsa(ma_device* pDevice)
             ma_log_postf(ma_device_get_log(pDevice), MA_LOG_LEVEL_DEBUG, "[ALSA] Preparing capture device successful.\n");
         }
 
-    /* Clear the wakeupfd. */
-    resultPoll = poll((struct pollfd*)pDevice->alsa.pPollDescriptorsCapture, 1, 0);
-    if (resultPoll > 0) {
-        ma_uint64 t;
-        read(((struct pollfd*)pDevice->alsa.pPollDescriptorsCapture)[0].fd, &t, sizeof(t));
-    }
+        /* Clear the wakeupfd. */
+        resultPoll = poll((struct pollfd*)pDevice->alsa.pPollDescriptorsCapture, 1, 0);
+        if (resultPoll > 0) {
+            ma_uint64 t;
+            resultRead = read(((struct pollfd*)pDevice->alsa.pPollDescriptorsCapture)[0].fd, &t, sizeof(t));
+            if (resultRead != sizeof(t)) {
+                ma_log_postf(ma_device_get_log(pDevice), MA_LOG_LEVEL_DEBUG, "[ALSA] Failed to read from capture wakeupfd. read() = %d\n", resultRead);
+            }
+        }
     }
 
     if (pDevice->type == ma_device_type_playback || pDevice->type == ma_device_type_duplex) {
@@ -16675,11 +16684,14 @@ static ma_result ma_device_stop__alsa(ma_device* pDevice)
         }
 
         /* Clear the wakeupfd. */
-    resultPoll = poll((struct pollfd*)pDevice->alsa.pPollDescriptorsPlayback, 1, 0);
-    if (resultPoll > 0) {
-        ma_uint64 t;
-        read(((struct pollfd*)pDevice->alsa.pPollDescriptorsPlayback)[0].fd, &t, sizeof(t));
-    }
+        resultPoll = poll((struct pollfd*)pDevice->alsa.pPollDescriptorsPlayback, 1, 0);
+        if (resultPoll > 0) {
+            ma_uint64 t;
+            resultRead = read(((struct pollfd*)pDevice->alsa.pPollDescriptorsPlayback)[0].fd, &t, sizeof(t));
+            if (resultRead != sizeof(t)) {
+                ma_log_postf(ma_device_get_log(pDevice), MA_LOG_LEVEL_DEBUG, "[ALSA] Failed to read from playback wakeupfd. read() = %d\n", resultRead);
+            }
+        }
 
     }
 
@@ -28350,7 +28362,7 @@ static ma_result ma_device_uninit__webaudio(ma_device* pDevice)
     #if defined(MA_USE_AUDIO_WORKLETS)
     {
         EM_ASM({
-            var device = miniaudio.get_device_by_index($0);
+            var device = window.miniaudio.get_device_by_index($0);
 
             if (device.streamNode !== undefined) {
                 device.streamNode.disconnect();
@@ -28365,7 +28377,7 @@ static ma_result ma_device_uninit__webaudio(ma_device* pDevice)
     #else
     {
         EM_ASM({
-            var device = miniaudio.get_device_by_index($0);
+            var device = window.miniaudio.get_device_by_index($0);
 
             /* Make sure all nodes are disconnected and marked for collection. */
             if (device.scriptNode !== undefined) {
@@ -28392,7 +28404,7 @@ static ma_result ma_device_uninit__webaudio(ma_device* pDevice)
 
     /* Clean up the device on the JS side. */
     EM_ASM({
-        miniaudio.untrack_device_by_index($0);
+        window.miniaudio.untrack_device_by_index($0);
     }, pDevice->webaudio.deviceIndex);
 
     ma_free(pDevice->webaudio.pIntermediaryBuffer, &pDevice->pContext->allocationCallbacks);
@@ -28557,7 +28569,6 @@ static void ma_audio_worklet_processor_created__webaudio(EMSCRIPTEN_WEBAUDIO_T a
         return;
     }
 
-
     pParameters->pDevice->webaudio.audioWorklet = emscripten_create_wasm_audio_worklet_node(audioContext, "miniaudio", &audioWorkletOptions, &ma_audio_worklet_process_callback__webaudio, pParameters->pDevice);
 
     /* With the audio worklet initialized we can now attach it to the graph. */
@@ -28697,7 +28708,6 @@ static ma_result ma_device_init__webaudio(ma_device* pDevice, const ma_device_co
         /* It's not clear if this can return an error. None of the tests in the Emscripten repository check for this, so neither am I for now. */
         pDevice->webaudio.audioContext = emscripten_create_audio_context(&audioContextAttributes);
 
-
         /*
         With the context created we can now create the worklet. We can only have a single worklet per audio
         context which means we'll need to craft this appropriately to handle duplex devices correctly.
@@ -28746,7 +28756,7 @@ static ma_result ma_device_init__webaudio(ma_device* pDevice, const ma_device_co
 
         /* We need to add an entry to the miniaudio.devices list on the JS side so we can do some JS/C interop. */
         pDevice->webaudio.deviceIndex = EM_ASM_INT({
-            return miniaudio.track_device({
+            return window.miniaudio.track_device({
                 webaudio: emscriptenGetAudioObject($0),
                 state:    1 /* 1 = ma_device_state_stopped */
             });
@@ -28831,11 +28841,11 @@ static ma_result ma_device_init__webaudio(ma_device* pDevice, const ma_device_co
             /* The node processing callback. */
             device.scriptNode.onaudioprocess = function(e) {
                 if (device.intermediaryBufferView == null || device.intermediaryBufferView.length == 0) {
-                    device.intermediaryBufferView = new Float32Array(Module.HEAPF32.buffer, pIntermediaryBuffer, bufferSize * channels);
+                    device.intermediaryBufferView = new Float32Array(HEAPF32.buffer, pIntermediaryBuffer, bufferSize * channels);
                 }
 
                 /* Do the capture side first. */
-                if (deviceType == miniaudio.device_type.capture || deviceType == miniaudio.device_type.duplex) {
+                if (deviceType == window.miniaudio.device_type.capture || deviceType == window.miniaudio.device_type.duplex) {
                     /* The data must be interleaved before being processed miniaudio. */
                     for (var iChannel = 0; iChannel < channels; iChannel += 1) {
                         var inputBuffer = e.inputBuffer.getChannelData(iChannel);
@@ -28849,7 +28859,7 @@ static ma_result ma_device_init__webaudio(ma_device* pDevice, const ma_device_co
                     _ma_device_process_pcm_frames_capture__webaudio(pDevice, bufferSize, pIntermediaryBuffer);
                 }
 
-                if (deviceType == miniaudio.device_type.playback || deviceType == miniaudio.device_type.duplex) {
+                if (deviceType == window.miniaudio.device_type.playback || deviceType == window.miniaudio.device_type.duplex) {
                     _ma_device_process_pcm_frames_playback__webaudio(pDevice, bufferSize, pIntermediaryBuffer);
 
                     for (var iChannel = 0; iChannel < e.outputBuffer.numberOfChannels; ++iChannel) {
@@ -28869,7 +28879,7 @@ static ma_result ma_device_init__webaudio(ma_device* pDevice, const ma_device_co
             };
 
             /* Now we need to connect our node to the graph. */
-            if (deviceType == miniaudio.device_type.capture || deviceType == miniaudio.device_type.duplex) {
+            if (deviceType == window.miniaudio.device_type.capture || deviceType == window.miniaudio.device_type.duplex) {
                 navigator.mediaDevices.getUserMedia({audio:true, video:false})
                     .then(function(stream) {
                         device.streamNode = device.webaudio.createMediaStreamSource(stream);
@@ -28881,13 +28891,13 @@ static ma_result ma_device_init__webaudio(ma_device* pDevice, const ma_device_co
                     });
             }
 
-            if (deviceType == miniaudio.device_type.playback) {
+            if (deviceType == window.miniaudio.device_type.playback) {
                 device.scriptNode.connect(device.webaudio.destination);
             }
 
             device.pDevice = pDevice;
 
-            return miniaudio.track_device(device);
+            return window.miniaudio.track_device(device);
         }, pConfig->deviceType, channels, sampleRate, periodSizeInFrames, pDevice->webaudio.pIntermediaryBuffer, pDevice);
 
         if (deviceIndex < 0) {
@@ -28897,7 +28907,7 @@ static ma_result ma_device_init__webaudio(ma_device* pDevice, const ma_device_co
         pDevice->webaudio.deviceIndex = deviceIndex;
 
         /* Grab the sample rate from the audio context directly. */
-        sampleRate = (ma_uint32)EM_ASM_INT({ return miniaudio.get_device_by_index($0).webaudio.sampleRate; }, deviceIndex);
+        sampleRate = (ma_uint32)EM_ASM_INT({ return window.miniaudio.get_device_by_index($0).webaudio.sampleRate; }, deviceIndex);
 
         if (pDescriptorCapture != NULL) {
             pDescriptorCapture->format              = ma_format_f32;
@@ -28927,9 +28937,9 @@ static ma_result ma_device_start__webaudio(ma_device* pDevice)
     MA_ASSERT(pDevice != NULL);
 
     EM_ASM({
-        var device = miniaudio.get_device_by_index($0);
+        var device = window.miniaudio.get_device_by_index($0);
         device.webaudio.resume();
-        device.state = miniaudio.device_state.started;
+        device.state = window.miniaudio.device_state.started;
     }, pDevice->webaudio.deviceIndex);
 
     return MA_SUCCESS;
@@ -28949,9 +28959,9 @@ static ma_result ma_device_stop__webaudio(ma_device* pDevice)
     do any kind of explicit draining.
     */
     EM_ASM({
-        var device = miniaudio.get_device_by_index($0);
+        var device = window.miniaudio.get_device_by_index($0);
         device.webaudio.suspend();
-        device.state = miniaudio.device_state.stopped;
+        device.state = window.miniaudio.device_state.stopped;
     }, pDevice->webaudio.deviceIndex);
 
     ma_device__on_notification_stopped(pDevice);
@@ -29010,6 +29020,7 @@ static ma_result ma_context_init__webaudio(ma_context* pContext, const ma_contex
             window.miniaudio.device_state.started = $4;
 
             /* Device cache for mapping devices to indexes for JavaScript/C interop. */
+            let miniaudio = window.miniaudio;
             miniaudio.devices = [];
 
             miniaudio.track_device = function(device) {
@@ -29061,13 +29072,13 @@ static ma_result ma_context_init__webaudio(ma_context* pContext, const ma_contex
                     var device = miniaudio.devices[i];
                     if (device != null &&
                         device.webaudio != null &&
-                        device.state === window.miniaudio.device_state.started) {
+                        device.state === miniaudio.device_state.started) {
 
                         device.webaudio.resume().then(() => {
-                                Module._ma_device__on_notification_unlocked(device.pDevice);
-                            },
-                            (error) => {console.error("Failed to resume audiocontext", error);
-                            });
+                            _ma_device__on_notification_unlocked(device.pDevice);
+                        },
+                        (error) => {console.error("Failed to resume audiocontext", error);
+                        });
                     }
                 }
                 miniaudio.unlock_event_types.map(function(event_type) {
@@ -45895,7 +45906,7 @@ MA_API ma_result ma_data_source_read_pcm_frames(ma_data_source* pDataSource, voi
 
     /* Keep reading until we've read as many frames as possible. */
     while (totalFramesProcessed < frameCount) {
-        ma_uint64 framesProcessed;
+        ma_uint64 framesProcessed = 0;
         ma_uint64 framesRemaining = frameCount - totalFramesProcessed;
 
         /* We need to resolve the data source that we'll actually be reading from. */
@@ -54777,15 +54788,6 @@ static void ma_waveform_read_pcm_frames__sawtooth(ma_waveform* pWaveform, void* 
     }
 }
 
-static void ma_waveform_read_pcm_frames__custom(ma_waveform* pWaveform, void* pFramesOut, ma_uint64 frameCount) {
-    MA_ASSERT(pWaveform  != NULL);
-    MA_ASSERT(pFramesOut != NULL);
-
-    if(pWaveform->config.customConfig.proc != NULL) {
-        pWaveform->config.customConfig.proc(pWaveform, pFramesOut, frameCount, pWaveform->config.channels, pWaveform->config.customConfig.pUserData);
-    }
-}
-
 MA_API ma_result ma_waveform_read_pcm_frames(ma_waveform* pWaveform, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead)
 {
     if (pFramesRead != NULL) {
@@ -54821,11 +54823,6 @@ MA_API ma_result ma_waveform_read_pcm_frames(ma_waveform* pWaveform, void* pFram
             case ma_waveform_type_sawtooth:
             {
                 ma_waveform_read_pcm_frames__sawtooth(pWaveform, pFramesOut, frameCount);
-            } break;
-
-            case ma_waveform_type_custom:
-            {
-                ma_waveform_read_pcm_frames__custom(pWaveform, pFramesOut, frameCount);
             } break;
 
             default: return MA_INVALID_OPERATION;   /* Unknown waveform type. */
@@ -60865,7 +60862,7 @@ static ma_result ma_node_detach_full(ma_node* pNode)
         linked list logic. We don't need to worry about the audio thread referencing these because the step
         above severed the connection to the graph.
         */
-        for (pOutputBus = (ma_node_output_bus*)ma_atomic_load_ptr(&pInputBus->head.pNext); pOutputBus != NULL; pOutputBus = (ma_node_output_bus*)ma_atomic_load_ptr(&pInputBus->head.pNext)) {
+        for (pOutputBus = (ma_node_output_bus*)ma_atomic_load_ptr(&pInputBus->head.pNext); pOutputBus != NULL; pOutputBus = (ma_node_output_bus*)ma_atomic_load_ptr(&pOutputBus->pNext)) {
             ma_node_detach_output_bus(pOutputBus->pNode, pOutputBus->outputBusIndex);   /* This won't do any waiting in practice and should be efficient. */
         }
     }
@@ -62589,8 +62586,8 @@ static void ma_sound_set_at_end(ma_sound* pSound, ma_bool32 atEnd)
 
     /* Fire any callbacks or events. */
     if (atEnd) {
-        if (pSound->endCallback != NULL) {
-            pSound->endCallback(pSound->pEndCallbackUserData, pSound);
+        if(pSound->notifications.onAtEnd != NULL) {
+            pSound->notifications.onAtEnd(pSound->notifications.pUserData, pSound);
         }
     }
 }
@@ -62903,9 +62900,9 @@ static void ma_engine_node_process_pcm_frames__general(ma_engine_node* pEngineNo
             ma_panner_process_pcm_frames(&pEngineNode->panner, pRunningFramesOut, pRunningFramesOut, framesJustProcessedOut);   /* In-place processing. */
         }
 
-        if(pEngineNode->dspConfig.proc != NULL && framesJustProcessedOut > 0) {
-            pEngineNode->dspConfig.proc(pEngineNode, pRunningFramesOut, pRunningFramesOut, framesJustProcessedOut, channelsOut, pEngineNode->dspConfig.pUserData);
-        }
+        // if(pEngineNode->callbacks.dspCallback != NULL && framesJustProcessedOut > 0) {
+        //     pEngineNode->callbacks.dspCallback(pEngineNode->callbacks.pUserData, pEngineNode, pRunningFramesOut, framesJustProcessedOut, channelsOut);
+        // }
 
         /* We're done for this chunk. */
         totalFramesProcessedIn  += framesJustProcessedIn;
@@ -62914,6 +62911,26 @@ static void ma_engine_node_process_pcm_frames__general(ma_engine_node* pEngineNo
         /* If we didn't process any output frames this iteration it means we've either run out of input data, or run out of room in the output buffer. */
         if (framesJustProcessedOut == 0) {
             break;
+        }
+    }
+
+    /*
+    Fire the processing callback. We can cast pEngineNode to a `ma_sound` since that's the base object. There's
+    a few edge cases here. It's possible that a sound does not have a data source or an input which means the
+    input frame count may be zero. In this case, the output frame count at this point will also be zero since
+    it was unable to process any data. We need to check for this and just assume that the processing callback
+    is producing some data. We pre-initialize this to silence.
+    */
+    {
+        ma_sound* pSound = (ma_sound*)pEngineNode;
+        if (pSound->notifications.onProcess != NULL) {
+            if (totalFramesProcessedOut == 0 && totalFramesProcessedIn == 0 && frameCountOut > 0) {
+                /* Pre-silence the output buffer. This should be the equivalent to setting the output frame count to 0. */
+                totalFramesProcessedOut = frameCountOut;
+                ma_silence_pcm_frames(ppFramesOut[0], totalFramesProcessedOut, ma_format_f32, channelsOut);
+            }
+
+            pSound->notifications.onProcess(pSound->notifications.pUserData, pSound, ppFramesOut[0], totalFramesProcessedOut, channelsOut);
         }
     }
 
@@ -63433,6 +63450,14 @@ MA_API void ma_engine_node_uninit(ma_engine_node* pEngineNode, const ma_allocati
     }
 }
 
+MA_API ma_sound_notifications ma_sound_notifications_init(void)
+{
+    ma_sound_notifications notifications;
+
+    MA_ZERO_OBJECT(&notifications);
+
+    return notifications;
+}
 
 MA_API ma_sound_config ma_sound_config_init(void)
 {
@@ -64649,8 +64674,11 @@ MA_API ma_result ma_sound_init_ex(ma_engine* pEngine, const ma_sound_config* pCo
         return MA_INVALID_ARGS;
     }
 
-    pSound->endCallback          = pConfig->endCallback;
-    pSound->pEndCallbackUserData = pConfig->pEndCallbackUserData;
+    pSound->notifications.pLoadedFence = NULL;
+    pSound->notifications.pUserData = NULL;
+    pSound->notifications.onLoaded = NULL;
+    pSound->notifications.onAtEnd = NULL;
+    pSound->notifications.onProcess = NULL;
 
     /* We need to load the sound differently depending on whether or not we're loading from a file. */
 #ifndef MA_NO_RESOURCE_MANAGER
@@ -64735,6 +64763,10 @@ MA_API ma_result ma_sound_start(ma_sound* pSound)
 
     /* Make sure the sound is started. If there's a start delay, the sound won't actually start until the start time is reached. */
     ma_node_set_state(pSound, ma_node_state_started);
+
+    if(pSound->notifications.onLoaded != NULL) {
+        pSound->notifications.onLoaded(pSound->notifications.pUserData, pSound);
+    }
 
     return MA_SUCCESS;
 }
@@ -65490,23 +65522,73 @@ MA_API ma_result ma_sound_get_length_in_seconds(ma_sound* pSound, float* pLength
     return ma_data_source_get_length_in_seconds(pSound->pDataSource, pLength);
 }
 
-MA_API ma_result ma_sound_set_end_callback(ma_sound* pSound, ma_sound_end_proc callback, void* pUserData)
+MA_API ma_result ma_sound_set_notifications_userdata(ma_sound* pSound, void* pUserData)
 {
     if (pSound == NULL) {
         return MA_INVALID_ARGS;
     }
 
-    /* The notion of an end is only valid for sounds that are backed by a data source. */
     if (pSound->pDataSource == NULL) {
         return MA_INVALID_OPERATION;
     }
 
-    pSound->endCallback          = callback;
-    pSound->pEndCallbackUserData = pUserData;
-
-    return MA_SUCCESS;
+    if(pUserData != NULL) {
+        pSound->notifications.pUserData = pUserData;
+    } else {
+        pSound->notifications.pUserData = NULL;
+    }
 }
 
+MA_API ma_result ma_sound_set_end_notification_callback(ma_sound* pSound, ma_sound_end_proc callback)
+{
+    if (pSound == NULL) {
+        return MA_INVALID_ARGS;
+    }
+
+    if (pSound->pDataSource == NULL) {
+        return MA_INVALID_OPERATION;
+    }
+
+    if(callback != NULL) {
+        pSound->notifications.onAtEnd = callback;
+    } else {
+        pSound->notifications.onAtEnd = NULL;
+    }
+}
+
+MA_API ma_result ma_sound_set_load_notification_callback(ma_sound* pSound, ma_sound_load_proc callback)
+{
+    if (pSound == NULL) {
+        return MA_INVALID_ARGS;
+    }
+
+    if (pSound->pDataSource == NULL) {
+        return MA_INVALID_OPERATION;
+    }
+
+    if(callback != NULL) {
+        pSound->notifications.onLoaded = callback;
+    } else {
+        pSound->notifications.onLoaded = NULL;
+    }
+}
+
+MA_API ma_result ma_sound_set_process_notification_callback(ma_sound* pSound, ma_sound_process_proc callback)
+{
+    if (pSound == NULL) {
+        return MA_INVALID_ARGS;
+    }
+
+    if (pSound->pDataSource == NULL) {
+        return MA_INVALID_OPERATION;
+    }
+
+    if(callback != NULL) {
+        pSound->notifications.onProcess = callback;
+    } else {
+        pSound->notifications.onProcess = NULL;
+    }
+}
 
 MA_API ma_result ma_sound_group_init(ma_engine* pEngine, ma_uint32 flags, ma_sound_group* pParentGroup, ma_sound_group* pGroup)
 {
