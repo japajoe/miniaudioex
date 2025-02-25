@@ -8,8 +8,6 @@ Website:       https://miniaud.io
 Documentation: https://miniaud.io/docs
 GitHub:        https://github.com/mackron/miniaudio
 */
-#define MA_DLL
-#define MINIAUDIO_IMPLEMENTATION
 #include "miniaudio.h"
 
 #ifndef miniaudio_c
