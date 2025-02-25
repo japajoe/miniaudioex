@@ -49,7 +49,7 @@
 #ifndef MINIAUDIOEX_H
 #define MINIAUDIOEX_H
 
-#define MA_DLL
+//#define MA_DLL
 #define MINIAUDIO_IMPLEMENTATION
 #include "miniaudio.h"
 
