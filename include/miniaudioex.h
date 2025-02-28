@@ -53,24 +53,30 @@
 
 typedef void (*ma_procedural_wave_proc)(void *pUserData, void* pFramesOut, ma_uint64 frameCount, ma_uint32 channels);
 
-typedef struct {
+typedef struct ma_procedural_wave_config ma_procedural_wave_config;
+
+struct ma_procedural_wave_config {
     ma_format format;
     ma_uint32 channels;
     ma_uint32 sampleRate;
     ma_procedural_wave_proc waveformCallback;
     void *pUserData;
-} ma_procedural_wave_config;
+};
 
-typedef struct {
+typedef struct ma_procedural_wave ma_procedural_wave;
+
+struct ma_procedural_wave {
     ma_data_source_base ds;
     ma_procedural_wave_config config;
-} ma_procedural_wave;
+};
 
-typedef struct {
+typedef struct ma_ex_device_info ma_ex_device_info;
+
+struct ma_ex_device_info {
     char *pName;
     ma_int32 index;
     ma_bool32 isDefault;
-} ma_ex_device_info;
+};
 
 typedef struct {
     ma_ex_device_info deviceInfo;
@@ -80,7 +86,9 @@ typedef struct {
     ma_device_data_proc deviceDataProc;
 } ma_ex_context_config;
 
-typedef struct {
+typedef struct ma_ex_context ma_ex_context;
+
+struct ma_ex_context {
     ma_context context;
     ma_device device;
     ma_engine engine;
@@ -88,17 +96,21 @@ typedef struct {
     ma_uint8 channels;
     ma_format format;
     ma_int32 listeners[MA_ENGINE_MAX_LISTENERS];
-}  ma_ex_context;
+};
 
-typedef struct {
+typedef struct ma_ex_audio_source_callbacks ma_ex_audio_source_callbacks;
+
+struct ma_ex_audio_source_callbacks {
     void *pUserData;
     ma_sound_end_proc endCallback;
     ma_sound_load_proc loadCallback;
     ma_sound_process_proc processCallback;
     ma_procedural_wave_proc waveformCallback;
-} ma_ex_audio_source_callbacks;
+};
 
-typedef struct {
+typedef struct ma_ex_audio_source_settings ma_ex_audio_source_settings;
+
+struct ma_ex_audio_source_settings {
     float volume;
     float pitch;
     ma_bool32 loop;
@@ -110,9 +122,11 @@ typedef struct {
     float dopplerFactor;
     float minDistance;
     float maxDistance;
-} ma_ex_audio_source_settings;
+} ;
 
-typedef struct {
+typedef struct ma_ex_audio_source ma_ex_audio_source;
+
+struct ma_ex_audio_source {
     ma_ex_context *context;
     ma_sound sound;
     ma_decoder decoder;
@@ -120,9 +134,11 @@ typedef struct {
     ma_ex_audio_source_callbacks callbacks;
     ma_uint64 soundHash;
     ma_ex_audio_source_settings settings;
-} ma_ex_audio_source;
+};
 
-typedef struct {
+typedef struct ma_ex_audio_listener_settings ma_ex_audio_listener_settings;
+
+struct ma_ex_audio_listener_settings {
     ma_bool32 spatialization;
     ma_vec3f position;
     ma_vec3f direction;
@@ -131,13 +147,15 @@ typedef struct {
     float coneInnerAngleInRadians;
     float coneOuterAngleInRadians;
     float coneOuterGain;
-} ma_ex_audio_listener_settings;
+};
 
-typedef struct {
+typedef struct ma_ex_audio_listener ma_ex_audio_listener;
+
+struct ma_ex_audio_listener {
     ma_ex_context *context;
     ma_uint32 index;
     ma_ex_audio_listener_settings settings;
-} ma_ex_audio_listener;
+};
 
 #if defined(__cplusplus)
 extern "C" {
