@@ -46,6 +46,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+// Note that this is not fully compatible with the original miniaudio library
+
 #ifndef MINIAUDIOEX_H
 #define MINIAUDIOEX_H
 
@@ -78,13 +80,15 @@ struct ma_ex_device_info {
     ma_bool32 isDefault;
 };
 
-typedef struct {
+typedef struct ma_ex_context_config ma_ex_context_config;
+
+struct ma_ex_context_config {
     ma_ex_device_info deviceInfo;
     ma_uint32 sampleRate;
     ma_uint8 channels;
     ma_uint32 periodSizeInFrames;
     ma_device_data_proc deviceDataProc;
-} ma_ex_context_config;
+};
 
 typedef struct ma_ex_context ma_ex_context;
 
