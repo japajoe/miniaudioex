@@ -286,18 +286,8 @@ MA_API ma_ex_context *ma_ex_context_init(const ma_ex_context_config *config) {
     ma_device_id *pSelectedDevice = NULL;
 
     //Use selected device    
-    if(config->deviceInfo.index >= 0) {
+    if(config->deviceInfo.index >= 0)
         pSelectedDevice = &pPlaybackInfos[config->deviceInfo.index].id;
-    } else { //Use default device
-        //Initially set to first device that was found
-        pSelectedDevice = &pPlaybackInfos[0].id;
-        for(ma_uint32 i = 0; i < playbackCount; i++) {
-            if(pPlaybackInfos[i].isDefault == MA_TRUE) {
-                pSelectedDevice = &pPlaybackInfos[i].id;
-                break;
-            }
-        }
-    }
 
     deviceConfig.playback.pDeviceID = pSelectedDevice;
 
