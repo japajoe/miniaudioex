@@ -950,6 +950,28 @@ MA_API float *ma_ex_decode_file(const char *pFilePath, ma_uint64 *dataLength, ma
     return NULL;
 }
 
+MA_API float *ma_ex_decode_memory(const void *pData, ma_uint64 size, ma_uint64 *dataLength, ma_uint32 *channels, ma_uint32 *sampleRate, ma_uint32 desiredChannels, ma_uint32 desiredSampleRate) {
+    ma_decoder_config config = ma_decoder_config_init_default();
+    config.format = ma_format_f32;
+    
+    if(desiredChannels > 0)
+        config.channels = desiredChannels;
+
+    if(desiredSampleRate > 0)
+        config.sampleRate = desiredSampleRate;
+
+    void* pPCMFrames;
+    ma_uint64 frameCount;
+
+    if(ma_decode_memory(pData, size, &config, &frameCount, &pPCMFrames) == MA_SUCCESS) {
+        *channels = config.channels;
+        *sampleRate = config.sampleRate;
+        *dataLength = config.channels * frameCount;
+        return (float*)pPCMFrames;
+    }
+    return NULL;
+}
+
 static ma_result ma_procedural_wave__data_source_on_read(ma_data_source* pDataSource, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead) {
     return ma_procedural_wave_read_pcm_frames((ma_procedural_wave*)pDataSource, pFramesOut, frameCount, pFramesRead);
 }
