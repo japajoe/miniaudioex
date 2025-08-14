@@ -49,6 +49,7 @@
 #define MA_DLL
 #define MINIAUDIO_IMPLEMENTATION
 #include "miniaudioex.h"
+#include "miniaudio_libvorbis.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -246,6 +247,7 @@ MA_API ma_ex_context *ma_ex_context_init(const ma_ex_context_config *config) {
     MA_ZERO_OBJECT(&context->context);
     MA_ZERO_OBJECT(&context->engine);
     MA_ZERO_OBJECT(&context->device);
+    MA_ZERO_OBJECT(&context->resourceManager);
 
     context->sampleRate = config->sampleRate;
     context->channels = config->channels;
@@ -298,9 +300,25 @@ MA_API ma_ex_context *ma_ex_context_init(const ma_ex_context_config *config) {
         return NULL;
     }
 
+    ma_decoding_backend_vtable *pCustomBackendVTables[] = {
+        ma_libvorbis_get_decoding_backend()
+    };
+
+    ma_resource_manager_config resourceManagerConfig = ma_resource_manager_config_init();
+    resourceManagerConfig.ppCustomDecodingBackendVTables = pCustomBackendVTables;
+    resourceManagerConfig.customDecodingBackendCount = sizeof(pCustomBackendVTables)/sizeof(pCustomBackendVTables[0]);
+
+    if (ma_resource_manager_init(&resourceManagerConfig, &context->resourceManager) != MA_SUCCESS) {
+        fprintf(stderr, "Failed to initialize ma_resource_manager\n");
+        ma_context_uninit(&context->context);
+        MA_FREE(context);
+        return NULL;
+    }
+
     ma_engine_config engineConfig = ma_engine_config_init();
     engineConfig.listenerCount = MA_ENGINE_MAX_LISTENERS;
     engineConfig.pDevice = &context->device;
+    engineConfig.pResourceManager = &context->resourceManager;
 
     if(ma_engine_init(&engineConfig, &context->engine) != MA_SUCCESS) {
         fprintf(stderr, "Failed to initialize ma_engine\n");
@@ -331,6 +349,7 @@ MA_API ma_ex_context *ma_ex_context_init(const ma_ex_context_config *config) {
 MA_API void ma_ex_context_uninit(ma_ex_context *context) {
     if(context != NULL) {
         ma_engine_uninit(&context->engine);
+        ma_resource_manager_uninit(&context->resourceManager);
         ma_device_uninit(&context->device);
         ma_context_uninit(&context->context);
         MA_FREE(context);

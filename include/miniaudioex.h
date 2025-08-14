@@ -96,6 +96,7 @@ struct ma_ex_context {
     ma_context context;
     ma_device device;
     ma_engine engine;
+    ma_resource_manager resourceManager;
     ma_uint32 sampleRate;
     ma_uint8 channels;
     ma_format format;
