@@ -276,11 +276,14 @@ typedef ma_uint16 wchar_t;
             #define MA_API __declspec(dllimport)
         #endif
     #else
-        // On Unix, visibility attributes
         #if defined(__GNUC__) && __GNUC__ >= 4
-            #define MA_API __attribute__((visibility("default")))
+            #define MA_DLL_IMPORT  __attribute__((visibility("default")))
+            #define MA_DLL_EXPORT  __attribute__((visibility("default")))
+            #define MA_DLL_PRIVATE __attribute__((visibility("hidden")))
         #else
-            #define MA_API
+            #define MA_DLL_IMPORT
+            #define MA_DLL_EXPORT
+            #define MA_DLL_PRIVATE static
         #endif
     #endif
 #else
