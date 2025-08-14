@@ -250,6 +250,7 @@ typedef ma_uint16 wchar_t;
 /* MA_DLL is not officially supported. You're on your own if you want to use this. */
 #if defined(MA_DLL)
     #if defined(_WIN32)
+        #define MA_DLL_IMPORT  __declspec(dllimport)
         #define MA_DLL_EXPORT  __declspec(dllexport)
         #define MA_DLL_PRIVATE static
     #else
