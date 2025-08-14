@@ -17,7 +17,6 @@ include_directories(
 )
 
 add_definitions(-DNDEBUG)
-add_definitions(-DMA_DLL)
 
 if(MINIAUDIOEX_BUILD_SHARED)
     add_library(${PROJECT_NAME} SHARED ${SOURCES})
