@@ -248,22 +248,44 @@ typedef ma_uint16 wchar_t;
 #endif
 
 /* MA_DLL is not officially supported. You're on your own if you want to use this. */
-#if defined(MA_DLL)
-    #if defined(_WIN32)
-        #define MA_DLL_IMPORT  __declspec(dllimport)
-        #define MA_DLL_EXPORT  __declspec(dllexport)
-        #define MA_DLL_PRIVATE static
-    #else
-        #if defined(__GNUC__) && __GNUC__ >= 4
-            #define MA_DLL_IMPORT  __attribute__((visibility("default")))
-            #define MA_DLL_EXPORT  __attribute__((visibility("default")))
-            #define MA_DLL_PRIVATE __attribute__((visibility("hidden")))
+// #if defined(MA_DLL)
+//     #if defined(_WIN32)
+//         #define MA_DLL_IMPORT  __declspec(dllimport)
+//         #define MA_DLL_EXPORT  __declspec(dllexport)
+//         #define MA_DLL_PRIVATE static
+//     #else
+//         #if defined(__GNUC__) && __GNUC__ >= 4
+//             #define MA_DLL_IMPORT  __attribute__((visibility("default")))
+//             #define MA_DLL_EXPORT  __attribute__((visibility("default")))
+//             #define MA_DLL_PRIVATE __attribute__((visibility("hidden")))
+//         #else
+//             #define MA_DLL_IMPORT
+//             #define MA_DLL_EXPORT
+//             #define MA_DLL_PRIVATE static
+//         #endif
+//     #endif
+// #endif
+#ifdef MA_DLL
+    #define MA_DLL_EXPORTS
+    #ifdef _WIN32
+        #ifdef MA_DLL_EXPORTS
+            // Building the DLL
+            #define MA_API __declspec(dllexport)
         #else
-            #define MA_DLL_IMPORT
-            #define MA_DLL_EXPORT
-            #define MA_DLL_PRIVATE static
+            // Using the DLL
+            #define MA_API __declspec(dllimport)
+        #endif
+    #else
+        // On Unix, visibility attributes
+        #if defined(__GNUC__) && __GNUC__ >= 4
+            #define MA_API __attribute__((visibility("default")))
+        #else
+            #define MA_API
         #endif
     #endif
+#else
+    // Static library or no DLL
+    #define MA_API
 #endif
 
 #if !defined(MA_API)
