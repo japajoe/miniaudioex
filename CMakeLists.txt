@@ -3,20 +3,16 @@ cmake_minimum_required(VERSION 3.10...3.28)
 project(miniaudioex)
 
 set(MINIAUDIOEX_BUILD_PLATFORM "unknown" CACHE STRING "Target platform for the build")
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    set(CMAKE_C_FLAGS_RELEASE "/O2")
+else()
+    set(CMAKE_C_FLAGS_RELEASE "-O3")
+endif()
+
 option(MINIAUDIOEX_BUILD_SHARED "Build shared library" ON)
 
 message(STATUS "miniaudioex: Configuring for platform: ${MINIAUDIOEX_BUILD_PLATFORM}")
-
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -DNDEBUG")  
-    if(MSVC)
-        set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /DEBUG:NONE")
-        set(CMAKE_C_FLAGS_RELEASE "/O2")
-    else()
-        set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -g0")
-        set(CMAKE_C_FLAGS_RELEASE "-O3")
-    endif()
-endif()
 
 file(GLOB SOURCES
     "${PROJECT_SOURCE_DIR}/src/*.c"
