@@ -4,7 +4,7 @@ This is a modified version of the [MiniAudio](https://github.com/mackron/miniaud
 # Supported formats
 - wav
 - mp3
-- flag
+- flac
 - ogg (experimental)
 
 # Building
