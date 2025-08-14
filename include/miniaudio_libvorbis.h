@@ -7,11 +7,11 @@ decoding backend. See the custom_decoder example.
 #ifndef miniaudio_libvorbis_h
 #define miniaudio_libvorbis_h
 
+#include "miniaudio.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "miniaudio.h"
 
 typedef struct
 {

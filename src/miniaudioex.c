@@ -46,7 +46,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#ifndef MA_DLL
 #define MA_DLL
+#endif
 #define MINIAUDIO_IMPLEMENTATION
 #include "miniaudioex.h"
 #include "miniaudio_libvorbis.h"
