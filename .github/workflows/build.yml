@@ -62,7 +62,7 @@ jobs:
         path: build/
 
   build-linux:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         arch: [x86_64]  # Linux architectures: x64
