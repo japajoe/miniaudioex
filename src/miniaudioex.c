@@ -182,7 +182,15 @@ MA_API ma_ex_device_info *ma_ex_playback_devices_get(ma_uint32 *count) {
     for (ma_uint32 iDevice = 0; iDevice < playbackCount; iDevice++) {
         pDeviceInfo[iDevice].index = iDevice;
         pDeviceInfo[iDevice].isDefault = pPlaybackInfos[iDevice].isDefault;
-        const ma_uint32 formatCount = pPlaybackInfos[iDevice].nativeDataFormatCount;
+
+        ma_device_info deviceInfo = {0};
+        
+        if(ma_context_get_device_info(&context, ma_device_type_playback, &pPlaybackInfos[iDevice].id, &deviceInfo) != MA_SUCCESS) {
+            allocationError = MA_TRUE;
+            break;
+        }
+
+        const ma_uint32 formatCount = deviceInfo.nativeDataFormatCount;
 
         if(formatCount > 0) {
             pDeviceInfo[iDevice].nativeDataFormatCount = formatCount;
@@ -192,10 +200,10 @@ MA_API ma_ex_device_info *ma_ex_playback_devices_get(ma_uint32 *count) {
                 break;
             }
             for (ma_uint32 n = 0; n < formatCount; n++) {
-                pDeviceInfo[iDevice].nativeDataFormats[n].channels = pPlaybackInfos[iDevice].nativeDataFormats[n].channels;
-                pDeviceInfo[iDevice].nativeDataFormats[n].flags = pPlaybackInfos[iDevice].nativeDataFormats[n].flags;
-                pDeviceInfo[iDevice].nativeDataFormats[n].format = pPlaybackInfos[iDevice].nativeDataFormats[n].format;
-                pDeviceInfo[iDevice].nativeDataFormats[n].sampleRate = pPlaybackInfos[iDevice].nativeDataFormats[n].sampleRate;
+                pDeviceInfo[iDevice].nativeDataFormats[n].channels = deviceInfo.nativeDataFormats[n].channels;
+                pDeviceInfo[iDevice].nativeDataFormats[n].flags = deviceInfo.nativeDataFormats[n].flags;
+                pDeviceInfo[iDevice].nativeDataFormats[n].format = deviceInfo.nativeDataFormats[n].format;
+                pDeviceInfo[iDevice].nativeDataFormats[n].sampleRate = deviceInfo.nativeDataFormats[n].sampleRate;
             }
         } else {
             pDeviceInfo[iDevice].nativeDataFormatCount = 0;
