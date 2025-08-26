@@ -161,9 +161,8 @@ MA_API ma_ex_device_info *ma_ex_playback_devices_get(ma_uint32 *count) {
     ma_uint32 captureCount;
     result = ma_context_get_devices(&context, &pPlaybackInfos, &playbackCount, &pCaptureInfos, &captureCount);
 
-    if (result != MA_SUCCESS) {
+    if(result != MA_SUCCESS)
         return NULL;
-    }
 
     ma_ex_device_info *pDeviceInfo = NULL;
 
@@ -183,6 +182,26 @@ MA_API ma_ex_device_info *ma_ex_playback_devices_get(ma_uint32 *count) {
     for (ma_uint32 iDevice = 0; iDevice < playbackCount; iDevice++) {
         pDeviceInfo[iDevice].index = iDevice;
         pDeviceInfo[iDevice].isDefault = pPlaybackInfos[iDevice].isDefault;
+        const ma_uint32 formatCount = pPlaybackInfos[iDevice].nativeDataFormatCount;
+
+        if(formatCount > 0) {
+            pDeviceInfo[iDevice].nativeDataFormatCount = formatCount;
+            pDeviceInfo[iDevice].nativeDataFormats = MA_MALLOC(formatCount * sizeof(ma_ex_native_data_format));
+            if(pDeviceInfo[iDevice].nativeDataFormats == NULL) {
+                allocationError = MA_TRUE;
+                break;
+            }
+            for (ma_uint32 n = 0; n < formatCount; n++) {
+                pDeviceInfo[iDevice].nativeDataFormats[n].channels = pPlaybackInfos[iDevice].nativeDataFormats[n].channels;
+                pDeviceInfo[iDevice].nativeDataFormats[n].flags = pPlaybackInfos[iDevice].nativeDataFormats[n].flags;
+                pDeviceInfo[iDevice].nativeDataFormats[n].format = pPlaybackInfos[iDevice].nativeDataFormats[n].format;
+                pDeviceInfo[iDevice].nativeDataFormats[n].sampleRate = pPlaybackInfos[iDevice].nativeDataFormats[n].sampleRate;
+            }
+        } else {
+            pDeviceInfo[iDevice].nativeDataFormatCount = 0;
+            pDeviceInfo[iDevice].nativeDataFormats = NULL;
+        }
+
         size_t len = strlen(pPlaybackInfos[iDevice].name) + 1;
         pDeviceInfo[iDevice].pName = MA_MALLOC(len);
         if(pDeviceInfo[iDevice].pName == NULL) {
@@ -197,6 +216,9 @@ MA_API ma_ex_device_info *ma_ex_playback_devices_get(ma_uint32 *count) {
         for(ma_uint32 i = 0; i < playbackCount; i++) {
             if(pDeviceInfo[i].pName != NULL) {
                 MA_FREE(pDeviceInfo[i].pName);
+            }
+            if(pDeviceInfo[i].nativeDataFormats != NULL) {
+                MA_FREE(pDeviceInfo[i].nativeDataFormats);
             }
         }        
         MA_FREE(pDeviceInfo);
@@ -213,6 +235,8 @@ MA_API void ma_ex_playback_devices_free(ma_ex_device_info *pDeviceInfo, ma_uint3
         for(ma_uint32 i = 0; i < count; i++) {
             if(pDeviceInfo[i].pName != NULL)
                 MA_FREE(pDeviceInfo[i].pName);
+            if(pDeviceInfo[i].nativeDataFormats != NULL)
+                MA_FREE(pDeviceInfo[i].nativeDataFormats);
         }
         MA_FREE(pDeviceInfo);
     }

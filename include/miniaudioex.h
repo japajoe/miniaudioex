@@ -72,12 +72,22 @@ struct ma_procedural_wave {
     ma_procedural_wave_config config;
 };
 
+typedef struct ma_ex_native_data_format ma_ex_native_data_format;
 typedef struct ma_ex_device_info ma_ex_device_info;
+
+struct ma_ex_native_data_format {
+    ma_format format;       /* Sample format. If set to ma_format_unknown, all sample formats are supported. */
+    ma_uint32 channels;     /* If set to 0, all channels are supported. */
+    ma_uint32 sampleRate;   /* If set to 0, all sample rates are supported. */
+    ma_uint32 flags;        /* A combination of MA_DATA_FORMAT_FLAG_* flags. */
+};
 
 struct ma_ex_device_info {
     char *pName;
     ma_int32 index;
     ma_bool32 isDefault;
+    ma_uint32 nativeDataFormatCount;
+    ma_ex_native_data_format *nativeDataFormats;
 };
 
 typedef struct ma_ex_context_config ma_ex_context_config;
