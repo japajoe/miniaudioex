@@ -137,7 +137,7 @@ struct ma_ex_audio_source_settings {
     float dopplerFactor;
     float minDistance;
     float maxDistance;
-} ;
+};
 
 typedef struct ma_ex_audio_source ma_ex_audio_source;
 

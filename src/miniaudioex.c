@@ -444,6 +444,7 @@ MA_API ma_ex_audio_source *ma_ex_audio_source_init(ma_ex_context *context) {
 MA_API void ma_ex_audio_source_uninit(ma_ex_audio_source *source) {
     if(source != NULL) {
         ma_sound_uninit(&source->sound);
+        ma_decoder_uninit(&source->decoder);
         MA_FREE(source);
     }
 }
@@ -575,8 +576,9 @@ MA_API ma_result ma_ex_audio_source_play_from_memory(ma_ex_audio_source *source,
 }
 
 MA_API void ma_ex_audio_source_stop(ma_ex_audio_source *source) {
-    if(source != NULL)
+    if(source != NULL) {
         ma_sound_stop(&source->sound);
+    }
 }
 
 MA_API void ma_ex_audio_source_apply_settings(ma_ex_audio_source *source) {

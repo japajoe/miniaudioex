@@ -1,5 +1,5 @@
 # miniaudioex
-This is a modified version of the [MiniAudio](https://github.com/mackron/miniaudio) library. My aim was to extend the library so I can more easily use it in applications, and write simpler bindings for other languages. Most notable feature of this extension is the concept of an audio source. By design, MiniAudio works on a 'per sound basis', which might be desirable for some people, but for me it's not. Instead I like to create one or multiple audio sources which can all play the same sound simultaneously, while still being able to control the properties of the sound (such as spatial settings) through the audio source.
+This is a modified version of the [MiniAudio](https://github.com/mackron/miniaudio) library. The aim is to extend the library so it's more easy to use in applications, and write simpler bindings for other languages.
 
 # Supported formats
 - wav
@@ -16,6 +16,7 @@ If you get errors about undefined references to `__sync_val_compare_and_swap_8`,
 This shows how to play audio from a given file path.
 ```c
 #include "miniaudioex.h"
+#include <stdio.h>
 
 #define SAMPLE_RATE 44100
 #define NUM_CHANNELS 2
@@ -44,6 +45,7 @@ int main(int argc, char **argv) {
 You can also play audio directly from memory.
 ```c
 #include "miniaudioex.h"
+#include <stdio.h>
 
 #define SAMPLE_RATE 44100
 #define NUM_CHANNELS 2
@@ -79,6 +81,7 @@ Generating audio with a callback function.
 ```c
 #include "miniaudioex.h"
 #include <math.h>
+#include <stdio.h>
 
 #define SAMPLE_RATE 44100
 #define NUM_CHANNELS 2
@@ -93,8 +96,8 @@ int main(int argc, char **argv) {
 
     ma_ex_audio_source_callbacks callbacks = {
         .pUserData = NULL,
-        .loadCallback = NULL,
         .endCallback = NULL,
+        .loadCallback = NULL,
         .processCallback = NULL,
         .waveformCallback = &on_waveform
     };
