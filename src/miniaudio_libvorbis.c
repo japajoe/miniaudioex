@@ -1,5 +1,3 @@
-#define MA_DLL
-#define MINIAUDIO_IMPLEMENTATION
 #include "miniaudio_libvorbis.h"
 
 #if !defined(MA_NO_LIBVORBIS)
@@ -8,7 +6,7 @@
     #endif
     #define OGG_IMPL
     #define VORBIS_IMPL
-    #include "extras/minivorbis.h"
+    #include "minivorbis.h"
 #endif
 
 #include <string.h> /* For memset(). */

@@ -13,7 +13,8 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
     endif()
 endif()
 
-option(MINIAUDIOEX_BUILD_SHARED "Build shared library" ON)
+option(MINIAUDIOEX_BUILD_SHARED "Build shared library" OFF)
+option(MINIAUDIOEX_BUILD_EXE "Build shared library" ON)
 
 message(STATUS "miniaudioex: Configuring for platform: ${MINIAUDIOEX_BUILD_PLATFORM}")
 
@@ -25,12 +26,17 @@ include_directories(
     "${PROJECT_SOURCE_DIR}/include"
 )
 
-if(MINIAUDIOEX_BUILD_SHARED)
-    add_library(${PROJECT_NAME} SHARED ${SOURCES})
-    message(STATUS "miniaudioex: Building shared library")
+if(MINIAUDIOEX_BUILD_EXE)
+	add_executable(${PROJECT_NAME} ${SOURCES})
+	message(STATUS "miniaudioex: Building executable")
 else()
-    add_library(${PROJECT_NAME} STATIC ${SOURCES})
-    message(STATUS "miniaudioex: Building static library")
+	if(MINIAUDIOEX_BUILD_SHARED)
+		add_library(${PROJECT_NAME} SHARED ${SOURCES})
+		message(STATUS "miniaudioex: Building shared library")
+	else()
+		add_library(${PROJECT_NAME} STATIC ${SOURCES})
+		message(STATUS "miniaudioex: Building static library")
+	endif()
 endif()
 
 if(MINIAUDIOEX_BUILD_PLATFORM STREQUAL "linux_x86_64")

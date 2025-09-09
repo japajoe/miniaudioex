@@ -53,25 +53,6 @@
 
 #include "miniaudio.h"
 
-typedef void (*ma_procedural_wave_proc)(void *pUserData, void* pFramesOut, ma_uint64 frameCount, ma_uint32 channels);
-
-typedef struct ma_procedural_wave_config ma_procedural_wave_config;
-
-struct ma_procedural_wave_config {
-    ma_format format;
-    ma_uint32 channels;
-    ma_uint32 sampleRate;
-    ma_procedural_wave_proc waveformCallback;
-    void *pUserData;
-};
-
-typedef struct ma_procedural_wave ma_procedural_wave;
-
-struct ma_procedural_wave {
-    ma_data_source_base ds;
-    ma_procedural_wave_config config;
-};
-
 typedef struct ma_ex_native_data_format ma_ex_native_data_format;
 typedef struct ma_ex_device_info ma_ex_device_info;
 
@@ -139,13 +120,18 @@ struct ma_ex_audio_source_settings {
     float maxDistance;
 };
 
+typedef struct ma_ex_audio_clip ma_ex_audio_clip;
+
+struct ma_ex_audio_clip {
+    ma_sound sound;
+    ma_uint64 soundHash;
+};
+
 typedef struct ma_ex_audio_source ma_ex_audio_source;
 
 struct ma_ex_audio_source {
     ma_ex_context *context;
-    ma_sound sound;
-    ma_decoder decoder;
-    ma_procedural_wave waveform;
+    ma_ex_audio_clip *clip;
     ma_ex_audio_source_callbacks callbacks;
     ma_uint64 soundHash;
     ma_ex_audio_source_settings settings;
@@ -188,12 +174,17 @@ MA_API ma_engine *ma_ex_context_get_engine(ma_ex_context *context);
 
 MA_API void *ma_ex_device_get_user_data(ma_device *pDevice);
 
+MA_API ma_ex_audio_clip *ma_ex_audio_clip_init_from_file(ma_ex_context *context, const char *filePath, ma_bool32 streamFromDisk);
+MA_API ma_ex_audio_clip *ma_ex_audio_clip_init_from_memory(ma_ex_context *context, const void *data, ma_uint64 dataSize);
+MA_API ma_ex_audio_clip *ma_ex_audio_clip_init_from_procedural_wave(ma_ex_context *context, const ma_procedural_wave_config *pConfig);
+MA_API void ma_ex_audio_clip_uninit(ma_ex_audio_clip *clip);
+MA_API ma_bool8 ma_ex_audio_clip_is_initialized(ma_ex_audio_clip *clip);
+
 MA_API ma_ex_audio_source *ma_ex_audio_source_init(ma_ex_context *context);
 MA_API void ma_ex_audio_source_uninit(ma_ex_audio_source *source);
 MA_API void ma_ex_audio_source_set_callbacks(ma_ex_audio_source *source, ma_ex_audio_source_callbacks callbacks);
-MA_API ma_result ma_ex_audio_source_play(ma_ex_audio_source *source);
-MA_API ma_result ma_ex_audio_source_play_from_file(ma_ex_audio_source *source, const char *filePath, ma_bool32 streamFromDisk);
-MA_API ma_result ma_ex_audio_source_play_from_memory(ma_ex_audio_source *source, const void *data, ma_uint64 dataSize);
+MA_API ma_result ma_ex_audio_source_play(ma_ex_audio_source *source, ma_ex_audio_clip *clip);
+MA_API ma_result ma_ex_audio_source_play_one_shot(ma_ex_audio_source *source, ma_ex_audio_clip *clip);
 MA_API void ma_ex_audio_source_stop(ma_ex_audio_source *source);
 MA_API void ma_ex_audio_source_apply_settings(ma_ex_audio_source *source);
 MA_API void ma_ex_audio_source_set_volume(ma_ex_audio_source *source, float value);
@@ -244,11 +235,6 @@ MA_API void ma_ex_free(void *pointer);
 
 MA_API float *ma_ex_decode_file(const char *pFilePath, ma_uint64 *dataLength, ma_uint32 *channels, ma_uint32 *sampleRate, ma_uint32 desiredChannels, ma_uint32 desiredSampleRate);
 MA_API float *ma_ex_decode_memory(const void *pData, ma_uint64 size, ma_uint64 *dataLength, ma_uint32 *channels, ma_uint32 *sampleRate, ma_uint32 desiredChannels, ma_uint32 desiredSampleRate);
-
-MA_API ma_procedural_wave_config ma_procedural_wave_config_init(ma_format format, ma_uint32 channels, ma_uint32 sampleRate, ma_procedural_wave_proc pWaveformProc, void *pUserData);
-MA_API ma_result ma_procedural_wave_init(const ma_procedural_wave_config* pConfig, ma_procedural_wave* pWaveform);
-MA_API void ma_procedural_wave_uninit(ma_procedural_wave* pWaveform);
-MA_API ma_result ma_procedural_wave_read_pcm_frames(ma_procedural_wave* pWaveform, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead);
 
 #if defined(__cplusplus)
 }
