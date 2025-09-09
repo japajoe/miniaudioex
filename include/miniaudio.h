@@ -5804,7 +5804,7 @@ typedef void ma_data_source;
 
 #define MA_DATA_SOURCE_SELF_MANAGED_RANGE_AND_LOOP_POINT    0x00000001
 #define MA_DATA_SOURCE_IS_DECODER                           0x00000002
-#define MA_DATA_SOURCE_IS_PROCEDURAL_WAVE                   0x00000004
+#define MA_DATA_SOURCE_IS_PROCEDURAL_SOUND                  0x00000004
 
 typedef struct
 {
@@ -11311,23 +11311,23 @@ struct ma_engine
     void* pProcessUserData;
 };
 
-typedef void (*ma_procedural_wave_proc)(void *pUserData, void* pFramesOut, ma_uint64 frameCount, ma_uint32 channels);
+typedef void (*ma_procedural_sound_proc)(void *pUserData, void* pFramesOut, ma_uint64 frameCount, ma_uint32 channels);
 
-typedef struct ma_procedural_wave_config ma_procedural_wave_config;
+typedef struct ma_procedural_sound_config ma_procedural_sound_config;
 
-struct ma_procedural_wave_config {
+struct ma_procedural_sound_config {
     ma_format format;
     ma_uint32 channels;
     ma_uint32 sampleRate;
-    ma_procedural_wave_proc waveformCallback;
+    ma_procedural_sound_proc callback;
     void *pUserData;
 };
 
-typedef struct ma_procedural_wave ma_procedural_wave;
+typedef struct ma_procedural_sound ma_procedural_sound;
 
-struct ma_procedural_wave {
+struct ma_procedural_sound {
     ma_data_source_base ds;
-    ma_procedural_wave_config config;
+    ma_procedural_sound_config config;
 };
 
 MA_API ma_result ma_engine_init(const ma_engine_config* pConfig, ma_engine* pEngine);
@@ -11380,7 +11380,7 @@ MA_API ma_result ma_engine_play_sound(ma_engine* pEngine, const char* pFilePath,
 MA_API ma_result ma_sound_init_from_file(ma_engine* pEngine, const char* pFilePath, ma_uint32 flags, ma_sound_group* pGroup, ma_fence* pDoneFence, ma_sound* pSound);
 MA_API ma_result ma_sound_init_from_file_w(ma_engine* pEngine, const wchar_t* pFilePath, ma_uint32 flags, ma_sound_group* pGroup, ma_fence* pDoneFence, ma_sound* pSound);
 MA_API ma_result ma_sound_init_from_memory(ma_engine* pEngine, const void* pData, ma_uint64 dataSize, ma_uint32 flags, ma_sound_group* pGroup, ma_fence* pDoneFence, ma_sound* pSound);
-MA_API ma_result ma_sound_init_from_procedural_wave(ma_engine* pEngine, const ma_procedural_wave_config* pConfig, ma_uint32 flags, ma_sound_group* pGroup, ma_fence* pDoneFence, ma_sound* pSound);
+MA_API ma_result ma_sound_init_from_procedural_wave(ma_engine* pEngine, const ma_procedural_sound_config* pConfig, ma_uint32 flags, ma_sound_group* pGroup, ma_fence* pDoneFence, ma_sound* pSound);
 MA_API ma_result ma_sound_init_copy(ma_engine* pEngine, const ma_sound* pExistingSound, ma_uint32 flags, ma_sound_group* pGroup, ma_sound* pSound);
 #endif
 MA_API ma_result ma_sound_init_from_data_source(ma_engine* pEngine, ma_data_source* pDataSource, ma_uint32 flags, ma_sound_group* pGroup, ma_sound* pSound);
@@ -11518,10 +11518,10 @@ MA_API void ma_sound_group_set_stop_time_in_milliseconds(ma_sound_group* pGroup,
 MA_API ma_bool32 ma_sound_group_is_playing(const ma_sound_group* pGroup);
 MA_API ma_uint64 ma_sound_group_get_time_in_pcm_frames(const ma_sound_group* pGroup);
 
-MA_API ma_procedural_wave_config ma_procedural_wave_config_init(ma_format format, ma_uint32 channels, ma_uint32 sampleRate, ma_procedural_wave_proc pWaveformProc, void *pUserData);
-MA_API ma_result ma_procedural_wave_init(const ma_procedural_wave_config* pConfig, ma_procedural_wave* pWaveform);
-MA_API void ma_procedural_wave_uninit(ma_procedural_wave* pWaveform);
-MA_API ma_result ma_procedural_wave_read_pcm_frames(ma_procedural_wave* pWaveform, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead);
+MA_API ma_procedural_sound_config ma_procedural_sound_config_init(ma_format format, ma_uint32 channels, ma_uint32 sampleRate, ma_procedural_sound_proc pProceduralSoundProc, void *pUserData);
+MA_API ma_result ma_procedural_sound_init(const ma_procedural_sound_config* pConfig, ma_procedural_sound* pProceduralSound);
+MA_API void ma_procedural_sound_uninit(ma_procedural_sound* pProceduralSound);
+MA_API ma_result ma_procedural_sound_read_pcm_frames(ma_procedural_sound* pProceduralSound, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead);
 #endif  /* MA_NO_ENGINE */
 /* END SECTION: miniaudio_engine.h */
 
@@ -66517,7 +66517,7 @@ static ma_data_source_vtable g_ma_waveform_data_source_vtable =
     ma_waveform__data_source_on_get_cursor,
     NULL,   /* onGetLength. There's no notion of a length in waveforms. */
     NULL,   /* onSetLooping */
-    0 | MA_DATA_SOURCE_IS_PROCEDURAL_WAVE
+    0 | MA_DATA_SOURCE_IS_PROCEDURAL_SOUND
 };
 
 MA_API ma_result ma_waveform_init(const ma_waveform_config* pConfig, ma_waveform* pWaveform)
@@ -76884,7 +76884,7 @@ MA_API ma_result ma_sound_init_from_memory(ma_engine* pEngine, const void* pData
     return ma_sound_init_ex(pEngine, &config, pSound);
 }
 
-MA_API ma_result ma_sound_init_from_procedural_wave(ma_engine* pEngine, const ma_procedural_wave_config* pConfig, ma_uint32 flags, ma_sound_group* pGroup, ma_fence* pDoneFence, ma_sound* pSound)
+MA_API ma_result ma_sound_init_from_procedural_wave(ma_engine* pEngine, const ma_procedural_sound_config* pConfig, ma_uint32 flags, ma_sound_group* pGroup, ma_fence* pDoneFence, ma_sound* pSound)
 {
     ma_sound_config config;
 
@@ -76893,7 +76893,7 @@ MA_API ma_result ma_sound_init_from_procedural_wave(ma_engine* pEngine, const ma
     }
 
     config = ma_sound_config_init_2(pEngine);
-    config.pDataSource        = (ma_data_source*)malloc(sizeof(ma_procedural_wave));
+    config.pDataSource        = (ma_data_source*)malloc(sizeof(ma_procedural_sound));
     config.flags              = flags;
     config.pInitialAttachment = pGroup;
     config.pDoneFence         = pDoneFence;
@@ -76902,7 +76902,7 @@ MA_API ma_result ma_sound_init_from_procedural_wave(ma_engine* pEngine, const ma
         return MA_ERROR;
     }
 
-    ma_result result = ma_procedural_wave_init(pConfig, config.pDataSource);
+    ma_result result = ma_procedural_sound_init(pConfig, config.pDataSource);
 
     if(result != MA_SUCCESS) {
         free(config.pDataSource);
@@ -77036,8 +77036,8 @@ MA_API void ma_sound_uninit(ma_sound* pSound)
             if ((pDataSourceBase->vtable->flags & MA_DATA_SOURCE_IS_DECODER) != 0) {
                 ma_decoder_uninit((ma_decoder*)pSound->pDataSource);
                 free(pSound->pDataSource);
-            } else if ((pDataSourceBase->vtable->flags & MA_DATA_SOURCE_IS_PROCEDURAL_WAVE) != 0) {
-                ma_procedural_wave_uninit((ma_procedural_wave*)pSound->pDataSource);
+            } else if ((pDataSourceBase->vtable->flags & MA_DATA_SOURCE_IS_PROCEDURAL_SOUND) != 0) {
+                ma_procedural_sound_uninit((ma_procedural_sound*)pSound->pDataSource);
                 free(pSound->pDataSource);
             }
             pSound->pDataSource = NULL;
@@ -78256,88 +78256,88 @@ MA_API ma_uint64 ma_sound_group_get_time_in_pcm_frames(const ma_sound_group* pGr
     return ma_sound_get_time_in_pcm_frames(pGroup);
 }
 
-static ma_result ma_procedural_wave__data_source_on_read(ma_data_source* pDataSource, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead) {
-    return ma_procedural_wave_read_pcm_frames((ma_procedural_wave*)pDataSource, pFramesOut, frameCount, pFramesRead);
+static ma_result ma_procedural_sound__data_source_on_read(ma_data_source* pDataSource, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead) {
+    return ma_procedural_sound_read_pcm_frames((ma_procedural_sound*)pDataSource, pFramesOut, frameCount, pFramesRead);
 }
 
-static ma_result ma_procedural_wave__data_source_on_seek(ma_data_source* pDataSource, ma_uint64 frameIndex) {
+static ma_result ma_procedural_sound__data_source_on_seek(ma_data_source* pDataSource, ma_uint64 frameIndex) {
     return MA_NOT_IMPLEMENTED;
 }
 
-static ma_result ma_procedural_wave__data_source_on_get_data_format(ma_data_source* pDataSource, ma_format* pFormat, ma_uint32* pChannels, ma_uint32* pSampleRate, ma_channel* pChannelMap, size_t channelMapCap) {
-    ma_procedural_wave* pWaveform = (ma_procedural_wave*)pDataSource;
+static ma_result ma_procedural_sound__data_source_on_get_data_format(ma_data_source* pDataSource, ma_format* pFormat, ma_uint32* pChannels, ma_uint32* pSampleRate, ma_channel* pChannelMap, size_t channelMapCap) {
+    ma_procedural_sound* pProceduralSound = (ma_procedural_sound*)pDataSource;
 
-    *pFormat     = pWaveform->config.format;
-    *pChannels   = pWaveform->config.channels;
-    *pSampleRate = pWaveform->config.sampleRate;
-    ma_channel_map_init_standard(ma_standard_channel_map_default, pChannelMap, channelMapCap, pWaveform->config.channels);
+    *pFormat     = pProceduralSound->config.format;
+    *pChannels   = pProceduralSound->config.channels;
+    *pSampleRate = pProceduralSound->config.sampleRate;
+    ma_channel_map_init_standard(ma_standard_channel_map_default, pChannelMap, channelMapCap, pProceduralSound->config.channels);
 
     return MA_SUCCESS;
 }
 
-static ma_result ma_procedural_wave__data_source_on_get_cursor(ma_data_source* pDataSource, ma_uint64* pCursor) {
+static ma_result ma_procedural_sound__data_source_on_get_cursor(ma_data_source* pDataSource, ma_uint64* pCursor) {
     *pCursor = 0;
     return MA_NOT_IMPLEMENTED;
 }
 
-static ma_data_source_vtable g_ma_procedural_wave_data_source_vtable = {
-    ma_procedural_wave__data_source_on_read,
-    ma_procedural_wave__data_source_on_seek,
-    ma_procedural_wave__data_source_on_get_data_format,
-    ma_procedural_wave__data_source_on_get_cursor,
+static ma_data_source_vtable g_ma_procedural_sound_data_source_vtable = {
+    ma_procedural_sound__data_source_on_read,
+    ma_procedural_sound__data_source_on_seek,
+    ma_procedural_sound__data_source_on_get_data_format,
+    ma_procedural_sound__data_source_on_get_cursor,
     NULL,   /* onGetLength. There's no notion of a length in waveforms. */
     NULL,   /* onSetLooping */
     0
 };
 
-MA_API ma_procedural_wave_config ma_procedural_wave_config_init(ma_format format, ma_uint32 channels, ma_uint32 sampleRate, ma_procedural_wave_proc pWaveformProc, void *pUserData) {
-    MA_ASSERT(pWaveformProc != NULL);
+MA_API ma_procedural_sound_config ma_procedural_sound_config_init(ma_format format, ma_uint32 channels, ma_uint32 sampleRate, ma_procedural_sound_proc pProceduralSoundProc, void *pUserData) {
+    MA_ASSERT(pProceduralSoundProc != NULL);
 
-    ma_procedural_wave_config config;
+    ma_procedural_sound_config config;
 
     MA_ZERO_OBJECT(&config);
     config.format           = format;
     config.channels         = channels;
     config.sampleRate       = sampleRate;
-    config.waveformCallback = pWaveformProc;
+    config.callback = pProceduralSoundProc;
     config.pUserData        = pUserData;
 
     return config;
 }
 
-MA_API ma_result ma_procedural_wave_init(const ma_procedural_wave_config* pConfig, ma_procedural_wave* pWaveform) {
+MA_API ma_result ma_procedural_sound_init(const ma_procedural_sound_config* pConfig, ma_procedural_sound* pProceduralSound) {
     ma_result result;
     ma_data_source_config dataSourceConfig;
 
-    if (pWaveform == NULL) {
+    if (pProceduralSound == NULL) {
         return MA_INVALID_ARGS;
     }
 
-    MA_ZERO_OBJECT(pWaveform);
+    MA_ZERO_OBJECT(pProceduralSound);
 
     dataSourceConfig = ma_data_source_config_init();
-    dataSourceConfig.vtable = &g_ma_procedural_wave_data_source_vtable;
+    dataSourceConfig.vtable = &g_ma_procedural_sound_data_source_vtable;
 
-    result = ma_data_source_init(&dataSourceConfig, &pWaveform->ds);
+    result = ma_data_source_init(&dataSourceConfig, &pProceduralSound->ds);
     if (result != MA_SUCCESS) {
         return result;
     }
 
-    pWaveform->config  = *pConfig;
+    pProceduralSound->config  = *pConfig;
 
     return MA_SUCCESS;
 }
 
-MA_API void ma_procedural_wave_uninit(ma_procedural_wave* pWaveform) {
-    if (pWaveform == NULL) {
+MA_API void ma_procedural_sound_uninit(ma_procedural_sound* pProceduralSound) {
+    if (pProceduralSound == NULL) {
         return;
     }
 
-    ma_data_source_uninit(&pWaveform->ds);
-    MA_ZERO_OBJECT(pWaveform);
+    ma_data_source_uninit(&pProceduralSound->ds);
+    MA_ZERO_OBJECT(pProceduralSound);
 }
 
-MA_API ma_result ma_procedural_wave_read_pcm_frames(ma_procedural_wave* pWaveform, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead) {
+MA_API ma_result ma_procedural_sound_read_pcm_frames(ma_procedural_sound* pProceduralSound, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead) {
     if (pFramesRead != NULL) {
         *pFramesRead = 0;
     }
@@ -78346,13 +78346,13 @@ MA_API ma_result ma_procedural_wave_read_pcm_frames(ma_procedural_wave* pWavefor
         return MA_INVALID_ARGS;
     }
 
-    if (pWaveform == NULL) {
+    if (pProceduralSound == NULL) {
         return MA_INVALID_ARGS;
     }
 
     if (pFramesOut != NULL) {
-        if(pWaveform->config.waveformCallback != NULL) {
-            pWaveform->config.waveformCallback(pWaveform->config.pUserData, pFramesOut, frameCount, pWaveform->config.channels);
+        if(pProceduralSound->config.callback != NULL) {
+            pProceduralSound->config.callback(pProceduralSound->config.pUserData, pFramesOut, frameCount, pProceduralSound->config.channels);
         }
     }
 

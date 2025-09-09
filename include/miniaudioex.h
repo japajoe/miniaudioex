@@ -101,7 +101,6 @@ struct ma_ex_audio_source_callbacks {
     ma_sound_end_proc endCallback;
     ma_sound_load_proc loadCallback;
     ma_sound_process_proc processCallback;
-    ma_procedural_wave_proc waveformCallback;
 };
 
 typedef struct ma_ex_audio_source_settings ma_ex_audio_source_settings;
@@ -176,7 +175,7 @@ MA_API void *ma_ex_device_get_user_data(ma_device *pDevice);
 
 MA_API ma_ex_audio_clip *ma_ex_audio_clip_init_from_file(ma_ex_context *context, const char *filePath, ma_bool32 streamFromDisk);
 MA_API ma_ex_audio_clip *ma_ex_audio_clip_init_from_memory(ma_ex_context *context, const void *data, ma_uint64 dataSize);
-MA_API ma_ex_audio_clip *ma_ex_audio_clip_init_from_procedural_wave(ma_ex_context *context, const ma_procedural_wave_config *pConfig);
+MA_API ma_ex_audio_clip *ma_ex_audio_clip_init_from_procedural_sound(ma_ex_context *context, const ma_procedural_sound_config *pConfig);
 MA_API void ma_ex_audio_clip_uninit(ma_ex_audio_clip *clip);
 MA_API ma_bool8 ma_ex_audio_clip_is_initialized(ma_ex_audio_clip *clip);
 

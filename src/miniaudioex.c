@@ -468,7 +468,7 @@ MA_API ma_ex_audio_clip *ma_ex_audio_clip_init_from_memory(ma_ex_context *contex
     return clip;
 }
 
-MA_API ma_ex_audio_clip *ma_ex_audio_clip_init_from_procedural_wave(ma_ex_context *context, const ma_procedural_wave_config *pConfig) {
+MA_API ma_ex_audio_clip *ma_ex_audio_clip_init_from_procedural_sound(ma_ex_context *context, const ma_procedural_sound_config *pConfig) {
     if(context == NULL || pConfig == NULL)
         return NULL;
 
@@ -518,7 +518,6 @@ MA_API ma_ex_audio_source *ma_ex_audio_source_init(ma_ex_context *context) {
     source->callbacks.endCallback = NULL;
     source->callbacks.loadCallback = NULL;
     source->callbacks.processCallback = NULL;
-    source->callbacks.waveformCallback = NULL;
     source->callbacks.pUserData = NULL;
     source->soundHash = 0;
 
