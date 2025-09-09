@@ -16,7 +16,7 @@ jobs:
     - name: Set up dependencies on MacOS
       run: |
         echo "Setting up dependencies on MacOS ${{ matrix.arch }}"
-        brew install cmake
+        brew update && (brew list cmake || brew install cmake)
 
     - name: Build the project on MacOS
       run: |
@@ -45,7 +45,7 @@ jobs:
     - name: Set up dependencies on MacOS
       run: |
         echo "Setting up dependencies on MacOS ${{ matrix.arch }}"
-        brew install cmake
+        brew update && (brew list cmake || brew install cmake)
 
     - name: Build the project on MacOS
       run: |
