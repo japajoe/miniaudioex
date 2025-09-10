@@ -124,15 +124,15 @@ typedef struct ma_ex_audio_clip ma_ex_audio_clip;
 struct ma_ex_audio_clip {
     ma_sound sound;
     ma_uint64 soundHash;
+    ma_uint32 flags;
 };
 
 typedef struct ma_ex_audio_source ma_ex_audio_source;
 
 struct ma_ex_audio_source {
     ma_ex_context *context;
-    ma_ex_audio_clip *clip;
+    ma_ex_audio_clip clip;
     ma_ex_audio_source_callbacks callbacks;
-    ma_uint64 soundHash;
     ma_ex_audio_source_settings settings;
 };
 
@@ -173,17 +173,12 @@ MA_API ma_engine *ma_ex_context_get_engine(ma_ex_context *context);
 
 MA_API void *ma_ex_device_get_user_data(ma_device *pDevice);
 
-MA_API ma_ex_audio_clip *ma_ex_audio_clip_init_from_file(ma_ex_context *context, const char *filePath, ma_bool32 streamFromDisk);
-MA_API ma_ex_audio_clip *ma_ex_audio_clip_init_from_memory(ma_ex_context *context, const void *data, ma_uint64 dataSize);
-MA_API ma_ex_audio_clip *ma_ex_audio_clip_init_from_procedural_sound(ma_ex_context *context, const ma_procedural_sound_config *pConfig);
-MA_API void ma_ex_audio_clip_uninit(ma_ex_audio_clip *clip);
-MA_API ma_bool8 ma_ex_audio_clip_is_initialized(ma_ex_audio_clip *clip);
-
 MA_API ma_ex_audio_source *ma_ex_audio_source_init(ma_ex_context *context);
 MA_API void ma_ex_audio_source_uninit(ma_ex_audio_source *source);
 MA_API void ma_ex_audio_source_set_callbacks(ma_ex_audio_source *source, ma_ex_audio_source_callbacks callbacks);
-MA_API ma_result ma_ex_audio_source_play(ma_ex_audio_source *source, ma_ex_audio_clip *clip);
-MA_API ma_result ma_ex_audio_source_play_one_shot(ma_ex_audio_source *source, ma_ex_audio_clip *clip);
+MA_API ma_result ma_ex_audio_source_play_from_file(ma_ex_audio_source *source, const char *filePath, ma_bool8 streamFromDisk);
+MA_API ma_result ma_ex_audio_source_play_from_memory(ma_ex_audio_source *source, const void *pData, ma_uint64 dataSize);
+MA_API ma_result ma_ex_audio_source_play_from_callback(ma_ex_audio_source *source, ma_procedural_sound_proc callback);
 MA_API void ma_ex_audio_source_stop(ma_ex_audio_source *source);
 MA_API void ma_ex_audio_source_apply_settings(ma_ex_audio_source *source);
 MA_API void ma_ex_audio_source_set_volume(ma_ex_audio_source *source, float value);
