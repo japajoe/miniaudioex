@@ -46,6 +46,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#define MA_DLL
 #include "ma_dsp_node.h"
 #include <assert.h>
 #include <stdio.h>
