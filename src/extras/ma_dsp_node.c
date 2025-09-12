@@ -29,7 +29,7 @@
 // ===============================================================================
 // ALTERNATIVE 2 - MIT No Attribution
 // ===============================================================================
-// Copyright 2024 W.M.R Jap-A-Joe
+// Copyright 2025 W.M.R Jap-A-Joe
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy of
 // this software and associated documentation files (the "Software"), to deal in
@@ -46,6 +46,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#define MINIAUDIO_IMPLEMENTATION
+#define MA_DLL
 #include "ma_dsp_node.h"
 #include <assert.h>
 #include <stdio.h>

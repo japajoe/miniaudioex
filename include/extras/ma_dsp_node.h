@@ -29,7 +29,7 @@
 // ===============================================================================
 // ALTERNATIVE 2 - MIT No Attribution
 // ===============================================================================
-// Copyright 2024 W.M.R Jap-A-Joe
+// Copyright 2025 W.M.R Jap-A-Joe
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy of
 // this software and associated documentation files (the "Software"), to deal in
@@ -49,7 +49,7 @@
 #ifndef MA_DSP_NODE_H
 #define MA_DSP_NODE_H
 
-#include "miniaudio.h"
+#include "../miniaudio.h"
 
 typedef void (*ma_dsp_node_proc)(void *pUserData, ma_node* pNode, const float** ppFramesIn, ma_uint32* pFrameCountIn, float** ppFramesOut, ma_uint32* pFrameCountOut);
 

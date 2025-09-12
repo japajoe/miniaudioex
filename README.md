@@ -1,11 +1,11 @@
 # miniaudioex
-This is a modified version of the [MiniAudio](https://github.com/mackron/miniaudio) library. The aim is to extend the library so it's more easy to use in applications, and write simpler bindings for other languages.
+This is a modified version of the [MiniAudio](https://github.com/mackron/miniaudio) library. The aim is to extend the library so it's more easy to use in applications, and write simpler bindings for other languages. Current miniaudio version is 0.11.23.
 
 # Supported formats
 - wav
 - mp3
 - flac
-- ogg (experimental)
+- ogg
 
 # Building
 There's no need to install any dependencies. On Windows and macOS there's no need to link to  anything. On Linux just link to `-lpthread`, `-lm` and `-ldl`. On BSD just link to `-lpthread` and `-lm`. On iOS you need to compile as Objective-C.
@@ -94,16 +94,7 @@ int main(int argc, char **argv) {
 
     ma_ex_audio_source *source = ma_ex_audio_source_init(context);
 
-    ma_ex_audio_source_callbacks callbacks = {
-        .pUserData = NULL,
-        .endCallback = NULL,
-        .loadCallback = NULL,
-        .processCallback = NULL,
-        .waveformCallback = &on_waveform
-    };
-
-    ma_ex_audio_source_set_callbacks(source, callbacks);
-    ma_ex_audio_source_play(source);
+    ma_ex_audio_source_play_from_callback(source, on_waveform);
 
     printf("Press enter to stop ");
     getchar();
@@ -122,10 +113,10 @@ ma_uint64 timeCounter = 0;
 
 void on_waveform(void *pUserData, void* pFramesOut, ma_uint64 frameCount, ma_uint32 channels) {
     float *dataOut = (float*)pFramesOut;
-    size_t numSamples = frameCount * channels;
+    ma_uint64 numSamples = frameCount * channels;
     float sample = 0.0f;
 
-    for(size_t i = 0; i < numSamples; i+=channels) {
+    for(ma_uint64 i = 0; i < numSamples; i+=channels) {
         sample = sinf(2 * M_PI * 440 * timeCounter / SAMPLE_RATE);
         dataOut[i] = sample;
         if(channels == 2)
