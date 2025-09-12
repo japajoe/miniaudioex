@@ -1,4 +1,6 @@
 /build
 /.vscode
+/include/miniaudio.h.bak
 /src/main.c
+/src/miniaudio.c.bak
 /res

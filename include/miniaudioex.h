@@ -66,7 +66,7 @@
 // - removed pEndCallbackUserData from ma_sound
 // - removed endCallback and pEndCallbackUserData from ma_sound_config
 // - added notifications to ma_sound_config
-// - modified ma_sound_init_ex so it can take initialize notifications passed by ma_sound_config
+// - modified ma_sound_init_ex so it can initialize notifications passed by ma_sound_config
 // - modified ma_sound_set_at_end so it calls the onAtEnd callback set in the sound notifications
 // - modified ma_sound_uninit so it can free allocated memory caused by calling ma_sound_init_from_memory and ma_sound_init_from_callback
 // - modified ma_engine_node_process_pcm_frames__general so it calls onProcess callback if applicable
