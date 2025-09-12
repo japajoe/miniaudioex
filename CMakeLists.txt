@@ -13,17 +13,18 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
     endif()
 endif()
 
-option(MINIAUDIOEX_BUILD_SHARED "Build shared library" OFF)
-option(MINIAUDIOEX_BUILD_EXE "Build shared library" ON)
+option(MINIAUDIOEX_BUILD_SHARED "Build shared library" ON)
+option(MINIAUDIOEX_BUILD_EXE "Build executable" OFF)
 
 message(STATUS "miniaudioex: Configuring for platform: ${MINIAUDIOEX_BUILD_PLATFORM}")
 
-file(GLOB SOURCES
+file(GLOB_RECURSE SOURCES
     "${PROJECT_SOURCE_DIR}/src/*.c"
 )
 
 include_directories(
     "${PROJECT_SOURCE_DIR}/include"
+    "${PROJECT_SOURCE_DIR}/include/extras"
 )
 
 if(MINIAUDIOEX_BUILD_EXE)

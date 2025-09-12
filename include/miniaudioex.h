@@ -46,7 +46,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-// Note that this is not fully compatible with the original miniaudio library
+/* Note that this is not fully compatible with the original miniaudio library
 // Notable changes made in miniaudio.h
 // - added method ma_sound_init_from_memory
 // - added method ma_sound_init_from_callback
@@ -55,10 +55,12 @@
 // - added method ma_sound_set_end_notification_callback
 // - added method ma_sound_set_load_notification_callback
 // - added method ma_sound_set_process_notification_callback
+// - added custom data source: ma_procedural_sound
 // - added method ma_procedural_sound_config_init
 // - added method ma_procedural_sound_init
 // - added method ma_procedural_sound_uninit
 // - added method ma_procedural_sound_read_pcm_frames
+// - added MA_DATA_SOURCE_IS_DECODER and MA_DATA_SOURCE_IS_PROCEDURAL_SOUND flags (internally used)
 // - added notifications to ma_sound (this contains multiple callbacks including endCallback and userData)
 // - removed endCallback from ma_sound
 // - removed pEndCallbackUserData from ma_sound
@@ -69,6 +71,7 @@
 // - modified ma_sound_uninit so it can free allocated memory caused by calling ma_sound_init_from_memory and ma_sound_init_from_callback
 // - modified ma_engine_node_process_pcm_frames__general so it calls onProcess callback if applicable
 // - modified ma_sound_start so it calls onLoaded callback if applicable
+*/
 
 #ifndef MINIAUDIOEX_H
 #define MINIAUDIOEX_H
@@ -192,6 +195,7 @@ MA_API void ma_ex_context_uninit(ma_ex_context *context);
 MA_API void ma_ex_context_set_master_volume(ma_ex_context *context, float volume);
 MA_API float ma_ex_context_get_master_volume(ma_ex_context *context);
 MA_API ma_engine *ma_ex_context_get_engine(ma_ex_context *context);
+MA_API ma_node_graph *ma_ex_context_get_engine_node_graph(ma_ex_context *context);
 
 MA_API void *ma_ex_device_get_user_data(ma_device *pDevice);
 
@@ -229,6 +233,7 @@ MA_API float ma_ex_audio_source_get_min_distance(ma_ex_audio_source *source);
 MA_API void ma_ex_audio_source_set_max_distance(ma_ex_audio_source *source, float distance);
 MA_API float ma_ex_audio_source_get_max_distance(ma_ex_audio_source *source);
 MA_API ma_bool32 ma_ex_audio_source_get_is_playing(ma_ex_audio_source *source);
+MA_API ma_ex_audio_clip *ma_ex_audio_source_get_clip(ma_ex_audio_source *source);
 
 MA_API ma_ex_audio_listener *ma_ex_audio_listener_init(ma_ex_context *context);
 MA_API void ma_ex_audio_listener_uninit(ma_ex_audio_listener *listener);

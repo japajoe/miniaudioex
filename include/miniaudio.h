@@ -74839,11 +74839,13 @@ MA_API ma_result ma_node_attach_output_bus(ma_node* pNode, ma_uint32 outputBusIn
     }
 
     if (outputBusIndex >= ma_node_get_output_bus_count(pNode) || otherNodeInputBusIndex >= ma_node_get_input_bus_count(pOtherNode)) {
+        printf("Invalid bus index\n");
         return MA_INVALID_OPERATION;    /* Invalid bus index. */
     }
 
     /* The output channel count of the output node must be the same as the input channel count of the input node. */
     if (ma_node_get_output_channels(pNode, outputBusIndex) != ma_node_get_input_channels(pOtherNode, otherNodeInputBusIndex)) {
+        printf("The output channel count of the output node must be the same as the input channel count of the input node\n");
         return MA_INVALID_OPERATION;    /* Channel count is incompatible. */
     }
 

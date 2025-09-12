@@ -47,7 +47,7 @@
 // SOFTWARE.
 
 #include "miniaudioex.h"
-#include "miniaudio_libvorbis.h"
+#include "extras/miniaudio_libvorbis.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -401,6 +401,12 @@ MA_API ma_engine *ma_ex_context_get_engine(ma_ex_context *context) {
     if(context != NULL)
         return &context->engine;
     return NULL;
+}
+
+MA_API ma_node_graph *ma_ex_context_get_engine_node_graph(ma_ex_context *context) {
+    if(context == NULL)
+        return NULL;
+    return ma_engine_get_node_graph(&context->engine);
 }
 
 MA_API void *ma_ex_device_get_user_data(ma_device *pDevice) {
@@ -858,6 +864,12 @@ MA_API ma_bool32 ma_ex_audio_source_get_is_playing(ma_ex_audio_source *source) {
         return ma_sound_is_playing(&source->clip.sound);
     }
     return MA_FALSE;
+}
+
+MA_API ma_ex_audio_clip *ma_ex_audio_source_get_clip(ma_ex_audio_source *source) {
+    if(source == NULL)
+        return NULL;
+    return &source->clip;
 }
 
 MA_API ma_ex_audio_listener *ma_ex_audio_listener_init(ma_ex_context *context) {
