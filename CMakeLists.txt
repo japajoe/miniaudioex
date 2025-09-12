@@ -23,6 +23,7 @@ file(GLOB_RECURSE SOURCES
 
 include_directories(
     "${PROJECT_SOURCE_DIR}/include"
+    "${PROJECT_SOURCE_DIR}/include/extras"
 )
 
 if(MINIAUDIOEX_BUILD_SHARED)
