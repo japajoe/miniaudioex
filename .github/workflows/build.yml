@@ -16,14 +16,14 @@ jobs:
     - name: Set up dependencies on MacOS
       run: |
         echo "Setting up dependencies on MacOS ${{ matrix.arch }}"
-        brew install cmake
+        brew update && (brew list cmake || brew install cmake)
 
     - name: Build the project on MacOS
       run: |
         echo "Building project on MacOS ${{ matrix.arch }}"
         mkdir build
         cd build
-        cmake -DMINIAUDIOEX_BUILD_SHARED=mac -DCMAKE_BUILD_TYPE=Release ..
+        cmake -DMINIAUDIOEX_BUILD_PLATFORM=mac -DCMAKE_BUILD_TYPE=Release ..
         cmake --build .
 
     - name: Upload build artifacts
@@ -45,14 +45,14 @@ jobs:
     - name: Set up dependencies on MacOS
       run: |
         echo "Setting up dependencies on MacOS ${{ matrix.arch }}"
-        brew install cmake
+        brew update && (brew list cmake || brew install cmake)
 
     - name: Build the project on MacOS
       run: |
         echo "Building project on MacOS ${{ matrix.arch }}"
         mkdir build
         cd build
-        cmake -DMINIAUDIOEX_BUILD_SHARED=mac -DCMAKE_BUILD_TYPE=Release ..
+        cmake -DMINIAUDIOEX_BUILD_PLATFORM=mac -DCMAKE_BUILD_TYPE=Release ..
         cmake --build .
 
     - name: Upload build artifacts
@@ -62,7 +62,7 @@ jobs:
         path: build/
 
   build-linux:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         arch: [x86_64]  # Linux architectures: x64
@@ -82,7 +82,7 @@ jobs:
         echo "Building project on Linux ${{ matrix.arch }}"
         mkdir build
         cd build
-        cmake -DMINIAUDIOEX_BUILD_SHARED=linux_x86_64 -DCMAKE_BUILD_TYPE=Release ..
+        cmake -DMINIAUDIOEX_BUILD_PLATFORM=linux_x86_64 -DCMAKE_BUILD_TYPE=Release ..
         cmake --build .
 
     - name: Upload build artifacts
@@ -113,7 +113,7 @@ jobs:
         echo "Building project on Linux ARM64 ${{ matrix.arch }}"
         mkdir build
         cd build
-        cmake -DMINIAUDIOEX_BUILD_SHARED=linux_arm64 -DCMAKE_BUILD_TYPE=Release ..
+        cmake -DMINIAUDIOEX_BUILD_PLATFORM=linux_arm64 -DCMAKE_BUILD_TYPE=Release ..
         cmake --build .
 
     - name: Upload build artifacts
@@ -143,7 +143,7 @@ jobs:
         echo "Building project on Linux ARM32 ${{ matrix.arch }}"
         mkdir build
         cd build
-        cmake -DMINIAUDIOEX_BUILD_SHARED=linux_arm -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=arm-linux-gnueabihf-gcc -DCMAKE_CXX_COMPILER=arm-linux-gnueabihf-g++ ..
+        cmake -DMINIAUDIOEX_BUILD_PLATFORM=linux_arm -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=arm-linux-gnueabihf-gcc -DCMAKE_CXX_COMPILER=arm-linux-gnueabihf-g++ ..
         cmake --build .
 
     - name: Upload build artifacts
@@ -172,7 +172,7 @@ jobs:
         echo "Building project on Windows ${{ matrix.name }}"
         mkdir build
         cd build
-        cmake -A ${{ matrix.name }} -DMINIAUDIOEX_BUILD_SHARED=windows -DCMAKE_BUILD_TYPE=Release ..
+        cmake -A ${{ matrix.name }} -DMINIAUDIOEX_BUILD_PLATFORM=windows -DCMAKE_BUILD_TYPE=Release ..
         cmake --build . --config Release
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4

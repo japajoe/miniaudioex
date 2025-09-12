@@ -46,7 +46,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#define MA_DLL
+#define MINIAUDIO_IMPLEMENTATION
 #include "miniaudioex.h"
+#include "miniaudio_libvorbis.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -158,9 +161,8 @@ MA_API ma_ex_device_info *ma_ex_playback_devices_get(ma_uint32 *count) {
     ma_uint32 captureCount;
     result = ma_context_get_devices(&context, &pPlaybackInfos, &playbackCount, &pCaptureInfos, &captureCount);
 
-    if (result != MA_SUCCESS) {
+    if(result != MA_SUCCESS)
         return NULL;
-    }
 
     ma_ex_device_info *pDeviceInfo = NULL;
 
@@ -180,6 +182,34 @@ MA_API ma_ex_device_info *ma_ex_playback_devices_get(ma_uint32 *count) {
     for (ma_uint32 iDevice = 0; iDevice < playbackCount; iDevice++) {
         pDeviceInfo[iDevice].index = iDevice;
         pDeviceInfo[iDevice].isDefault = pPlaybackInfos[iDevice].isDefault;
+
+        ma_device_info deviceInfo = {0};
+        
+        if(ma_context_get_device_info(&context, ma_device_type_playback, &pPlaybackInfos[iDevice].id, &deviceInfo) != MA_SUCCESS) {
+            allocationError = MA_TRUE;
+            break;
+        }
+
+        const ma_uint32 formatCount = deviceInfo.nativeDataFormatCount;
+
+        if(formatCount > 0) {
+            pDeviceInfo[iDevice].nativeDataFormatCount = formatCount;
+            pDeviceInfo[iDevice].nativeDataFormats = MA_MALLOC(formatCount * sizeof(ma_ex_native_data_format));
+            if(pDeviceInfo[iDevice].nativeDataFormats == NULL) {
+                allocationError = MA_TRUE;
+                break;
+            }
+            for (ma_uint32 n = 0; n < formatCount; n++) {
+                pDeviceInfo[iDevice].nativeDataFormats[n].channels = deviceInfo.nativeDataFormats[n].channels;
+                pDeviceInfo[iDevice].nativeDataFormats[n].flags = deviceInfo.nativeDataFormats[n].flags;
+                pDeviceInfo[iDevice].nativeDataFormats[n].format = deviceInfo.nativeDataFormats[n].format;
+                pDeviceInfo[iDevice].nativeDataFormats[n].sampleRate = deviceInfo.nativeDataFormats[n].sampleRate;
+            }
+        } else {
+            pDeviceInfo[iDevice].nativeDataFormatCount = 0;
+            pDeviceInfo[iDevice].nativeDataFormats = NULL;
+        }
+
         size_t len = strlen(pPlaybackInfos[iDevice].name) + 1;
         pDeviceInfo[iDevice].pName = MA_MALLOC(len);
         if(pDeviceInfo[iDevice].pName == NULL) {
@@ -194,6 +224,9 @@ MA_API ma_ex_device_info *ma_ex_playback_devices_get(ma_uint32 *count) {
         for(ma_uint32 i = 0; i < playbackCount; i++) {
             if(pDeviceInfo[i].pName != NULL) {
                 MA_FREE(pDeviceInfo[i].pName);
+            }
+            if(pDeviceInfo[i].nativeDataFormats != NULL) {
+                MA_FREE(pDeviceInfo[i].nativeDataFormats);
             }
         }        
         MA_FREE(pDeviceInfo);
@@ -210,6 +243,8 @@ MA_API void ma_ex_playback_devices_free(ma_ex_device_info *pDeviceInfo, ma_uint3
         for(ma_uint32 i = 0; i < count; i++) {
             if(pDeviceInfo[i].pName != NULL)
                 MA_FREE(pDeviceInfo[i].pName);
+            if(pDeviceInfo[i].nativeDataFormats != NULL)
+                MA_FREE(pDeviceInfo[i].nativeDataFormats);
         }
         MA_FREE(pDeviceInfo);
     }
@@ -244,6 +279,7 @@ MA_API ma_ex_context *ma_ex_context_init(const ma_ex_context_config *config) {
     MA_ZERO_OBJECT(&context->context);
     MA_ZERO_OBJECT(&context->engine);
     MA_ZERO_OBJECT(&context->device);
+    MA_ZERO_OBJECT(&context->resourceManager);
 
     context->sampleRate = config->sampleRate;
     context->channels = config->channels;
@@ -284,18 +320,8 @@ MA_API ma_ex_context *ma_ex_context_init(const ma_ex_context_config *config) {
     ma_device_id *pSelectedDevice = NULL;
 
     //Use selected device    
-    if(config->deviceInfo.index >= 0) {
+    if(config->deviceInfo.index >= 0)
         pSelectedDevice = &pPlaybackInfos[config->deviceInfo.index].id;
-    } else { //Use default device
-        //Initially set to first device that was found
-        pSelectedDevice = &pPlaybackInfos[0].id;
-        for(ma_uint32 i = 0; i < playbackCount; i++) {
-            if(pPlaybackInfos[i].isDefault == MA_TRUE) {
-                pSelectedDevice = &pPlaybackInfos[i].id;
-                break;
-            }
-        }
-    }
 
     deviceConfig.playback.pDeviceID = pSelectedDevice;
 
@@ -306,9 +332,25 @@ MA_API ma_ex_context *ma_ex_context_init(const ma_ex_context_config *config) {
         return NULL;
     }
 
+    ma_decoding_backend_vtable *pCustomBackendVTables[] = {
+        ma_libvorbis_get_decoding_backend()
+    };
+
+    ma_resource_manager_config resourceManagerConfig = ma_resource_manager_config_init();
+    resourceManagerConfig.ppCustomDecodingBackendVTables = pCustomBackendVTables;
+    resourceManagerConfig.customDecodingBackendCount = sizeof(pCustomBackendVTables)/sizeof(pCustomBackendVTables[0]);
+
+    if (ma_resource_manager_init(&resourceManagerConfig, &context->resourceManager) != MA_SUCCESS) {
+        fprintf(stderr, "Failed to initialize ma_resource_manager\n");
+        ma_context_uninit(&context->context);
+        MA_FREE(context);
+        return NULL;
+    }
+
     ma_engine_config engineConfig = ma_engine_config_init();
     engineConfig.listenerCount = MA_ENGINE_MAX_LISTENERS;
     engineConfig.pDevice = &context->device;
+    engineConfig.pResourceManager = &context->resourceManager;
 
     if(ma_engine_init(&engineConfig, &context->engine) != MA_SUCCESS) {
         fprintf(stderr, "Failed to initialize ma_engine\n");
@@ -339,6 +381,7 @@ MA_API ma_ex_context *ma_ex_context_init(const ma_ex_context_config *config) {
 MA_API void ma_ex_context_uninit(ma_ex_context *context) {
     if(context != NULL) {
         ma_engine_uninit(&context->engine);
+        ma_resource_manager_uninit(&context->resourceManager);
         ma_device_uninit(&context->device);
         ma_context_uninit(&context->context);
         MA_FREE(context);
@@ -401,6 +444,7 @@ MA_API ma_ex_audio_source *ma_ex_audio_source_init(ma_ex_context *context) {
 MA_API void ma_ex_audio_source_uninit(ma_ex_audio_source *source) {
     if(source != NULL) {
         ma_sound_uninit(&source->sound);
+        ma_decoder_uninit(&source->decoder);
         MA_FREE(source);
     }
 }
@@ -532,8 +576,9 @@ MA_API ma_result ma_ex_audio_source_play_from_memory(ma_ex_audio_source *source,
 }
 
 MA_API void ma_ex_audio_source_stop(ma_ex_audio_source *source) {
-    if(source != NULL)
+    if(source != NULL) {
         ma_sound_stop(&source->sound);
+    }
 }
 
 MA_API void ma_ex_audio_source_apply_settings(ma_ex_audio_source *source) {
@@ -950,6 +995,28 @@ MA_API float *ma_ex_decode_file(const char *pFilePath, ma_uint64 *dataLength, ma
     ma_uint64 frameCount;
 
     if(ma_decode_file(pFilePath, &config, &frameCount, &pPCMFrames) == MA_SUCCESS) {
+        *channels = config.channels;
+        *sampleRate = config.sampleRate;
+        *dataLength = config.channels * frameCount;
+        return (float*)pPCMFrames;
+    }
+    return NULL;
+}
+
+MA_API float *ma_ex_decode_memory(const void *pData, ma_uint64 size, ma_uint64 *dataLength, ma_uint32 *channels, ma_uint32 *sampleRate, ma_uint32 desiredChannels, ma_uint32 desiredSampleRate) {
+    ma_decoder_config config = ma_decoder_config_init_default();
+    config.format = ma_format_f32;
+    
+    if(desiredChannels > 0)
+        config.channels = desiredChannels;
+
+    if(desiredSampleRate > 0)
+        config.sampleRate = desiredSampleRate;
+
+    void* pPCMFrames;
+    ma_uint64 frameCount;
+
+    if(ma_decode_memory(pData, size, &config, &frameCount, &pPCMFrames) == MA_SUCCESS) {
         *channels = config.channels;
         *sampleRate = config.sampleRate;
         *dataLength = config.channels * frameCount;

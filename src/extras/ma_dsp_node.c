@@ -155,7 +155,7 @@ MA_API ma_result ma_dsp_node_init(ma_node_graph* pNodeGraph, const ma_dsp_node_c
     return MA_SUCCESS;
 }
 
-MA_API void ma_dsp_node_uninit(ma_dsp_node_config* pDspNode, const ma_allocation_callbacks* pAllocationCallbacks) {
+MA_API void ma_dsp_node_uninit(ma_dsp_node* pDspNode, const ma_allocation_callbacks* pAllocationCallbacks) {
     if(pDspNode != NULL)
         ma_node_uninit(pDspNode, pAllocationCallbacks);
 }

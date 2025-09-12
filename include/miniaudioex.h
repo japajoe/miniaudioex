@@ -46,61 +46,86 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+// Note that this is not fully compatible with the original miniaudio library
+
 #ifndef MINIAUDIOEX_H
 #define MINIAUDIOEX_H
 
-#define MA_DLL
-#define MINIAUDIO_IMPLEMENTATION
 #include "miniaudio.h"
 
 typedef void (*ma_procedural_wave_proc)(void *pUserData, void* pFramesOut, ma_uint64 frameCount, ma_uint32 channels);
 
-typedef struct {
+typedef struct ma_procedural_wave_config ma_procedural_wave_config;
+
+struct ma_procedural_wave_config {
     ma_format format;
     ma_uint32 channels;
     ma_uint32 sampleRate;
     ma_procedural_wave_proc waveformCallback;
     void *pUserData;
-} ma_procedural_wave_config;
+};
 
-typedef struct {
+typedef struct ma_procedural_wave ma_procedural_wave;
+
+struct ma_procedural_wave {
     ma_data_source_base ds;
     ma_procedural_wave_config config;
-} ma_procedural_wave;
+};
 
-typedef struct {
+typedef struct ma_ex_native_data_format ma_ex_native_data_format;
+typedef struct ma_ex_device_info ma_ex_device_info;
+
+struct ma_ex_native_data_format {
+    ma_format format;       /* Sample format. If set to ma_format_unknown, all sample formats are supported. */
+    ma_uint32 channels;     /* If set to 0, all channels are supported. */
+    ma_uint32 sampleRate;   /* If set to 0, all sample rates are supported. */
+    ma_uint32 flags;        /* A combination of MA_DATA_FORMAT_FLAG_* flags. */
+};
+
+struct ma_ex_device_info {
     char *pName;
     ma_int32 index;
     ma_bool32 isDefault;
-} ma_ex_device_info;
+    ma_uint32 nativeDataFormatCount;
+    ma_ex_native_data_format *nativeDataFormats;
+};
 
-typedef struct {
+typedef struct ma_ex_context_config ma_ex_context_config;
+
+struct ma_ex_context_config {
     ma_ex_device_info deviceInfo;
     ma_uint32 sampleRate;
     ma_uint8 channels;
     ma_uint32 periodSizeInFrames;
     ma_device_data_proc deviceDataProc;
-} ma_ex_context_config;
+};
 
-typedef struct {
+typedef struct ma_ex_context ma_ex_context;
+
+struct ma_ex_context {
     ma_context context;
     ma_device device;
     ma_engine engine;
+    ma_resource_manager resourceManager;
     ma_uint32 sampleRate;
     ma_uint8 channels;
     ma_format format;
     ma_int32 listeners[MA_ENGINE_MAX_LISTENERS];
-}  ma_ex_context;
+};
 
-typedef struct {
+typedef struct ma_ex_audio_source_callbacks ma_ex_audio_source_callbacks;
+
+struct ma_ex_audio_source_callbacks {
     void *pUserData;
     ma_sound_end_proc endCallback;
     ma_sound_load_proc loadCallback;
     ma_sound_process_proc processCallback;
     ma_procedural_wave_proc waveformCallback;
-} ma_ex_audio_source_callbacks;
+};
 
-typedef struct {
+typedef struct ma_ex_audio_source_settings ma_ex_audio_source_settings;
+
+struct ma_ex_audio_source_settings {
     float volume;
     float pitch;
     ma_bool32 loop;
@@ -112,9 +137,11 @@ typedef struct {
     float dopplerFactor;
     float minDistance;
     float maxDistance;
-} ma_ex_audio_source_settings;
+};
 
-typedef struct {
+typedef struct ma_ex_audio_source ma_ex_audio_source;
+
+struct ma_ex_audio_source {
     ma_ex_context *context;
     ma_sound sound;
     ma_decoder decoder;
@@ -122,9 +149,11 @@ typedef struct {
     ma_ex_audio_source_callbacks callbacks;
     ma_uint64 soundHash;
     ma_ex_audio_source_settings settings;
-} ma_ex_audio_source;
+};
 
-typedef struct {
+typedef struct ma_ex_audio_listener_settings ma_ex_audio_listener_settings;
+
+struct ma_ex_audio_listener_settings {
     ma_bool32 spatialization;
     ma_vec3f position;
     ma_vec3f direction;
@@ -133,13 +162,15 @@ typedef struct {
     float coneInnerAngleInRadians;
     float coneOuterAngleInRadians;
     float coneOuterGain;
-} ma_ex_audio_listener_settings;
+};
 
-typedef struct {
+typedef struct ma_ex_audio_listener ma_ex_audio_listener;
+
+struct ma_ex_audio_listener {
     ma_ex_context *context;
     ma_uint32 index;
     ma_ex_audio_listener_settings settings;
-} ma_ex_audio_listener;
+};
 
 #if defined(__cplusplus)
 extern "C" {
@@ -212,6 +243,7 @@ MA_API void ma_ex_free_bytes_from_file(char *pointer);
 MA_API void ma_ex_free(void *pointer);
 
 MA_API float *ma_ex_decode_file(const char *pFilePath, ma_uint64 *dataLength, ma_uint32 *channels, ma_uint32 *sampleRate, ma_uint32 desiredChannels, ma_uint32 desiredSampleRate);
+MA_API float *ma_ex_decode_memory(const void *pData, ma_uint64 size, ma_uint64 *dataLength, ma_uint32 *channels, ma_uint32 *sampleRate, ma_uint32 desiredChannels, ma_uint32 desiredSampleRate);
 
 MA_API ma_procedural_wave_config ma_procedural_wave_config_init(ma_format format, ma_uint32 channels, ma_uint32 sampleRate, ma_procedural_wave_proc pWaveformProc, void *pUserData);
 MA_API ma_result ma_procedural_wave_init(const ma_procedural_wave_config* pConfig, ma_procedural_wave* pWaveform);

@@ -72,7 +72,7 @@ extern "C" {
 
 MA_API ma_dsp_node_config ma_dsp_node_config_init(ma_uint32 channels, ma_uint32 sampleRate, ma_dsp_node_proc pCallback, void *pUserData);
 MA_API ma_result ma_dsp_node_init(ma_node_graph* pNodeGraph, const ma_dsp_node_config* pConfig, const ma_allocation_callbacks* pAllocationCallbacks, ma_dsp_node* pDspNode);
-MA_API void ma_dsp_node_uninit(ma_dsp_node_config* pDspNode, const ma_allocation_callbacks* pAllocationCallbacks);
+MA_API void ma_dsp_node_uninit(ma_dsp_node* pDspNode, const ma_allocation_callbacks* pAllocationCallbacks);
 
 #if defined(__cplusplus)
 }
