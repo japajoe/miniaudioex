@@ -47,30 +47,30 @@
 // SOFTWARE.
 
 /* Note that this is not fully compatible with the original miniaudio library
-// Notable changes made in miniaudio.h
-// - added method ma_sound_init_from_memory
-// - added method ma_sound_init_from_callback
-// - added method ma_sound_notifications_init
-// - added method ma_sound_set_notifications_userdata
-// - added method ma_sound_set_end_notification_callback
-// - added method ma_sound_set_load_notification_callback
-// - added method ma_sound_set_process_notification_callback
-// - added custom data source: ma_procedural_sound
-// - added method ma_procedural_sound_config_init
-// - added method ma_procedural_sound_init
-// - added method ma_procedural_sound_uninit
-// - added method ma_procedural_sound_read_pcm_frames
-// - added MA_DATA_SOURCE_IS_DECODER and MA_DATA_SOURCE_IS_PROCEDURAL_SOUND flags (internally used)
-// - added notifications to ma_sound (this contains multiple callbacks including endCallback and userData)
-// - removed endCallback from ma_sound
-// - removed pEndCallbackUserData from ma_sound
-// - removed endCallback and pEndCallbackUserData from ma_sound_config
-// - added notifications to ma_sound_config
-// - modified ma_sound_init_ex so it can initialize notifications passed by ma_sound_config
-// - modified ma_sound_set_at_end so it calls the onAtEnd callback set in the sound notifications
-// - modified ma_sound_uninit so it can free allocated memory caused by calling ma_sound_init_from_memory and ma_sound_init_from_callback
-// - modified ma_engine_node_process_pcm_frames__general so it calls onProcess callback if applicable
-// - modified ma_sound_start so it calls onLoaded callback if applicable
+    Notable changes made in miniaudio:
+    - added method ma_sound_init_from_memory
+    - added method ma_sound_init_from_callback
+    - added method ma_sound_notifications_init
+    - added method ma_sound_set_notifications_userdata
+    - added method ma_sound_set_end_notification_callback
+    - added method ma_sound_set_load_notification_callback
+    - added method ma_sound_set_process_notification_callback
+    - added custom data source: ma_procedural_sound
+    - added method ma_procedural_sound_config_init
+    - added method ma_procedural_sound_init
+    - added method ma_procedural_sound_uninit
+    - added method ma_procedural_sound_read_pcm_frames
+    - added MA_DATA_SOURCE_IS_DECODER and MA_DATA_SOURCE_IS_PROCEDURAL_SOUND flags (internally used)
+    - added notifications to ma_sound (this contains multiple callbacks including endCallback and userData)
+    - removed endCallback from ma_sound
+    - removed pEndCallbackUserData from ma_sound
+    - removed endCallback and pEndCallbackUserData from ma_sound_config
+    - added notifications to ma_sound_config
+    - modified ma_sound_init_ex so it can initialize notifications passed by ma_sound_config
+    - modified ma_sound_set_at_end so it calls the onAtEnd callback set in the sound notifications
+    - modified ma_sound_uninit so it can free allocated memory caused by calling ma_sound_init_from_memory and ma_sound_init_from_callback
+    - modified ma_engine_node_process_pcm_frames__general so it calls onProcess callback if applicable
+    - modified ma_sound_start so it calls onLoaded callback if applicable
 */
 
 #ifndef MINIAUDIOEX_H
@@ -79,7 +79,6 @@
 #include "miniaudio.h"
 
 typedef struct ma_ex_native_data_format ma_ex_native_data_format;
-typedef struct ma_ex_device_info ma_ex_device_info;
 
 struct ma_ex_native_data_format {
     ma_format format;       /* Sample format. If set to ma_format_unknown, all sample formats are supported. */
@@ -87,6 +86,8 @@ struct ma_ex_native_data_format {
     ma_uint32 sampleRate;   /* If set to 0, all sample rates are supported. */
     ma_uint32 flags;        /* A combination of MA_DATA_FORMAT_FLAG_* flags. */
 };
+
+typedef struct ma_ex_device_info ma_ex_device_info;
 
 struct ma_ex_device_info {
     char *pName;
