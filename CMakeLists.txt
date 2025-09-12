@@ -17,7 +17,7 @@ option(MINIAUDIOEX_BUILD_SHARED "Build shared library" ON)
 
 message(STATUS "miniaudioex: Configuring for platform: ${MINIAUDIOEX_BUILD_PLATFORM}")
 
-file(GLOB SOURCES
+file(GLOB_RECURSE SOURCES
     "${PROJECT_SOURCE_DIR}/src/*.c"
 )
 
