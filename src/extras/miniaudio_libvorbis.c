@@ -1,3 +1,4 @@
+#define MINIAUDIO_IMPLEMENTATION
 #define MA_DLL
 #include "miniaudio_libvorbis.h"
 

@@ -4005,6 +4005,8 @@ typedef ma_uint16 wchar_t;
     #define MA_NO_INLINE
 #endif
 
+#define MA_DLL
+
 /* MA_DLL is not officially supported. You're on your own if you want to use this. */
 #if defined(MA_DLL)
     #if defined(_WIN32)
