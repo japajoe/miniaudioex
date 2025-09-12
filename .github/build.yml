@@ -1,4 +1,4 @@
-name: Build for MacOS, Linux, and Windows
+name: Build for MacOS, Linux, and Windows (dev branch)
 
 on: [push, pull_request]
 
