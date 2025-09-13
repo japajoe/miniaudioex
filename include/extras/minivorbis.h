@@ -20334,6 +20334,99 @@ int ov_open(FILE *f,OggVorbis_File *vf,const char *initial,long ibytes){
   return ov_open_callbacks((void *)f, vf, initial, ibytes, callbacks);
 }
 
+/* memory-backed "file" */
+typedef struct {
+    const unsigned char *data; /* pointer to buffer (not owned) */
+    size_t size;               /* buffer length in bytes */
+    size_t pos;                /* current position */
+    int eof;                   /* optional EOF flag */
+} memfile_t;
+
+/* Read callback: like fread(ptr, size, nmemb, stream)
+   Returns number of elements read (not bytes). */
+static size_t m_fread(void *ptr, size_t size, size_t nmemb, void *datasource){
+    memfile_t *mf = (memfile_t *)datasource;
+    if (!mf || !ptr || size == 0 || nmemb == 0) return 0;
+
+    size_t bytes_requested = size * nmemb;
+    size_t bytes_available = (mf->pos < mf->size) ? (mf->size - mf->pos) : 0;
+    size_t bytes_to_copy = bytes_requested <= bytes_available ? bytes_requested : bytes_available;
+
+    if (bytes_to_copy > 0){
+        memcpy(ptr, mf->data + mf->pos, bytes_to_copy);
+        mf->pos += bytes_to_copy;
+    }
+
+    if (mf->pos >= mf->size) mf->eof = 1;
+
+    /* return number of full items read */
+    return bytes_to_copy / size;
+}
+
+/* Seek callback: like fseek(stream, offset, whence)
+   Uses ogg_int64_t for offset (libogg expects that signature).
+   Returns 0 on success, -1 on failure. */
+static int m_fseek64_wrap(void *datasource, ogg_int64_t offset, int whence){
+    memfile_t *mf = (memfile_t *)datasource;
+    if (!mf) return -1;
+
+    ogg_int64_t newpos;
+    switch (whence){
+        case SEEK_SET: newpos = offset; break;
+        case SEEK_CUR: newpos = (ogg_int64_t)mf->pos + offset; break;
+        case SEEK_END: newpos = (ogg_int64_t)mf->size + offset; break;
+        default: return -1;
+    }
+
+    if (newpos < 0 || (size_t)newpos > mf->size) return -1;
+
+    mf->pos = (size_t)newpos;
+    mf->eof = (mf->pos >= mf->size) ? 1 : 0;
+    return 0;
+}
+
+/* Close callback: like fclose(stream)
+   For memory buffer we typically don't free data here because caller may own it.
+   Return 0 on success. If you want to free the buffer here, change implementation. */
+static int m_fclose(void *datasource){
+    // If memfile_t itself was heap-allocated and ownership belongs here, free it:
+    memfile_t *mf = (memfile_t *)datasource;
+    if (!mf) return -1;
+       free(mf);
+    return 0;
+}
+
+/* Tell callback: like ftell(stream)
+   Returns current position as a long. If position may exceed long, cast accordingly. */
+static long m_ftell(void *datasource){
+    memfile_t *mf = (memfile_t *)datasource;
+    if (!mf) return -1L;
+    /* If size may exceed LONG_MAX you may need a different strategy; libvorbis uses long */
+    return (long)mf->pos;
+}
+
+int ov_openm(void *pMemory,size_t dataSize,OggVorbis_File *vf,const char *initial,long ibytes){
+  int result;
+  ov_callbacks callbacks = {
+    (size_t (*)(void *, size_t, size_t, void *))  m_fread,
+    (int (*)(void *, ogg_int64_t, int))           m_fseek64_wrap,
+    (int (*)(void *))                             m_fclose,
+    (long (*)(void *))                            m_ftell
+  };
+
+  memfile_t *file = malloc(sizeof(memfile_t));
+  file->data = pMemory;
+  file->eof = 0;
+  file->pos = 0;
+  file->size = dataSize;
+
+  result = ov_open_callbacks(file, vf, initial, ibytes, callbacks);
+
+  if(result != 0) free(file);
+
+  return result;
+}
+
 int ov_fopen(const char *path,OggVorbis_File *vf){
   int ret;
   FILE *f = fopen(path,"rb");
@@ -20342,6 +20435,18 @@ int ov_fopen(const char *path,OggVorbis_File *vf){
   ret = ov_open(f,vf,NULL,0);
   if(ret) fclose(f);
   return ret;
+}
+
+int ov_mopen(void *pData,size_t dataSize,OggVorbis_File *vf){
+  int ret;
+  
+  if(pData != NULL && dataSize > 0) {
+    ret = ov_openm(pData,dataSize,vf,NULL,0);
+    if(ret) return ret;
+    return 0;
+  }
+
+  return -1;
 }
 
 

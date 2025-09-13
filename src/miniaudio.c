@@ -51520,6 +51520,7 @@ static ma_result ma_decoder_init_from_memory__internal(const ma_decoding_backend
         return result;  /* Failed to initialize the backend from this vtable. */
     }
 
+
     /* Getting here means we were able to initialize the backend so we can now initialize the decoder. */
     pDecoder->pBackend         = pBackend;
     pDecoder->pBackendVTable   = pVTable;
@@ -66980,13 +66981,18 @@ MA_API ma_result ma_sound_init_from_memory(ma_engine* pEngine, const void* pData
         return MA_ERROR;
     }
 
-    ma_result result = ma_decoder_init_memory(pData, dataSize, NULL, config.pDataSource);
+    ma_decoder_config decoderConfig = ma_decoder_config_init_default();
+
+    decoderConfig.ppCustomBackendVTables = pEngine->pResourceManager->config.ppCustomDecodingBackendVTables;
+    decoderConfig.customBackendCount = pEngine->pResourceManager->config.customDecodingBackendCount;
+    decoderConfig.pCustomBackendUserData = pEngine->pResourceManager->config.pCustomDecodingBackendUserData;
+
+    ma_result result = ma_decoder_init_memory(pData, dataSize, &decoderConfig, config.pDataSource);
 
     if(result != MA_SUCCESS) {
         free(config.pDataSource);
         return MA_ERROR;
     }
-
 
     return ma_sound_init_ex(pEngine, &config, pSound);
 }
