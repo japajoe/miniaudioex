@@ -25,6 +25,7 @@ file(GLOB_RECURSE SOURCES
 include_directories(
     "${PROJECT_SOURCE_DIR}/include"
     "${PROJECT_SOURCE_DIR}/include/extras"
+    "${PROJECT_SOURCE_DIR}/include/test"
 )
 
 if(MINIAUDIOEX_BUILD_EXE)

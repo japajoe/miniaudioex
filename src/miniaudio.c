@@ -68001,10 +68001,6 @@ MA_API ma_result ma_sound_set_notifications_userdata(ma_sound* pSound, void* pUs
         return MA_INVALID_ARGS;
     }
 
-    if (pSound->pDataSource == NULL) {
-        return MA_INVALID_OPERATION;
-    }
-
     if(pUserData != NULL) {
         pSound->notifications.pUserData = pUserData;
     } else {
@@ -68055,10 +68051,6 @@ MA_API ma_result ma_sound_set_load_notification_callback(ma_sound* pSound, ma_so
 MA_API ma_result ma_sound_set_process_notification_callback(ma_sound* pSound, ma_sound_process_proc callback) {
     if (pSound == NULL) {
         return MA_INVALID_ARGS;
-    }
-
-    if (pSound->pDataSource == NULL) {
-        return MA_INVALID_OPERATION;
     }
 
     if(callback != NULL) {

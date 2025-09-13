@@ -533,6 +533,7 @@ MA_API ma_ex_audio_source *ma_ex_audio_source_init(ma_ex_context *context) {
     source->callbacks.loadCallback = NULL;
     source->callbacks.processCallback = NULL;
     source->callbacks.pUserData = NULL;
+    source->group = NULL;
 
     source->settings.attenuationModel = ma_attenuation_model_linear;
     ma_ex_vec3f_set(&source->settings.direction, 0.0f, 0.0f, -1.0f);
@@ -579,12 +580,16 @@ MA_API ma_result ma_ex_audio_source_play_from_file(ma_ex_audio_source *source, c
         if(streamFromDisk == MA_TRUE)
             source->clip.flags |= MA_SOUND_FLAG_STREAM;
 
-        ma_result result = ma_sound_init_from_file(&source->context->engine, filePath, source->clip.flags, NULL, NULL, &source->clip.sound);
+        ma_result result = ma_sound_init_from_file(&source->context->engine, filePath, source->clip.flags, source->group, NULL, &source->clip.sound);
 
         if(result != MA_SUCCESS) {
             ma_sound_uninit(&source->clip.sound);
             return MA_ERROR;
         }
+    }
+
+    if(source->group != NULL) {
+        ma_node_attach_output_bus(&source->clip.sound, 0, &source->group, 0);
     }
     
     source->clip.soundHash = soundHash;
@@ -611,12 +616,16 @@ MA_API ma_result ma_ex_audio_source_play_from_memory(ma_ex_audio_source *source,
     if(ma_ex_hashcode_is_same(source->clip.soundHash, soundHash) == MA_FALSE) {
         source->clip.flags = MA_SOUND_FLAG_DECODE;
 
-        ma_result result = ma_sound_init_from_memory(&source->context->engine, pData, dataSize, source->clip.flags, NULL, NULL, &source->clip.sound);
+        ma_result result = ma_sound_init_from_memory(&source->context->engine, pData, dataSize, source->clip.flags, source->group, NULL, &source->clip.sound);
 
         if(result != MA_SUCCESS) {
             ma_sound_uninit(&source->clip.sound);
             return MA_ERROR;
         }
+    }
+
+    if(source->group != NULL) {
+        ma_node_attach_output_bus(&source->clip.sound, 0, &source->group, 0);
     }
     
     source->clip.soundHash = soundHash;
@@ -642,12 +651,16 @@ MA_API ma_result ma_ex_audio_source_play_from_callback(ma_ex_audio_source *sourc
 
         ma_procedural_sound_config config = ma_procedural_sound_config_init(ma_format_f32, source->context->channels, source->context->sampleRate, callback, source->callbacks.pUserData);
 
-        ma_result result = ma_sound_init_from_callback(&source->context->engine, &config, source->clip.flags, NULL, NULL, &source->clip.sound);
+        ma_result result = ma_sound_init_from_callback(&source->context->engine, &config, source->clip.flags, source->group, NULL, &source->clip.sound);
 
         if(result != MA_SUCCESS) {
             ma_sound_uninit(&source->clip.sound);
             return MA_ERROR;
         }
+    }
+
+    if(source->group != NULL) {
+        ma_node_attach_output_bus(&source->clip.sound, 0, &source->group, 0);
     }
     
     source->clip.soundHash = soundHash;
@@ -862,9 +875,8 @@ MA_API float ma_ex_audio_source_get_max_distance(ma_ex_audio_source *source) {
 }
 
 MA_API ma_bool32 ma_ex_audio_source_get_is_playing(ma_ex_audio_source *source) {
-    if(source != NULL) {
+    if(source != NULL)
         return ma_sound_is_playing(&source->clip.sound);
-    }
     return MA_FALSE;
 }
 
@@ -872,6 +884,19 @@ MA_API ma_ex_audio_clip *ma_ex_audio_source_get_clip(ma_ex_audio_source *source)
     if(source == NULL)
         return NULL;
     return &source->clip;
+}
+
+MA_API ma_result ma_ex_audio_source_set_group(ma_ex_audio_source *source, ma_sound_group *group) {
+    if(source == NULL)
+        return MA_ERROR;
+    source->group = group;
+    return MA_SUCCESS;
+}
+
+MA_API ma_sound_group *ma_ex_audio_source_get_group(ma_ex_audio_source *source) {
+    if(source == NULL)
+        return NULL;
+    return source->group;
 }
 
 MA_API ma_ex_audio_listener *ma_ex_audio_listener_init(ma_ex_context *context) {
@@ -1031,6 +1056,34 @@ MA_API void ma_ex_audio_listener_get_cone(ma_ex_audio_listener *listener, float 
         *outerAngleInRadians = 0.0f;
         *outerGain = 0.0f;
     }
+}
+
+MA_API ma_sound_group *ma_ex_sound_group_init(ma_ex_context *context) {
+    if(context == NULL)
+        return NULL;
+    
+    ma_sound_group *pGroup = ma_malloc(sizeof(ma_sound_group), NULL);
+
+    if(pGroup == NULL)
+        return NULL;
+        
+    ma_result result = ma_sound_group_init(&context->engine, 0, NULL, pGroup);
+
+    if(result != MA_SUCCESS) {
+        free(pGroup);
+        pGroup = NULL;
+    } else {
+        ma_node_attach_output_bus(pGroup, 0, ma_engine_get_endpoint(&context->engine), 0);
+    }
+
+    return pGroup;
+}
+
+MA_API void ma_ex_sound_group_uninit(ma_sound_group *group) {
+    if(group == NULL)
+        return;
+    ma_sound_group_uninit(group);
+    MA_FREE(group);
 }
 
 MA_API char *ma_ex_read_bytes_from_file(const char *filepath, size_t *size) {

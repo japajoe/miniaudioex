@@ -160,6 +160,7 @@ struct ma_ex_audio_source {
     ma_ex_audio_clip clip;
     ma_ex_audio_source_callbacks callbacks;
     ma_ex_audio_source_settings settings;
+    ma_sound_group *group;
 };
 
 typedef struct ma_ex_audio_listener_settings ma_ex_audio_listener_settings;
@@ -235,6 +236,8 @@ MA_API void ma_ex_audio_source_set_max_distance(ma_ex_audio_source *source, floa
 MA_API float ma_ex_audio_source_get_max_distance(ma_ex_audio_source *source);
 MA_API ma_bool32 ma_ex_audio_source_get_is_playing(ma_ex_audio_source *source);
 MA_API ma_ex_audio_clip *ma_ex_audio_source_get_clip(ma_ex_audio_source *source);
+MA_API ma_result ma_ex_audio_source_set_group(ma_ex_audio_source *source, ma_sound_group *group);
+MA_API ma_sound_group *ma_ex_audio_source_get_group(ma_ex_audio_source *source);
 
 MA_API ma_ex_audio_listener *ma_ex_audio_listener_init(ma_ex_context *context);
 MA_API void ma_ex_audio_listener_uninit(ma_ex_audio_listener *listener);
@@ -250,6 +253,9 @@ MA_API void ma_ex_audio_listener_set_world_up(ma_ex_audio_listener *listener, fl
 MA_API void ma_ex_audio_listener_get_world_up(ma_ex_audio_listener *listener, float *x, float *y, float *z);
 MA_API void ma_ex_audio_listener_set_cone(ma_ex_audio_listener *listener, float innerAngleInRadians, float outerAngleInRadians, float outerGain);
 MA_API void ma_ex_audio_listener_get_cone(ma_ex_audio_listener *listener, float *innerAngleInRadians, float *outerAngleInRadians, float *outerGain);
+
+MA_API ma_sound_group *ma_ex_sound_group_init(ma_ex_context *context);
+MA_API void ma_ex_sound_group_uninit(ma_sound_group *group);
 
 MA_API char *ma_ex_read_bytes_from_file(const char *filepath, size_t *size);
 MA_API void ma_ex_free_bytes_from_file(char *pointer);
