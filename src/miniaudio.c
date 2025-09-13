@@ -66980,7 +66980,13 @@ MA_API ma_result ma_sound_init_from_memory(ma_engine* pEngine, const void* pData
         return MA_ERROR;
     }
 
-    ma_result result = ma_decoder_init_memory(pData, dataSize, NULL, config.pDataSource);
+    ma_decoder_config decoderConfig = ma_decoder_config_init_default();
+
+    decoderConfig.ppCustomBackendVTables = pEngine->pResourceManager->config.ppCustomDecodingBackendVTables;
+    decoderConfig.customBackendCount = pEngine->pResourceManager->config.customDecodingBackendCount;
+    decoderConfig.pCustomBackendUserData = pEngine->pResourceManager->config.pCustomDecodingBackendUserData;
+
+    ma_result result = ma_decoder_init_memory(pData, dataSize, &decoderConfig, config.pDataSource);
 
     if(result != MA_SUCCESS) {
         free(config.pDataSource);

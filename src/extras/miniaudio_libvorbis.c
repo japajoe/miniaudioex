@@ -233,6 +233,38 @@ MA_API ma_result ma_libvorbis_init_file(const char* pFilePath, const ma_decoding
     #endif
 }
 
+MA_API ma_result ma_libvorbis_init_memory(void* pData, ma_uint64 dataSize, const ma_decoding_backend_config* pConfig, const ma_allocation_callbacks* pAllocationCallbacks, ma_libvorbis* pVorbis)
+{
+    ma_result result;
+
+    (void)pAllocationCallbacks; /* Can't seem to find a way to configure memory allocations in libvorbis. */
+
+    result = ma_libvorbis_init_internal(pConfig, pAllocationCallbacks, pVorbis);
+    if (result != MA_SUCCESS) {
+        return result;
+    }
+
+    #if !defined(MA_NO_LIBVORBIS)
+    {
+        int libvorbisResult;
+
+        libvorbisResult = ov_mopen(pData, dataSize, (OggVorbis_File*)pVorbis->vf);
+
+        if (libvorbisResult < 0) {
+            return MA_INVALID_FILE;
+        }
+
+        return MA_SUCCESS;
+    }
+    #else
+    {
+        /* libvorbis is disabled. */
+        (void)pFilePath;
+        return MA_NOT_IMPLEMENTED;
+    }
+    #endif
+}
+
 MA_API void ma_libvorbis_uninit(ma_libvorbis* pVorbis, const ma_allocation_callbacks* pAllocationCallbacks)
 {
     if (pVorbis == NULL) {
@@ -548,6 +580,30 @@ static ma_result ma_decoding_backend_init_file__libvorbis(void* pUserData, const
     return MA_SUCCESS;
 }
 
+static ma_result ma_decoding_backend_init_memory__libvorbis(void* pUserData, const void* pData, size_t dataSize, const ma_decoding_backend_config* pConfig, const ma_allocation_callbacks* pAllocationCallbacks, ma_data_source** ppBackend)
+{
+    ma_result result;
+    ma_libvorbis* pVorbis;
+
+    (void)pUserData;
+
+    pVorbis = (ma_libvorbis*)ma_malloc(sizeof(*pVorbis), pAllocationCallbacks);
+    if (pVorbis == NULL) {
+        return MA_OUT_OF_MEMORY;
+    }
+
+    result = ma_libvorbis_init_memory((void*)pData, dataSize, pConfig, pAllocationCallbacks, pVorbis);
+    if (result != MA_SUCCESS) {
+        ma_free(pVorbis, pAllocationCallbacks);
+        return result;
+    }
+
+    *ppBackend = pVorbis;
+
+
+    return MA_SUCCESS;
+}
+
 static void ma_decoding_backend_uninit__libvorbis(void* pUserData, ma_data_source* pBackend, const ma_allocation_callbacks* pAllocationCallbacks)
 {
     ma_libvorbis* pVorbis = (ma_libvorbis*)pBackend;
@@ -564,7 +620,7 @@ static ma_decoding_backend_vtable ma_gDecodingBackendVTable_libvorbis =
     ma_decoding_backend_init__libvorbis,
     ma_decoding_backend_init_file__libvorbis,
     NULL, /* onInitFileW() */
-    NULL, /* onInitMemory() */
+    ma_decoding_backend_init_memory__libvorbis, /* onInitMemory() */
     ma_decoding_backend_uninit__libvorbis
 };
 
