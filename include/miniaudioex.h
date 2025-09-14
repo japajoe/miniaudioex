@@ -254,6 +254,9 @@ MA_API void ma_ex_audio_listener_get_world_up(ma_ex_audio_listener *listener, fl
 MA_API void ma_ex_audio_listener_set_cone(ma_ex_audio_listener *listener, float innerAngleInRadians, float outerAngleInRadians, float outerGain);
 MA_API void ma_ex_audio_listener_get_cone(ma_ex_audio_listener *listener, float *innerAngleInRadians, float *outerAngleInRadians, float *outerGain);
 
+MA_API ma_sound_group *ma_ex_sound_group_init(ma_ex_context *context);
+MA_API void ma_ex_sound_group_uninit(ma_sound_group *group);
+
 MA_API char *ma_ex_read_bytes_from_file(const char *filepath, size_t *size);
 MA_API void ma_ex_free_bytes_from_file(char *pointer);
 MA_API void ma_ex_free(void *pointer);
