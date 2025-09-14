@@ -68395,7 +68395,7 @@ static ma_data_source_vtable g_ma_procedural_sound_data_source_vtable = {
     ma_procedural_sound__data_source_on_seek,
     ma_procedural_sound__data_source_on_get_data_format,
     ma_procedural_sound__data_source_on_get_cursor,
-    NULL,   /* onGetLength. There's no notion of a length in waveforms. */
+    NULL,   /* onGetLength. There's no notion of a length in procedural sounds. */
     NULL,   /* onSetLooping */
     0 | MA_DATA_SOURCE_IS_PROCEDURAL_SOUND
 };
