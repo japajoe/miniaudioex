@@ -587,10 +587,6 @@ MA_API ma_result ma_ex_audio_source_play_from_file(ma_ex_audio_source *source, c
             return MA_ERROR;
         }
     }
-
-    if(source->group != NULL) {
-        ma_node_attach_output_bus(&source->clip.sound, 0, &source->group, 0);
-    }
     
     source->clip.soundHash = soundHash;
     ma_ex_audio_source_apply_settings(source);
@@ -624,10 +620,6 @@ MA_API ma_result ma_ex_audio_source_play_from_memory(ma_ex_audio_source *source,
         }
     }
 
-    if(source->group != NULL) {
-        ma_node_attach_output_bus(&source->clip.sound, 0, &source->group, 0);
-    }
-    
     source->clip.soundHash = soundHash;
     ma_ex_audio_source_apply_settings(source);
     ma_sound_set_notifications_userdata(&source->clip.sound, source->callbacks.pUserData);
@@ -659,10 +651,6 @@ MA_API ma_result ma_ex_audio_source_play_from_callback(ma_ex_audio_source *sourc
         }
     }
 
-    if(source->group != NULL) {
-        ma_node_attach_output_bus(&source->clip.sound, 0, &source->group, 0);
-    }
-    
     source->clip.soundHash = soundHash;
     ma_ex_audio_source_apply_settings(source);
     ma_sound_set_notifications_userdata(&source->clip.sound, source->callbacks.pUserData);
@@ -1072,8 +1060,6 @@ MA_API ma_sound_group *ma_ex_sound_group_init(ma_ex_context *context) {
     if(result != MA_SUCCESS) {
         free(pGroup);
         pGroup = NULL;
-    } else {
-        ma_node_attach_output_bus(pGroup, 0, ma_engine_get_endpoint(&context->engine), 0);
     }
 
     return pGroup;
