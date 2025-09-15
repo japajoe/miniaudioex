@@ -7633,6 +7633,25 @@ struct ma_procedural_sound {
     ma_procedural_sound_config config;
 };
 
+typedef enum ma_allocation_type ma_allocation_type;
+
+enum ma_allocation_type {
+    ma_allocation_type_async_notification,
+    ma_allocation_type_context,
+    ma_allocation_type_device,
+    ma_allocation_type_device_id,
+    ma_allocation_type_device_notification,
+    ma_allocation_type_engine,
+    ma_allocation_type_fence,
+    ma_allocation_type_log,
+    ma_allocation_type_node,
+    ma_allocation_type_node_graph,
+    ma_allocation_type_resource_manager,
+    ma_allocation_type_sound,
+    ma_allocation_type_sound_group,
+    ma_allocation_type_vfs
+};
+
 MA_API ma_result ma_engine_init(const ma_engine_config* pConfig, ma_engine* pEngine);
 MA_API void ma_engine_uninit(ma_engine* pEngine);
 MA_API ma_result ma_engine_read_pcm_frames(ma_engine* pEngine, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead);
@@ -7825,6 +7844,10 @@ MA_API ma_procedural_sound_config ma_procedural_sound_config_init(ma_format form
 MA_API ma_result ma_procedural_sound_init(const ma_procedural_sound_config* pConfig, ma_procedural_sound* pProceduralSound);
 MA_API void ma_procedural_sound_uninit(ma_procedural_sound* pProceduralSound);
 MA_API ma_result ma_procedural_sound_read_pcm_frames(ma_procedural_sound* pProceduralSound, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead);
+
+MA_API void* ma_allocate_type(ma_allocation_type type);
+MA_API void ma_deallocate_type(void *pData);
+MA_API ma_uint64 ma_get_size_of_type(ma_allocation_type type);
 #endif  /* MA_NO_ENGINE */
 /* END SECTION: miniaudio_engine.h */
 
