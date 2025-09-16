@@ -68514,6 +68514,10 @@ MA_API ma_uint64 ma_get_size_of_type(ma_allocation_type type) {
             return sizeof(ma_device_id);
         case ma_allocation_type_device_notification:
             return sizeof(ma_device_notification);
+        case ma_allocation_type_device_descriptor:
+            return sizeof(ma_device_descriptor);
+        case ma_allocation_type_device_info:
+            return sizeof(ma_device_info);
         case ma_allocation_type_engine:
             return sizeof(ma_engine);
         case ma_allocation_type_fence:

@@ -7645,6 +7645,8 @@ enum ma_allocation_type {
     ma_allocation_type_device,
     ma_allocation_type_device_id,
     ma_allocation_type_device_notification,
+    ma_allocation_type_device_descriptor,
+    ma_allocation_type_device_info,
     ma_allocation_type_engine,
     ma_allocation_type_fence,
     ma_allocation_type_gainer,
