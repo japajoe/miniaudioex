@@ -68500,6 +68500,8 @@ MA_API ma_uint64 ma_get_size_of_type(ma_allocation_type type) {
             return sizeof(ma_async_notification);
         case ma_allocation_type_context:
             return sizeof(ma_context);
+        case ma_allocation_type_decoder:
+            return sizeof(ma_decoder);
         case ma_allocation_type_device:
             return sizeof(ma_device);
         case ma_allocation_type_device_id:

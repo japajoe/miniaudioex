@@ -7638,6 +7638,7 @@ typedef enum ma_allocation_type ma_allocation_type;
 enum ma_allocation_type {
     ma_allocation_type_async_notification,
     ma_allocation_type_context,
+    ma_allocation_type_decoder,
     ma_allocation_type_device,
     ma_allocation_type_device_id,
     ma_allocation_type_device_notification,
