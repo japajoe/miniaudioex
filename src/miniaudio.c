@@ -68498,8 +68498,14 @@ MA_API ma_uint64 ma_get_size_of_type(ma_allocation_type type) {
     switch(type) {
         case ma_allocation_type_async_notification:
             return sizeof(ma_async_notification);
+        case ma_allocation_type_biquad_coefficient:
+            return sizeof(ma_biquad_coefficient);
+        case ma_allocation_type_channel:
+            return sizeof(ma_channel);
         case ma_allocation_type_context:
             return sizeof(ma_context);
+        case ma_allocation_type_data_source:
+            return sizeof(ma_data_source);
         case ma_allocation_type_decoder:
             return sizeof(ma_decoder);
         case ma_allocation_type_device:
@@ -68512,18 +68518,38 @@ MA_API ma_uint64 ma_get_size_of_type(ma_allocation_type type) {
             return sizeof(ma_engine);
         case ma_allocation_type_fence:
             return sizeof(ma_fence);
+        case ma_allocation_type_gainer:
+            return sizeof(ma_gainer);
         case ma_allocation_type_log:
             return sizeof(ma_log);
+        case ma_allocation_type_lpf1:
+            return sizeof(ma_lpf1);
+        case ma_allocation_type_lpf2:
+            return sizeof(ma_lpf2);
         case ma_allocation_type_node:
             return sizeof(ma_node);
         case ma_allocation_type_node_graph:
             return sizeof(ma_node_graph);
+        case ma_allocation_type_node_input_bus:
+            return sizeof(ma_node_input_bus);
+        case ma_allocation_type_node_output_bus:
+            return sizeof(ma_node_output_bus);
+        case ma_allocation_type_node_vtable:
+            return sizeof(ma_node_vtable);
+        case ma_allocation_type_resampling_backend_vtable:
+            return sizeof(ma_resampling_backend_vtable);
         case ma_allocation_type_resource_manager:
             return sizeof(ma_resource_manager);
         case ma_allocation_type_sound:
             return sizeof(ma_sound);
         case ma_allocation_type_sound_group:
             return sizeof(ma_sound_group);
+        case ma_allocation_type_spatializer:
+            return sizeof(ma_spatializer);
+        case ma_allocation_type_spatializer_listener:
+            return sizeof(ma_spatializer_listener);
+        case ma_allocation_type_stack:
+            return sizeof(ma_stack);
         case ma_allocation_type_vfs:
             return sizeof(ma_vfs);
         default:

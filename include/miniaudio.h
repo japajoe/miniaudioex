@@ -7484,7 +7484,7 @@ typedef void (* ma_sound_process_proc)(void* pUserData, ma_sound* pSound, float*
 
 typedef struct
 {
-    ma_sound_end_proc onLoaded;  /* Fired by the resource manager when the sound has finished loading. */
+    ma_sound_load_proc onLoaded;  /* Fired by the resource manager when the sound has finished loading. */
     ma_sound_end_proc onAtEnd;  /* Fired when the sound reaches the end of the data source. */
     ma_sound_process_proc onProcess;
     void* pUserData;
@@ -7637,19 +7637,32 @@ typedef enum ma_allocation_type ma_allocation_type;
 
 enum ma_allocation_type {
     ma_allocation_type_async_notification,
+    ma_allocation_type_biquad_coefficient,
+    ma_allocation_type_channel,
     ma_allocation_type_context,
+    ma_allocation_type_data_source,
     ma_allocation_type_decoder,
     ma_allocation_type_device,
     ma_allocation_type_device_id,
     ma_allocation_type_device_notification,
     ma_allocation_type_engine,
     ma_allocation_type_fence,
+    ma_allocation_type_gainer,
     ma_allocation_type_log,
+    ma_allocation_type_lpf1,
+    ma_allocation_type_lpf2,
     ma_allocation_type_node,
     ma_allocation_type_node_graph,
+    ma_allocation_type_node_input_bus,
+    ma_allocation_type_node_output_bus,
+    ma_allocation_type_node_vtable,
+    ma_allocation_type_resampling_backend_vtable,
     ma_allocation_type_resource_manager,
     ma_allocation_type_sound,
     ma_allocation_type_sound_group,
+    ma_allocation_type_spatializer,
+    ma_allocation_type_spatializer_listener,
+    ma_allocation_type_stack,
     ma_allocation_type_vfs
 };
 
