@@ -7644,6 +7644,7 @@ enum ma_allocation_type {
     ma_allocation_type_data_source_node,
     ma_allocation_type_data_source_vtable,
     ma_allocation_type_decoder,
+    ma_allocation_type_decoding_backend_vtable,
     ma_allocation_type_device,
     ma_allocation_type_device_id,
     ma_allocation_type_device_notification,

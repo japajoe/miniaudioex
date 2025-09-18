@@ -68512,6 +68512,8 @@ MA_API ma_uint64 ma_get_size_of_type(ma_allocation_type type) {
             return sizeof(ma_data_source_vtable);
         case ma_allocation_type_decoder:
             return sizeof(ma_decoder);
+        case ma_allocation_type_decoding_backend_vtable:
+            return sizeof(ma_decoding_backend_vtable);
         case ma_allocation_type_device:
             return sizeof(ma_device);
         case ma_allocation_type_device_id:
