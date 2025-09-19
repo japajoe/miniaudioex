@@ -62,6 +62,7 @@
     - added method ma_procedural_sound_read_pcm_frames
     - added enum ma_allocation_type
     - added method ma_allocate_type
+    - added method ma_allocate
     - added method ma_deallocate_type
     - added method ma_get_size_of_type
     - added MA_DATA_SOURCE_IS_DECODER and MA_DATA_SOURCE_IS_PROCEDURAL_SOUND flags (internally used)

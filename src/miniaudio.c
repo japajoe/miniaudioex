@@ -68474,8 +68474,22 @@ MA_API ma_result ma_procedural_sound_read_pcm_frames(ma_procedural_sound* pProce
 }
 
 MA_API void* ma_allocate_type(ma_allocation_type type) {
-    ma_uint64 size = ma_get_size_of_type(type);
+    size_t size = ma_get_size_of_type(type);
 
+    if(size == 0)
+        return NULL;
+
+    void *pMemory = malloc(size);
+
+    if(pMemory == NULL)
+        return NULL;
+
+    memset(pMemory, 0, size);
+
+    return pMemory;
+}
+
+MA_API void* ma_allocate(size_t size) {
     if(size == 0)
         return NULL;
 
@@ -68494,7 +68508,7 @@ MA_API void ma_deallocate_type(void *pData) {
         free(pData);
 }
 
-MA_API ma_uint64 ma_get_size_of_type(ma_allocation_type type) {
+MA_API size_t ma_get_size_of_type(ma_allocation_type type) {
     switch(type) {
         case ma_allocation_type_async_notification:
             return sizeof(ma_async_notification);
@@ -68526,6 +68540,8 @@ MA_API ma_uint64 ma_get_size_of_type(ma_allocation_type type) {
             return sizeof(ma_device_info);
         case ma_allocation_type_engine:
             return sizeof(ma_engine);
+        case ma_allocation_type_fader:
+            return sizeof(ma_fader);
         case ma_allocation_type_fence:
             return sizeof(ma_fence);
         case ma_allocation_type_gainer:
@@ -68546,6 +68562,8 @@ MA_API ma_uint64 ma_get_size_of_type(ma_allocation_type type) {
             return sizeof(ma_node_output_bus);
         case ma_allocation_type_node_vtable:
             return sizeof(ma_node_vtable);
+        case ma_allocation_type_panner:
+            return sizeof(ma_panner);
         case ma_allocation_type_resampling_backend_vtable:
             return sizeof(ma_resampling_backend_vtable);
         case ma_allocation_type_resource_manager:

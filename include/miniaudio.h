@@ -7651,6 +7651,7 @@ enum ma_allocation_type {
     ma_allocation_type_device_descriptor,
     ma_allocation_type_device_info,
     ma_allocation_type_engine,
+    ma_allocation_type_fader,
     ma_allocation_type_fence,
     ma_allocation_type_gainer,
     ma_allocation_type_log,
@@ -7661,6 +7662,7 @@ enum ma_allocation_type {
     ma_allocation_type_node_input_bus,
     ma_allocation_type_node_output_bus,
     ma_allocation_type_node_vtable,
+    ma_allocation_type_panner,
     ma_allocation_type_resampling_backend_vtable,
     ma_allocation_type_resource_manager,
     ma_allocation_type_sound,
@@ -7865,8 +7867,9 @@ MA_API void ma_procedural_sound_uninit(ma_procedural_sound* pProceduralSound);
 MA_API ma_result ma_procedural_sound_read_pcm_frames(ma_procedural_sound* pProceduralSound, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead);
 
 MA_API void* ma_allocate_type(ma_allocation_type type);
+MA_API void* ma_allocate(size_t size);
 MA_API void ma_deallocate_type(void *pData);
-MA_API ma_uint64 ma_get_size_of_type(ma_allocation_type type);
+MA_API size_t ma_get_size_of_type(ma_allocation_type type);
 #endif  /* MA_NO_ENGINE */
 /* END SECTION: miniaudio_engine.h */
 
