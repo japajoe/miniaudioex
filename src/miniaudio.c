@@ -68568,8 +68568,12 @@ MA_API size_t ma_get_size_of_type(ma_allocation_type type) {
             return sizeof(ma_resampling_backend_vtable);
         case ma_allocation_type_resource_manager:
             return sizeof(ma_resource_manager);
+        case ma_allocation_type_resource_manager_data_source:
+            return sizeof(ma_resource_manager_data_source);
         case ma_allocation_type_sound:
             return sizeof(ma_sound);
+        case ma_allocation_type_sound_inlined:
+            return sizeof(ma_sound_inlined);
         case ma_allocation_type_sound_group:
             return sizeof(ma_sound_group);
         case ma_allocation_type_spatializer:
