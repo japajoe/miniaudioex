@@ -68510,76 +68510,356 @@ MA_API void ma_deallocate_type(void *pData) {
 
 MA_API size_t ma_get_size_of_type(ma_allocation_type type) {
     switch(type) {
+        case ma_allocation_type_allocation_callbacks:
+            return sizeof(ma_allocation_callbacks);
         case ma_allocation_type_async_notification:
             return sizeof(ma_async_notification);
+        case ma_allocation_type_async_notification_callbacks:
+            return sizeof(ma_async_notification_callbacks);
+        case ma_allocation_type_async_notification_event:
+            return sizeof(ma_async_notification_event);
+        case ma_allocation_type_async_notification_poll:
+            return sizeof(ma_async_notification_poll);
+        case ma_allocation_type_atomic_bool32:
+            return sizeof(ma_atomic_bool32);
+        case ma_allocation_type_atomic_device_state:
+            return sizeof(ma_atomic_device_state);
+        case ma_allocation_type_atomic_float:
+            return sizeof(ma_atomic_float);
+        case ma_allocation_type_atomic_int32:
+            return sizeof(ma_atomic_int32);
+        case ma_allocation_type_atomic_uint32:
+            return sizeof(ma_atomic_uint32);
+        case ma_allocation_type_atomic_uint64:
+            return sizeof(ma_atomic_uint64);
+        case ma_allocation_type_atomic_vec3f:
+            return sizeof(ma_atomic_vec3f);
+        case ma_allocation_type_audio_buffer:
+            return sizeof(ma_audio_buffer);
+        case ma_allocation_type_audio_buffer_config:
+            return sizeof(ma_audio_buffer_config);
+        case ma_allocation_type_audio_buffer_ref:
+            return sizeof(ma_audio_buffer_ref);
+        case ma_allocation_type_backend_callbacks:
+            return sizeof(ma_backend_callbacks);
+        case ma_allocation_type_biquad:
+            return sizeof(ma_biquad);
         case ma_allocation_type_biquad_coefficient:
             return sizeof(ma_biquad_coefficient);
+        case ma_allocation_type_biquad_config:
+            return sizeof(ma_biquad_config);
+        case ma_allocation_type_biquad_node:
+            return sizeof(ma_biquad_node);
+        case ma_allocation_type_biquad_node_config:
+            return sizeof(ma_biquad_node_config);
+        case ma_allocation_type_bpf:
+            return sizeof(ma_bpf);
+        case ma_allocation_type_bpf2:
+            return sizeof(ma_bpf2);
+        case ma_allocation_type_bpf2_config:
+            return sizeof(ma_bpf2_config);
+        case ma_allocation_type_bpf_config:
+            return sizeof(ma_bpf_config);
+        case ma_allocation_type_bpf_node:
+            return sizeof(ma_bpf_node);
+        case ma_allocation_type_bpf_node_config:
+            return sizeof(ma_bpf_node_config);
         case ma_allocation_type_channel:
             return sizeof(ma_channel);
+        case ma_allocation_type_channel_converter:
+            return sizeof(ma_channel_converter);
+        case ma_allocation_type_channel_converter_config:
+            return sizeof(ma_channel_converter_config);
         case ma_allocation_type_context:
             return sizeof(ma_context);
+        case ma_allocation_type_context_command__wasapi:
+            return sizeof(ma_context_command__wasapi);
+        case ma_allocation_type_context_config:
+            return sizeof(ma_context_config);
+        case ma_allocation_type_data_converter:
+            return sizeof(ma_data_converter);
+        case ma_allocation_type_data_converter_config:
+            return sizeof(ma_data_converter_config);
         case ma_allocation_type_data_source:
             return sizeof(ma_data_source);
+        case ma_allocation_type_data_source_base:
+            return sizeof(ma_data_source_base);
+        case ma_allocation_type_data_source_config:
+            return sizeof(ma_data_source_config);
         case ma_allocation_type_data_source_node:
             return sizeof(ma_data_source_node);
+        case ma_allocation_type_data_source_node_config:
+            return sizeof(ma_data_source_node_config);
         case ma_allocation_type_data_source_vtable:
             return sizeof(ma_data_source_vtable);
         case ma_allocation_type_decoder:
             return sizeof(ma_decoder);
+        case ma_allocation_type_decoder_config:
+            return sizeof(ma_decoder_config);
+        case ma_allocation_type_decoding_backend_config:
+            return sizeof(ma_decoding_backend_config);
         case ma_allocation_type_decoding_backend_vtable:
             return sizeof(ma_decoding_backend_vtable);
+        case ma_allocation_type_default_vfs:
+            return sizeof(ma_default_vfs);
+        case ma_allocation_type_delay:
+            return sizeof(ma_delay);
+        case ma_allocation_type_delay_config:
+            return sizeof(ma_delay_config);
+        case ma_allocation_type_delay_node:
+            return sizeof(ma_delay_node);
+        case ma_allocation_type_delay_node_config:
+            return sizeof(ma_delay_node_config);
         case ma_allocation_type_device:
             return sizeof(ma_device);
-        case ma_allocation_type_device_id:
-            return sizeof(ma_device_id);
-        case ma_allocation_type_device_notification:
-            return sizeof(ma_device_notification);
+        case ma_allocation_type_device_config:
+            return sizeof(ma_device_config);
         case ma_allocation_type_device_descriptor:
             return sizeof(ma_device_descriptor);
+        case ma_allocation_type_device_id:
+            return sizeof(ma_device_id);
         case ma_allocation_type_device_info:
             return sizeof(ma_device_info);
+        case ma_allocation_type_device_job_thread:
+            return sizeof(ma_device_job_thread);
+        case ma_allocation_type_device_job_thread_config:
+            return sizeof(ma_device_job_thread_config);
+        case ma_allocation_type_device_notification:
+            return sizeof(ma_device_notification);
+        case ma_allocation_type_duplex_rb:
+            return sizeof(ma_duplex_rb);
+        case ma_allocation_type_encoder:
+            return sizeof(ma_encoder);
+        case ma_allocation_type_encoder_config:
+            return sizeof(ma_encoder_config);
         case ma_allocation_type_engine:
             return sizeof(ma_engine);
+        case ma_allocation_type_engine_config:
+            return sizeof(ma_engine_config);
+        case ma_allocation_type_engine_node:
+            return sizeof(ma_engine_node);
+        case ma_allocation_type_engine_node_config:
+            return sizeof(ma_engine_node_config);
+        case ma_allocation_type_event:
+            return sizeof(ma_event);
         case ma_allocation_type_fader:
             return sizeof(ma_fader);
+        case ma_allocation_type_fader_config:
+            return sizeof(ma_fader_config);
         case ma_allocation_type_fence:
             return sizeof(ma_fence);
+        case ma_allocation_type_file_info:
+            return sizeof(ma_file_info);
         case ma_allocation_type_gainer:
             return sizeof(ma_gainer);
+        case ma_allocation_type_gainer_config:
+            return sizeof(ma_gainer_config);
+        case ma_allocation_type_hishelf2:
+            return sizeof(ma_hishelf2);
+        case ma_allocation_type_hishelf2_config:
+            return sizeof(ma_hishelf2_config);
+        case ma_allocation_type_hishelf_config:
+            return sizeof(ma_hishelf_config);
+        case ma_allocation_type_hishelf_node:
+            return sizeof(ma_hishelf_node);
+        case ma_allocation_type_hishelf_node_config:
+            return sizeof(ma_hishelf_node_config);
+        case ma_allocation_type_hpf:
+            return sizeof(ma_hpf);
+        case ma_allocation_type_hpf1:
+            return sizeof(ma_hpf1);
+        case ma_allocation_type_hpf1_config:
+            return sizeof(ma_hpf1_config);
+        case ma_allocation_type_hpf2:
+            return sizeof(ma_hpf2);
+        case ma_allocation_type_hpf2_config:
+            return sizeof(ma_hpf2_config);
+        case ma_allocation_type_hpf_config:
+            return sizeof(ma_hpf_config);
+        case ma_allocation_type_hpf_node:
+            return sizeof(ma_hpf_node);
+        case ma_allocation_type_hpf_node_config:
+            return sizeof(ma_hpf_node_config);
+        case ma_allocation_type_job:
+            return sizeof(ma_job);
+        case ma_allocation_type_job_queue:
+            return sizeof(ma_job_queue);
+        case ma_allocation_type_job_queue_config:
+            return sizeof(ma_job_queue_config);
+        case ma_allocation_type_lcg:
+            return sizeof(ma_lcg);
+        case ma_allocation_type_linear_resampler:
+            return sizeof(ma_linear_resampler);
+        case ma_allocation_type_linear_resampler_config:
+            return sizeof(ma_linear_resampler_config);
         case ma_allocation_type_log:
             return sizeof(ma_log);
+        case ma_allocation_type_log_callback:
+            return sizeof(ma_log_callback);
+        case ma_allocation_type_log_postv:
+            return sizeof(ma_log_postv);
+        case ma_allocation_type_loshelf2:
+            return sizeof(ma_loshelf2);
+        case ma_allocation_type_loshelf2_config:
+            return sizeof(ma_loshelf2_config);
+        case ma_allocation_type_loshelf_config:
+            return sizeof(ma_loshelf_config);
+        case ma_allocation_type_loshelf_node:
+            return sizeof(ma_loshelf_node);
+        case ma_allocation_type_loshelf_node_config:
+            return sizeof(ma_loshelf_node_config);
+        case ma_allocation_type_lpf:
+            return sizeof(ma_lpf);
         case ma_allocation_type_lpf1:
             return sizeof(ma_lpf1);
+        case ma_allocation_type_lpf1_config:
+            return sizeof(ma_lpf1_config);
         case ma_allocation_type_lpf2:
             return sizeof(ma_lpf2);
+        case ma_allocation_type_lpf2_config:
+            return sizeof(ma_lpf2_config);
+        case ma_allocation_type_lpf_config:
+            return sizeof(ma_lpf_config);
+        case ma_allocation_type_lpf_node:
+            return sizeof(ma_lpf_node);
+        case ma_allocation_type_lpf_node_config:
+            return sizeof(ma_lpf_node_config);
         case ma_allocation_type_node:
             return sizeof(ma_node);
+        case ma_allocation_type_node_base:
+            return sizeof(ma_node_base);
+        case ma_allocation_type_node_config:
+            return sizeof(ma_node_config);
         case ma_allocation_type_node_graph:
             return sizeof(ma_node_graph);
+        case ma_allocation_type_node_graph_config:
+            return sizeof(ma_node_graph_config);
         case ma_allocation_type_node_input_bus:
             return sizeof(ma_node_input_bus);
         case ma_allocation_type_node_output_bus:
             return sizeof(ma_node_output_bus);
         case ma_allocation_type_node_vtable:
             return sizeof(ma_node_vtable);
+        case ma_allocation_type_noise:
+            return sizeof(ma_noise);
+        case ma_allocation_type_noise_config:
+            return sizeof(ma_noise_config);
+        case ma_allocation_type_notch2:
+            return sizeof(ma_notch2);
+        case ma_allocation_type_notch2_config:
+            return sizeof(ma_notch2_config);
+        case ma_allocation_type_notch_config:
+            return sizeof(ma_notch_config);
+        case ma_allocation_type_notch_node:
+            return sizeof(ma_notch_node);
+        case ma_allocation_type_notch_node_config:
+            return sizeof(ma_notch_node_config);
+        case ma_allocation_type_paged_audio_buffer:
+            return sizeof(ma_paged_audio_buffer);
+        case ma_allocation_type_paged_audio_buffer_config:
+            return sizeof(ma_paged_audio_buffer_config);
+        case ma_allocation_type_paged_audio_buffer_data:
+            return sizeof(ma_paged_audio_buffer_data);
+        case ma_allocation_type_paged_audio_buffer_page:
+            return sizeof(ma_paged_audio_buffer_page);
         case ma_allocation_type_panner:
             return sizeof(ma_panner);
+        case ma_allocation_type_panner_config:
+            return sizeof(ma_panner_config);
+        case ma_allocation_type_pcm_rb:
+            return sizeof(ma_pcm_rb);
+        case ma_allocation_type_peak2:
+            return sizeof(ma_peak2);
+        case ma_allocation_type_peak2_config:
+            return sizeof(ma_peak2_config);
+        case ma_allocation_type_peak_config:
+            return sizeof(ma_peak_config);
+        case ma_allocation_type_peak_node:
+            return sizeof(ma_peak_node);
+        case ma_allocation_type_peak_node_config:
+            return sizeof(ma_peak_node_config);
+        case ma_allocation_type_procedural_sound:
+            return sizeof(ma_procedural_sound);
+        case ma_allocation_type_procedural_sound_config:
+            return sizeof(ma_procedural_sound_config);
+        case ma_allocation_type_pulsewave:
+            return sizeof(ma_pulsewave);
+        case ma_allocation_type_pulsewave_config:
+            return sizeof(ma_pulsewave_config);
+        case ma_allocation_type_rb:
+            return sizeof(ma_rb);
+        case ma_allocation_type_resampler:
+            return sizeof(ma_resampler);
+        case ma_allocation_type_resampler_config:
+            return sizeof(ma_resampler_config);
         case ma_allocation_type_resampling_backend_vtable:
             return sizeof(ma_resampling_backend_vtable);
         case ma_allocation_type_resource_manager:
             return sizeof(ma_resource_manager);
+        case ma_allocation_type_resource_manager_config:
+            return sizeof(ma_resource_manager_config);
+        case ma_allocation_type_resource_manager_data_buffer:
+            return sizeof(ma_resource_manager_data_buffer);
+        case ma_allocation_type_resource_manager_data_buffer_node:
+            return sizeof(ma_resource_manager_data_buffer_node);
+        case ma_allocation_type_resource_manager_data_source:
+            return sizeof(ma_resource_manager_data_source);
+        case ma_allocation_type_resource_manager_data_source_config:
+            return sizeof(ma_resource_manager_data_source_config);
+        case ma_allocation_type_resource_manager_data_stream:
+            return sizeof(ma_resource_manager_data_stream);
+        case ma_allocation_type_resource_manager_data_supply:
+            return sizeof(ma_resource_manager_data_supply);
+        case ma_allocation_type_resource_manager_pipeline_notifications:
+            return sizeof(ma_resource_manager_pipeline_notifications);
+        case ma_allocation_type_resource_manager_pipeline_stage_notification:
+            return sizeof(ma_resource_manager_pipeline_stage_notification);
+        case ma_allocation_type_result:
+            return sizeof(ma_result);
+        case ma_allocation_type_semaphore:
+            return sizeof(ma_semaphore);
+        case ma_allocation_type_slot_allocator:
+            return sizeof(ma_slot_allocator);
+        case ma_allocation_type_slot_allocator_config:
+            return sizeof(ma_slot_allocator_config);
+        case ma_allocation_type_slot_allocator_group:
+            return sizeof(ma_slot_allocator_group);
         case ma_allocation_type_sound:
             return sizeof(ma_sound);
+        case ma_allocation_type_sound_config:
+            return sizeof(ma_sound_config);
         case ma_allocation_type_sound_group:
             return sizeof(ma_sound_group);
+        case ma_allocation_type_sound_inlined:
+            return sizeof(ma_sound_inlined);
+        case ma_allocation_type_sound_notifications:
+            return sizeof(ma_sound_notifications);
         case ma_allocation_type_spatializer:
             return sizeof(ma_spatializer);
+        case ma_allocation_type_spatializer_config:
+            return sizeof(ma_spatializer_config);
         case ma_allocation_type_spatializer_listener:
             return sizeof(ma_spatializer_listener);
+        case ma_allocation_type_spatializer_listener_config:
+            return sizeof(ma_spatializer_listener_config);
+        case ma_allocation_type_splitter_node:
+            return sizeof(ma_splitter_node);
+        case ma_allocation_type_splitter_node_config:
+            return sizeof(ma_splitter_node_config);
         case ma_allocation_type_stack:
             return sizeof(ma_stack);
+        case ma_allocation_type_uint32:
+            return sizeof(ma_uint32);
+        case ma_allocation_type_vec3f:
+            return sizeof(ma_vec3f);
         case ma_allocation_type_vfs:
             return sizeof(ma_vfs);
+        case ma_allocation_type_vfs_callbacks:
+            return sizeof(ma_vfs_callbacks);
+        case ma_allocation_type_waveform:
+            return sizeof(ma_waveform);
+        case ma_allocation_type_waveform_config:
+            return sizeof(ma_waveform_config);
         default:
             return 0;
     }
