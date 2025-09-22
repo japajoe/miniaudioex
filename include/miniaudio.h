@@ -7633,9 +7633,7 @@ struct ma_procedural_sound {
     ma_procedural_sound_config config;
 };
 
-typedef enum ma_allocation_type ma_allocation_type;
-
-enum ma_allocation_type {
+typedef enum {
     ma_allocation_type_async_notification,
     ma_allocation_type_biquad_coefficient,
     ma_allocation_type_channel,
@@ -7674,7 +7672,7 @@ enum ma_allocation_type {
     ma_allocation_type_spatializer_listener,
     ma_allocation_type_stack,
     ma_allocation_type_vfs
-};
+} ma_allocation_type;
 
 MA_API ma_result ma_engine_init(const ma_engine_config* pConfig, ma_engine* pEngine);
 MA_API void ma_engine_uninit(ma_engine* pEngine);
