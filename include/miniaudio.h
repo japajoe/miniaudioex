@@ -7658,6 +7658,7 @@ enum ma_allocation_type {
     ma_allocation_type_lpf1,
     ma_allocation_type_lpf2,
     ma_allocation_type_node,
+    ma_allocation_type_node_base,
     ma_allocation_type_node_graph,
     ma_allocation_type_node_input_bus,
     ma_allocation_type_node_output_bus,

@@ -68554,6 +68554,8 @@ MA_API size_t ma_get_size_of_type(ma_allocation_type type) {
             return sizeof(ma_lpf2);
         case ma_allocation_type_node:
             return sizeof(ma_node);
+        case ma_allocation_type_node_base:
+            return sizeof(ma_node_base);
         case ma_allocation_type_node_graph:
             return sizeof(ma_node_graph);
         case ma_allocation_type_node_input_bus:
