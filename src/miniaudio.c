@@ -68401,9 +68401,8 @@ static ma_data_source_vtable g_ma_procedural_sound_data_source_vtable = {
 };
 
 MA_API ma_procedural_sound_config ma_procedural_sound_config_init(ma_format format, ma_uint32 channels, ma_uint32 sampleRate, ma_procedural_sound_proc pProceduralSoundProc, void *pUserData) {
-    MA_ASSERT(pProceduralSoundProc != NULL);
-
     ma_procedural_sound_config config;
+    MA_ASSERT(pProceduralSoundProc != NULL);
 
     MA_ZERO_OBJECT(&config);
     config.format           = format;
@@ -68473,6 +68472,80 @@ MA_API ma_result ma_procedural_sound_read_pcm_frames(ma_procedural_sound* pProce
     return MA_SUCCESS;
 }
 
+static void ma_effect_node_process_pmc_frames(ma_node* pNode, const float** ppFramesIn, ma_uint32* pFrameCountIn, float** ppFramesOut, ma_uint32* pFrameCountOut)
+{
+    ma_effect_node *pEffectNode = (ma_effect_node*)pNode;
+
+    if(pEffectNode != NULL) {
+        if(pEffectNode->config.onProcess != NULL) {
+            pEffectNode->config.onProcess(pNode, ppFramesIn, pFrameCountIn, ppFramesOut, pFrameCountOut);
+        }
+    }
+}
+
+static ma_node_vtable g_ma_effect_node_vtable =
+{
+    ma_effect_node_process_pmc_frames,
+    NULL,
+    1,  /* 1 input channels. */
+    1,  /* 1 output channel. */
+    MA_NODE_FLAG_CONTINUOUS_PROCESSING | MA_NODE_FLAG_ALLOW_NULL_INPUT
+};
+
+MA_API ma_effect_node_config ma_effect_node_config_init(ma_uint32 channels, ma_uint32 sampleRate, ma_effect_node_process_proc onProcess) {
+    ma_effect_node_config config = {
+        .sampleRate = sampleRate,
+        .channels = channels,
+        .onProcess = onProcess
+    };
+    return config;
+}
+
+MA_API ma_result ma_effect_node_init(ma_node_graph* pNodeGraph, const ma_effect_node_config* pConfig, const ma_allocation_callbacks* pAllocationCallbacks, ma_effect_node* pEffectNode) {
+    ma_node_config baseConfig;
+
+    if(pNodeGraph == NULL) {
+        return MA_INVALID_ARGS;
+    }
+
+    if(pConfig == NULL) {
+        return MA_INVALID_ARGS;
+    }
+
+    if (pEffectNode == NULL) {
+        return MA_INVALID_ARGS;
+    }
+
+    if (pConfig->onProcess == NULL) {
+        return MA_INVALID_ARGS;
+    }
+
+    if (pConfig->channels < 1) {
+        return MA_INVALID_ARGS;
+    }
+
+    MA_ZERO_OBJECT(pEffectNode);
+
+    pEffectNode->config = *pConfig;
+
+    baseConfig = ma_node_config_init();
+    baseConfig.vtable          = &g_ma_effect_node_vtable;
+    baseConfig.pInputChannels  = &pEffectNode->config.channels;
+    baseConfig.pOutputChannels = &pEffectNode->config.channels;
+
+    return ma_node_init(pNodeGraph, &baseConfig, pAllocationCallbacks, &pEffectNode->baseNode);
+}
+
+MA_API void ma_effect_node_uninit(ma_effect_node *pEffectNode, const ma_allocation_callbacks* pAllocationCallbacks) {
+    if (pEffectNode == NULL) {
+        return;
+    }
+
+    ma_node_uninit(pEffectNode, pAllocationCallbacks);
+    MA_ZERO_OBJECT(pEffectNode);
+}
+
+
 MA_API void* ma_allocate_type(ma_allocation_type type) {
     size_t size = ma_get_size_of_type(type);
 
@@ -68538,6 +68611,8 @@ MA_API size_t ma_get_size_of_type(ma_allocation_type type) {
             return sizeof(ma_device_descriptor);
         case ma_allocation_type_device_info:
             return sizeof(ma_device_info);
+        case ma_allocation_type_effect_node:
+            return sizeof(ma_effect_node);
         case ma_allocation_type_engine:
             return sizeof(ma_engine);
         case ma_allocation_type_fader:

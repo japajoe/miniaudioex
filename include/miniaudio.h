@@ -7633,6 +7633,23 @@ struct ma_procedural_sound {
     ma_procedural_sound_config config;
 };
 
+typedef void (*ma_effect_node_process_proc)(ma_node* pNode, const float** ppFramesIn, ma_uint32* pFrameCountIn, float** ppFramesOut, ma_uint32* pFrameCountOut);
+
+typedef struct ma_effect_node_config ma_effect_node_config;
+
+struct ma_effect_node_config {
+    ma_uint32 sampleRate;
+    ma_uint32 channels;
+    ma_effect_node_process_proc onProcess;
+};
+
+typedef struct ma_effect_node ma_effect_node;
+
+struct ma_effect_node {
+    ma_node_base baseNode;
+    ma_effect_node_config config;
+};
+
 typedef enum {
     ma_allocation_type_async_notification,
     ma_allocation_type_biquad_coefficient,
@@ -7648,6 +7665,7 @@ typedef enum {
     ma_allocation_type_device_notification,
     ma_allocation_type_device_descriptor,
     ma_allocation_type_device_info,
+    ma_allocation_type_effect_node,
     ma_allocation_type_engine,
     ma_allocation_type_fader,
     ma_allocation_type_fence,
@@ -7866,6 +7884,10 @@ MA_API ma_procedural_sound_config ma_procedural_sound_config_init(ma_format form
 MA_API ma_result ma_procedural_sound_init(const ma_procedural_sound_config* pConfig, ma_procedural_sound* pProceduralSound);
 MA_API void ma_procedural_sound_uninit(ma_procedural_sound* pProceduralSound);
 MA_API ma_result ma_procedural_sound_read_pcm_frames(ma_procedural_sound* pProceduralSound, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead);
+
+MA_API ma_effect_node_config ma_effect_node_config_init(ma_uint32 channels, ma_uint32 sampleRate, ma_effect_node_process_proc onProcess);
+MA_API ma_result ma_effect_node_init(ma_node_graph* pNodeGraph, const ma_effect_node_config* pConfig, const ma_allocation_callbacks* pAllocationCallbacks, ma_effect_node* pEffectNode);
+MA_API void ma_effect_node_uninit(ma_effect_node *pEffectNode, const ma_allocation_callbacks* pAllocationCallbacks);
 
 MA_API void* ma_allocate_type(ma_allocation_type type);
 MA_API void* ma_allocate(size_t size);
