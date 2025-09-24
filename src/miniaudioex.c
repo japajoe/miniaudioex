@@ -480,7 +480,7 @@ MA_API ma_ex_audio_clip *ma_ex_audio_clip_init_from_memory(ma_ex_context *contex
     return clip;
 }
 
-MA_API ma_ex_audio_clip *ma_ex_audio_clip_init_from_callback(ma_ex_context *context, const ma_procedural_sound_config *pConfig) {
+MA_API ma_ex_audio_clip *ma_ex_audio_clip_init_from_callback(ma_ex_context *context, const ma_procedural_data_source_config *pConfig) {
     if(context == NULL || pConfig == NULL)
         return NULL;
 
@@ -629,7 +629,7 @@ MA_API ma_result ma_ex_audio_source_play_from_memory(ma_ex_audio_source *source,
     return ma_sound_start(&source->clip.sound);
 }
 
-MA_API ma_result ma_ex_audio_source_play_from_callback(ma_ex_audio_source *source, ma_procedural_sound_proc callback) {
+MA_API ma_result ma_ex_audio_source_play_from_callback(ma_ex_audio_source *source, ma_procedural_data_source_proc callback) {
     if(source == NULL)
         return MA_ERROR;
 
@@ -641,7 +641,7 @@ MA_API ma_result ma_ex_audio_source_play_from_callback(ma_ex_audio_source *sourc
     if(ma_ex_hashcode_is_same(source->clip.soundHash, soundHash) == MA_FALSE) {
         source->clip.flags = 0;
 
-        ma_procedural_sound_config config = ma_procedural_sound_config_init(ma_format_f32, source->context->channels, source->context->sampleRate, callback, source->callbacks.pUserData);
+        ma_procedural_data_source_config config = ma_procedural_data_source_config_init(ma_format_f32, source->context->channels, source->context->sampleRate, callback, source->callbacks.pUserData);
 
         ma_result result = ma_sound_init_from_callback(&source->context->engine, &config, source->clip.flags, source->group, NULL, &source->clip.sound);
 

@@ -2106,7 +2106,7 @@ typedef void ma_data_source;
 
 #define MA_DATA_SOURCE_SELF_MANAGED_RANGE_AND_LOOP_POINT    0x00000001
 #define MA_DATA_SOURCE_IS_DECODER                           0x00000002
-#define MA_DATA_SOURCE_IS_PROCEDURAL_SOUND                  0x00000004
+#define MA_DATA_SOURCE_IS_PROCEDURAL                        0x00000004
 
 typedef struct
 {
@@ -7614,23 +7614,23 @@ struct ma_engine
     void* pProcessUserData;
 };
 
-typedef void (*ma_procedural_sound_proc)(void *pUserData, void* pFramesOut, ma_uint64 frameCount, ma_uint32 channels);
+typedef void (*ma_procedural_data_source_proc)(void *pUserData, void* pFramesOut, ma_uint64 frameCount, ma_uint32 channels);
 
-typedef struct ma_procedural_sound_config ma_procedural_sound_config;
+typedef struct ma_procedural_data_source_config ma_procedural_data_source_config;
 
-struct ma_procedural_sound_config {
+struct ma_procedural_data_source_config {
     ma_format format;
     ma_uint32 channels;
     ma_uint32 sampleRate;
-    ma_procedural_sound_proc callback;
+    ma_procedural_data_source_proc callback;
     void *pUserData;
 };
 
-typedef struct ma_procedural_sound ma_procedural_sound;
+typedef struct ma_procedural_data_source ma_procedural_data_source;
 
-struct ma_procedural_sound {
+struct ma_procedural_data_source {
     ma_data_source_base ds;
-    ma_procedural_sound_config config;
+    ma_procedural_data_source_config config;
 };
 
 typedef void (*ma_effect_node_process_proc)(ma_node* pNode, const float** ppFramesIn, ma_uint32* pFrameCountIn, float** ppFramesOut, ma_uint32* pFrameCountOut);
@@ -7680,6 +7680,7 @@ typedef enum {
     ma_allocation_type_node_output_bus,
     ma_allocation_type_node_vtable,
     ma_allocation_type_panner,
+    ma_allocation_type_procedural_data_source,
     ma_allocation_type_resampling_backend_vtable,
     ma_allocation_type_resource_manager,
     ma_allocation_type_resource_manager_data_source,
@@ -7742,7 +7743,7 @@ MA_API ma_result ma_engine_play_sound(ma_engine* pEngine, const char* pFilePath,
 MA_API ma_result ma_sound_init_from_file(ma_engine* pEngine, const char* pFilePath, ma_uint32 flags, ma_sound_group* pGroup, ma_fence* pDoneFence, ma_sound* pSound);
 MA_API ma_result ma_sound_init_from_file_w(ma_engine* pEngine, const wchar_t* pFilePath, ma_uint32 flags, ma_sound_group* pGroup, ma_fence* pDoneFence, ma_sound* pSound);
 MA_API ma_result ma_sound_init_from_memory(ma_engine* pEngine, const void* pData, ma_uint64 dataSize, ma_uint32 flags, ma_sound_group* pGroup, ma_fence* pDoneFence, ma_sound* pSound);
-MA_API ma_result ma_sound_init_from_callback(ma_engine* pEngine, const ma_procedural_sound_config* pConfig, ma_uint32 flags, ma_sound_group* pGroup, ma_fence* pDoneFence, ma_sound* pSound);
+MA_API ma_result ma_sound_init_from_callback(ma_engine* pEngine, const ma_procedural_data_source_config* pConfig, ma_uint32 flags, ma_sound_group* pGroup, ma_fence* pDoneFence, ma_sound* pSound);
 MA_API ma_result ma_sound_init_copy(ma_engine* pEngine, const ma_sound* pExistingSound, ma_uint32 flags, ma_sound_group* pGroup, ma_sound* pSound);
 #endif
 MA_API ma_result ma_sound_init_from_data_source(ma_engine* pEngine, ma_data_source* pDataSource, ma_uint32 flags, ma_sound_group* pGroup, ma_sound* pSound);
@@ -7880,10 +7881,10 @@ MA_API void ma_sound_group_set_stop_time_in_milliseconds(ma_sound_group* pGroup,
 MA_API ma_bool32 ma_sound_group_is_playing(const ma_sound_group* pGroup);
 MA_API ma_uint64 ma_sound_group_get_time_in_pcm_frames(const ma_sound_group* pGroup);
 
-MA_API ma_procedural_sound_config ma_procedural_sound_config_init(ma_format format, ma_uint32 channels, ma_uint32 sampleRate, ma_procedural_sound_proc pProceduralSoundProc, void *pUserData);
-MA_API ma_result ma_procedural_sound_init(const ma_procedural_sound_config* pConfig, ma_procedural_sound* pProceduralSound);
-MA_API void ma_procedural_sound_uninit(ma_procedural_sound* pProceduralSound);
-MA_API ma_result ma_procedural_sound_read_pcm_frames(ma_procedural_sound* pProceduralSound, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead);
+MA_API ma_procedural_data_source_config ma_procedural_data_source_config_init(ma_format format, ma_uint32 channels, ma_uint32 sampleRate, ma_procedural_data_source_proc pProceduralSoundProc, void *pUserData);
+MA_API ma_result ma_procedural_data_source_init(const ma_procedural_data_source_config* pConfig, ma_procedural_data_source* pProceduralSound);
+MA_API void ma_procedural_data_source_uninit(ma_procedural_data_source* pProceduralSound);
+MA_API ma_result ma_procedural_data_source_read_pcm_frames(ma_procedural_data_source* pProceduralSound, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead);
 
 MA_API ma_effect_node_config ma_effect_node_config_init(ma_uint32 channels, ma_uint32 sampleRate, ma_effect_node_process_proc onProcess);
 MA_API ma_result ma_effect_node_init(ma_node_graph* pNodeGraph, const ma_effect_node_config* pConfig, const ma_allocation_callbacks* pAllocationCallbacks, ma_effect_node* pEffectNode);

@@ -55,17 +55,17 @@
     - added method ma_sound_set_end_notification_callback
     - added method ma_sound_set_load_notification_callback
     - added method ma_sound_set_process_notification_callback
-    - added custom data source: ma_procedural_sound
-    - added method ma_procedural_sound_config_init
-    - added method ma_procedural_sound_init
-    - added method ma_procedural_sound_uninit
-    - added method ma_procedural_sound_read_pcm_frames
+    - added custom data source: ma_procedural_data_source
+    - added method ma_procedural_data_source_config_init
+    - added method ma_procedural_data_source_init
+    - added method ma_procedural_data_source_uninit
+    - added method ma_procedural_data_source_read_pcm_frames
     - added enum ma_allocation_type
     - added method ma_allocate_type
     - added method ma_allocate
     - added method ma_deallocate_type
     - added method ma_get_size_of_type
-    - added MA_DATA_SOURCE_IS_DECODER and MA_DATA_SOURCE_IS_PROCEDURAL_SOUND flags (internally used)
+    - added MA_DATA_SOURCE_IS_DECODER and MA_DATA_SOURCE_IS_PROCEDURAL flags (internally used)
     - added notifications to ma_sound (this contains multiple callbacks including endCallback and userData)
     - removed endCallback from ma_sound
     - removed pEndCallbackUserData from ma_sound
@@ -211,7 +211,7 @@ MA_API void ma_ex_audio_source_uninit(ma_ex_audio_source *source);
 MA_API void ma_ex_audio_source_set_callbacks(ma_ex_audio_source *source, ma_ex_audio_source_callbacks callbacks);
 MA_API ma_result ma_ex_audio_source_play_from_file(ma_ex_audio_source *source, const char *filePath, ma_bool8 streamFromDisk);
 MA_API ma_result ma_ex_audio_source_play_from_memory(ma_ex_audio_source *source, const void *pData, ma_uint64 dataSize);
-MA_API ma_result ma_ex_audio_source_play_from_callback(ma_ex_audio_source *source, ma_procedural_sound_proc callback);
+MA_API ma_result ma_ex_audio_source_play_from_callback(ma_ex_audio_source *source, ma_procedural_data_source_proc callback);
 MA_API void ma_ex_audio_source_stop(ma_ex_audio_source *source);
 MA_API void ma_ex_audio_source_apply_settings(ma_ex_audio_source *source);
 MA_API void ma_ex_audio_source_set_volume(ma_ex_audio_source *source, float value);
