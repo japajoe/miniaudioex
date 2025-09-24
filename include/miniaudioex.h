@@ -51,11 +51,14 @@
     - added method ma_sound_init_from_memory
     - added method ma_sound_init_from_callback
     - added custom data source: ma_procedural_data_source
-    - added custom node: ma_effect_node
     - added method ma_procedural_data_source_config_init
     - added method ma_procedural_data_source_init
     - added method ma_procedural_data_source_uninit
     - added method ma_procedural_data_source_read_pcm_frames
+    - added custom node: ma_effect_node
+    - added method ma_effect_node_config_init
+    - added method ma_effect_node_init
+    - added method ma_effect_node_uninit
     - added enum ma_allocation_type
     - added method ma_allocate_type
     - added method ma_allocate
