@@ -240,6 +240,7 @@ MA_API float ma_ex_audio_source_get_min_distance(ma_ex_audio_source *source);
 MA_API void ma_ex_audio_source_set_max_distance(ma_ex_audio_source *source, float distance);
 MA_API float ma_ex_audio_source_get_max_distance(ma_ex_audio_source *source);
 MA_API ma_bool32 ma_ex_audio_source_get_is_playing(ma_ex_audio_source *source);
+MA_API ma_bool32 ma_ex_audio_source_get_is_at_end(ma_ex_audio_source *source);
 MA_API ma_ex_audio_clip *ma_ex_audio_source_get_clip(ma_ex_audio_source *source);
 MA_API ma_result ma_ex_audio_source_set_group(ma_ex_audio_source *source, ma_sound_group *group);
 MA_API ma_sound_group *ma_ex_audio_source_get_group(ma_ex_audio_source *source);

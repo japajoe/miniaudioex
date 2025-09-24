@@ -64934,7 +64934,7 @@ static void ma_sound_set_at_end(ma_sound* pSound, ma_bool32 atEnd)
     MA_ASSERT(pSound != NULL);
 
     /* Fire any callbacks or events. */
-    if (atEnd && pSound->atEnd == MA_FALSE) {
+    if (atEnd) {
         if(pSound->notifications.onAtEnd != NULL) {
             pSound->notifications.onAtEnd(pSound->notifications.pUserData, pSound);
         }

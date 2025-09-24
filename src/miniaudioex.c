@@ -576,12 +576,11 @@ MA_API ma_result ma_ex_audio_source_play_from_file(ma_ex_audio_source *source, c
 
     if(ma_ex_hashcode_is_same(source->clip.soundHash, soundHash) == MA_FALSE) {
         ma_sound_uninit(&source->clip.sound);
-        
+
         source->clip.flags = MA_SOUND_FLAG_DECODE;
         
         if(streamFromDisk == MA_TRUE)
             source->clip.flags |= MA_SOUND_FLAG_STREAM;
-
 
         ma_result result = ma_sound_init_from_file(&source->context->engine, filePath, source->clip.flags, source->group, NULL, &source->clip.sound);
 
@@ -872,6 +871,13 @@ MA_API float ma_ex_audio_source_get_max_distance(ma_ex_audio_source *source) {
 MA_API ma_bool32 ma_ex_audio_source_get_is_playing(ma_ex_audio_source *source) {
     if(source != NULL) {
         return ma_sound_is_playing(&source->clip.sound);
+    }
+    return MA_FALSE;
+}
+
+MA_API ma_bool32 ma_ex_audio_source_get_is_at_end(ma_ex_audio_source *source) {
+    if(source != NULL) {
+        return ma_sound_at_end(&source->clip.sound);
     }
     return MA_FALSE;
 }
