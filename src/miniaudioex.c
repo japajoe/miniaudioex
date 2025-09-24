@@ -575,10 +575,13 @@ MA_API ma_result ma_ex_audio_source_play_from_file(ma_ex_audio_source *source, c
     ma_uint64 soundHash = ma_ex_create_hashcode(filePath, strlen(filePath));
 
     if(ma_ex_hashcode_is_same(source->clip.soundHash, soundHash) == MA_FALSE) {
+        ma_sound_uninit(&source->clip.sound);
+        
         source->clip.flags = MA_SOUND_FLAG_DECODE;
         
         if(streamFromDisk == MA_TRUE)
             source->clip.flags |= MA_SOUND_FLAG_STREAM;
+
 
         ma_result result = ma_sound_init_from_file(&source->context->engine, filePath, source->clip.flags, source->group, NULL, &source->clip.sound);
 
@@ -610,6 +613,8 @@ MA_API ma_result ma_ex_audio_source_play_from_memory(ma_ex_audio_source *source,
     ma_uint64 soundHash = ma_ex_pointer_to_hashcode(pData);
 
     if(ma_ex_hashcode_is_same(source->clip.soundHash, soundHash) == MA_FALSE) {
+        ma_sound_uninit(&source->clip.sound);
+
         source->clip.flags = MA_SOUND_FLAG_DECODE;
 
         ma_result result = ma_sound_init_from_memory(&source->context->engine, pData, dataSize, source->clip.flags, source->group, NULL, &source->clip.sound);
@@ -639,6 +644,8 @@ MA_API ma_result ma_ex_audio_source_play_from_callback(ma_ex_audio_source *sourc
     ma_uint64 soundHash = ma_ex_pointer_to_hashcode(callback);
 
     if(ma_ex_hashcode_is_same(source->clip.soundHash, soundHash) == MA_FALSE) {
+        ma_sound_uninit(&source->clip.sound);
+
         source->clip.flags = 0;
 
         ma_procedural_data_source_config config = ma_procedural_data_source_config_init(ma_format_f32, source->context->channels, source->context->sampleRate, callback, source->callbacks.pUserData);

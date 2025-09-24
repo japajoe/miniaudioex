@@ -64932,14 +64932,15 @@ Engine
 static void ma_sound_set_at_end(ma_sound* pSound, ma_bool32 atEnd)
 {
     MA_ASSERT(pSound != NULL);
-    ma_atomic_exchange_32(&pSound->atEnd, atEnd);
 
     /* Fire any callbacks or events. */
-    if (atEnd) {
+    if (atEnd && pSound->atEnd == MA_FALSE) {
         if(pSound->notifications.onAtEnd != NULL) {
             pSound->notifications.onAtEnd(pSound->notifications.pUserData, pSound);
         }
     }
+    
+    ma_atomic_exchange_32(&pSound->atEnd, atEnd);
 }
 
 static ma_bool32 ma_sound_get_at_end(const ma_sound* pSound)
