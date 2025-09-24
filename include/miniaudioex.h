@@ -46,16 +46,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-/* Note that this is not fully compatible with the original miniaudio library
+/* Note that this may not be fully compatible with the original miniaudio library
     Notable changes made in miniaudio:
     - added method ma_sound_init_from_memory
     - added method ma_sound_init_from_callback
-    - added method ma_sound_notifications_init
-    - added method ma_sound_set_notifications_userdata
-    - added method ma_sound_set_end_notification_callback
-    - added method ma_sound_set_load_notification_callback
-    - added method ma_sound_set_process_notification_callback
     - added custom data source: ma_procedural_data_source
+    - added custom node: ma_effect_node
     - added method ma_procedural_data_source_config_init
     - added method ma_procedural_data_source_init
     - added method ma_procedural_data_source_uninit
@@ -66,16 +62,7 @@
     - added method ma_deallocate_type
     - added method ma_get_size_of_type
     - added MA_DATA_SOURCE_IS_DECODER and MA_DATA_SOURCE_IS_PROCEDURAL flags (internally used)
-    - added notifications to ma_sound (this contains multiple callbacks including endCallback and userData)
-    - removed endCallback from ma_sound
-    - removed pEndCallbackUserData from ma_sound
-    - removed endCallback and pEndCallbackUserData from ma_sound_config
-    - added notifications to ma_sound_config
-    - modified ma_sound_init_ex so it can initialize notifications passed by ma_sound_config
-    - modified ma_sound_set_at_end so it calls the onAtEnd callback set in the sound notifications
     - modified ma_sound_uninit so it can free allocated memory caused by calling ma_sound_init_from_memory and ma_sound_init_from_callback
-    - modified ma_engine_node_process_pcm_frames__general so it calls onProcess callback if applicable
-    - modified ma_sound_start so it calls onLoaded callback if applicable
 */
 
 #ifndef MINIAUDIOEX_H
@@ -125,15 +112,6 @@ struct ma_ex_context {
     ma_int32 listeners[MA_ENGINE_MAX_LISTENERS];
 };
 
-typedef struct ma_ex_audio_source_callbacks ma_ex_audio_source_callbacks;
-
-struct ma_ex_audio_source_callbacks {
-    void *pUserData;
-    ma_sound_end_proc endCallback;
-    ma_sound_load_proc loadCallback;
-    ma_sound_process_proc processCallback;
-};
-
 typedef struct ma_ex_audio_source_settings ma_ex_audio_source_settings;
 
 struct ma_ex_audio_source_settings {
@@ -163,7 +141,6 @@ typedef struct ma_ex_audio_source ma_ex_audio_source;
 struct ma_ex_audio_source {
     ma_ex_context *context;
     ma_ex_audio_clip clip;
-    ma_ex_audio_source_callbacks callbacks;
     ma_ex_audio_source_settings settings;
     ma_sound_group *group;
 };
@@ -208,7 +185,6 @@ MA_API void *ma_ex_device_get_user_data(ma_device *pDevice);
 
 MA_API ma_ex_audio_source *ma_ex_audio_source_init(ma_ex_context *context);
 MA_API void ma_ex_audio_source_uninit(ma_ex_audio_source *source);
-MA_API void ma_ex_audio_source_set_callbacks(ma_ex_audio_source *source, ma_ex_audio_source_callbacks callbacks);
 MA_API ma_result ma_ex_audio_source_play_from_file(ma_ex_audio_source *source, const char *filePath, ma_bool8 streamFromDisk);
 MA_API ma_result ma_ex_audio_source_play_from_memory(ma_ex_audio_source *source, const void *pData, ma_uint64 dataSize);
 MA_API ma_result ma_ex_audio_source_play_from_callback(ma_ex_audio_source *source, ma_procedural_data_source_proc callback);

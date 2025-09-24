@@ -7479,16 +7479,6 @@ MA_API void ma_engine_node_uninit(ma_engine_node* pEngineNode, const ma_allocati
 
 /* Callback for when a sound reaches the end. */
 typedef void (* ma_sound_end_proc)(void* pUserData, ma_sound* pSound);
-typedef void (* ma_sound_load_proc)(void* pUserData, ma_sound* pSound);
-typedef void (* ma_sound_process_proc)(void* pUserData, ma_sound* pSound, float* pFrames, ma_uint64 frameCount, ma_uint32 channels);
-
-typedef struct
-{
-    ma_sound_load_proc onLoaded;  /* Fired by the resource manager when the sound has finished loading. */
-    ma_sound_end_proc onAtEnd;  /* Fired when the sound reaches the end of the data source. */
-    ma_sound_process_proc onProcess;
-    void* pUserData;
-} ma_sound_notifications;
 
 typedef struct
 {
@@ -7507,7 +7497,8 @@ typedef struct
     ma_uint64 rangeEndInPCMFrames;
     ma_uint64 loopPointBegInPCMFrames;
     ma_uint64 loopPointEndInPCMFrames;
-	ma_sound_notifications notifications;
+    ma_sound_end_proc endCallback;              /* Fired when the sound reaches the end. Will be fired from the audio thread. Do not restart, uninitialize or otherwise change the state of the sound from here. Instead fire an event or set a variable to indicate to a different thread to change the start of the sound. Will not be fired in response to a scheduled stop with ma_sound_set_stop_time_*(). */
+    void* pEndCallbackUserData;
 #ifndef MA_NO_RESOURCE_MANAGER
     ma_resource_manager_pipeline_notifications initNotifications;
 #endif
@@ -7524,7 +7515,8 @@ struct ma_sound
     ma_data_source* pDataSource;
     MA_ATOMIC(8, ma_uint64) seekTarget; /* The PCM frame index to seek to in the mixing thread. Set to (~(ma_uint64)0) to not perform any seeking. */
     MA_ATOMIC(4, ma_bool32) atEnd;
-	ma_sound_notifications notifications;
+    ma_sound_end_proc endCallback;
+    void* pEndCallbackUserData;
     ma_bool8 ownsDataSource;
 
     /*
@@ -7819,11 +7811,7 @@ MA_API ma_result ma_sound_get_cursor_in_pcm_frames(const ma_sound* pSound, ma_ui
 MA_API ma_result ma_sound_get_length_in_pcm_frames(const ma_sound* pSound, ma_uint64* pLength);
 MA_API ma_result ma_sound_get_cursor_in_seconds(const ma_sound* pSound, float* pCursor);
 MA_API ma_result ma_sound_get_length_in_seconds(const ma_sound* pSound, float* pLength);
-MA_API ma_sound_notifications ma_sound_notifications_init(void);
-MA_API ma_result ma_sound_set_notifications_userdata(ma_sound* pSound, void* pUserData);
-MA_API ma_result ma_sound_set_end_notification_callback(ma_sound* pSound, ma_sound_end_proc callback);
-MA_API ma_result ma_sound_set_load_notification_callback(ma_sound* pSound, ma_sound_load_proc callback);
-MA_API ma_result ma_sound_set_process_notification_callback(ma_sound* pSound, ma_sound_process_proc callback);
+MA_API ma_result ma_sound_set_end_callback(ma_sound* pSound, ma_sound_end_proc callback, void* pUserData);
 
 MA_API ma_result ma_sound_group_init(ma_engine* pEngine, ma_uint32 flags, ma_sound_group* pParentGroup, ma_sound_group* pGroup);
 MA_API ma_result ma_sound_group_init_ex(ma_engine* pEngine, const ma_sound_group_config* pConfig, ma_sound_group* pGroup);

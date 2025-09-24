@@ -527,12 +527,7 @@ MA_API ma_ex_audio_source *ma_ex_audio_source_init(ma_ex_context *context) {
     ma_ex_audio_source *source = MA_MALLOC(sizeof(ma_ex_audio_source));
     source->context = context;
     MA_ZERO_OBJECT(&source->clip);
-    MA_ZERO_OBJECT(&source->callbacks);
     MA_ZERO_OBJECT(&source->settings);
-    source->callbacks.endCallback = NULL;
-    source->callbacks.loadCallback = NULL;
-    source->callbacks.processCallback = NULL;
-    source->callbacks.pUserData = NULL;
     source->group = NULL;
 
     source->settings.attenuationModel = ma_attenuation_model_linear;
@@ -554,14 +549,6 @@ MA_API void ma_ex_audio_source_uninit(ma_ex_audio_source *source) {
     if(source != NULL) {
         ma_sound_uninit(&source->clip.sound);
         MA_FREE(source);
-    }
-}
-
-MA_API void ma_ex_audio_source_set_callbacks(ma_ex_audio_source *source, ma_ex_audio_source_callbacks callbacks) {
-    if(source != NULL) {
-        if(callbacks.pUserData == NULL)
-            callbacks.pUserData = source;
-        source->callbacks = callbacks;
     }
 }
 
@@ -592,10 +579,6 @@ MA_API ma_result ma_ex_audio_source_play_from_file(ma_ex_audio_source *source, c
 
     source->clip.soundHash = soundHash;
     ma_ex_audio_source_apply_settings(source);
-    ma_sound_set_notifications_userdata(&source->clip.sound, source->callbacks.pUserData);
-    ma_sound_set_end_notification_callback(&source->clip.sound, source->callbacks.endCallback);
-    ma_sound_set_load_notification_callback(&source->clip.sound, source->callbacks.loadCallback);
-    ma_sound_set_process_notification_callback(&source->clip.sound, source->callbacks.processCallback);
     return ma_sound_start(&source->clip.sound);
 }
 
@@ -626,10 +609,6 @@ MA_API ma_result ma_ex_audio_source_play_from_memory(ma_ex_audio_source *source,
 
     source->clip.soundHash = soundHash;
     ma_ex_audio_source_apply_settings(source);
-    ma_sound_set_notifications_userdata(&source->clip.sound, source->callbacks.pUserData);
-    ma_sound_set_end_notification_callback(&source->clip.sound, source->callbacks.endCallback);
-    ma_sound_set_load_notification_callback(&source->clip.sound, source->callbacks.loadCallback);
-    ma_sound_set_process_notification_callback(&source->clip.sound, source->callbacks.processCallback);
     return ma_sound_start(&source->clip.sound);
 }
 
@@ -647,7 +626,7 @@ MA_API ma_result ma_ex_audio_source_play_from_callback(ma_ex_audio_source *sourc
 
         source->clip.flags = 0;
 
-        ma_procedural_data_source_config config = ma_procedural_data_source_config_init(ma_format_f32, source->context->channels, source->context->sampleRate, callback, source->callbacks.pUserData);
+        ma_procedural_data_source_config config = ma_procedural_data_source_config_init(ma_format_f32, source->context->channels, source->context->sampleRate, callback, source);
 
         ma_result result = ma_sound_init_from_callback(&source->context->engine, &config, source->clip.flags, source->group, NULL, &source->clip.sound);
 
@@ -659,10 +638,6 @@ MA_API ma_result ma_ex_audio_source_play_from_callback(ma_ex_audio_source *sourc
 
     source->clip.soundHash = soundHash;
     ma_ex_audio_source_apply_settings(source);
-    ma_sound_set_notifications_userdata(&source->clip.sound, source->callbacks.pUserData);
-    ma_sound_set_end_notification_callback(&source->clip.sound, source->callbacks.endCallback);
-    ma_sound_set_load_notification_callback(&source->clip.sound, source->callbacks.loadCallback);
-    ma_sound_set_process_notification_callback(&source->clip.sound, source->callbacks.processCallback);
     return ma_sound_start(&source->clip.sound);
 }
 
