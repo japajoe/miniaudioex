@@ -7633,6 +7633,7 @@ struct ma_effect_node_config {
     ma_uint32 sampleRate;
     ma_uint32 channels;
     ma_effect_node_process_proc onProcess;
+    void *pUserData;
 };
 
 typedef struct ma_effect_node ma_effect_node;
@@ -7874,7 +7875,7 @@ MA_API ma_result ma_procedural_data_source_init(const ma_procedural_data_source_
 MA_API void ma_procedural_data_source_uninit(ma_procedural_data_source* pProceduralSound);
 MA_API ma_result ma_procedural_data_source_read_pcm_frames(ma_procedural_data_source* pProceduralSound, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead);
 
-MA_API ma_effect_node_config ma_effect_node_config_init(ma_uint32 channels, ma_uint32 sampleRate, ma_effect_node_process_proc onProcess);
+MA_API ma_effect_node_config ma_effect_node_config_init(ma_uint32 channels, ma_uint32 sampleRate, ma_effect_node_process_proc onProcess, void *pUserData);
 MA_API ma_result ma_effect_node_init(ma_node_graph* pNodeGraph, const ma_effect_node_config* pConfig, const ma_allocation_callbacks* pAllocationCallbacks, ma_effect_node* pEffectNode);
 MA_API void ma_effect_node_uninit(ma_effect_node *pEffectNode, const ma_allocation_callbacks* pAllocationCallbacks);
 

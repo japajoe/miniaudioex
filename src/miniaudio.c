@@ -68410,11 +68410,12 @@ static ma_node_vtable g_ma_effect_node_vtable =
     MA_NODE_FLAG_CONTINUOUS_PROCESSING | MA_NODE_FLAG_ALLOW_NULL_INPUT
 };
 
-MA_API ma_effect_node_config ma_effect_node_config_init(ma_uint32 channels, ma_uint32 sampleRate, ma_effect_node_process_proc onProcess) {
+MA_API ma_effect_node_config ma_effect_node_config_init(ma_uint32 channels, ma_uint32 sampleRate, ma_effect_node_process_proc onProcess, void *pUserData) {
     ma_effect_node_config config = {
         .sampleRate = sampleRate,
         .channels = channels,
-        .onProcess = onProcess
+        .onProcess = onProcess,
+        .pUserData = pUserData
     };
     return config;
 }
