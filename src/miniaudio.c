@@ -68411,12 +68411,17 @@ static ma_node_vtable g_ma_effect_node_vtable =
 };
 
 MA_API ma_effect_node_config ma_effect_node_config_init(ma_uint32 channels, ma_uint32 sampleRate, ma_effect_node_process_proc onProcess, void *pUserData) {
+    MA_ASSERT(sampleRate > 0);
+    MA_ASSERT(channels > 0);
+    MA_ASSERT(onProcess != NULL);
+
     ma_effect_node_config config = {
         .sampleRate = sampleRate,
         .channels = channels,
         .onProcess = onProcess,
         .pUserData = pUserData
     };
+
     return config;
 }
 

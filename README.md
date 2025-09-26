@@ -94,7 +94,7 @@ int main(int argc, char **argv) {
 
     ma_ex_audio_source *source = ma_ex_audio_source_init(context);
 
-    ma_ex_audio_source_play_from_callback(source, on_waveform);
+    ma_ex_audio_source_play_from_callback(source, on_waveform, NULL);
 
     printf("Press enter to stop ");
     getchar();
