@@ -120,6 +120,8 @@ typedef struct ma_ex_audio_source_settings ma_ex_audio_source_settings;
 struct ma_ex_audio_source_settings {
     float volume;
     float pitch;
+    float pan;
+    ma_pan_mode panMode;
     ma_bool32 loop;
     ma_vec3f position;
     ma_vec3f direction;
@@ -197,6 +199,10 @@ MA_API void ma_ex_audio_source_set_volume(ma_ex_audio_source *source, float valu
 MA_API float ma_ex_audio_source_get_volume(ma_ex_audio_source *source);
 MA_API void ma_ex_audio_source_set_pitch(ma_ex_audio_source *source, float value);
 MA_API float ma_ex_audio_source_get_pitch(ma_ex_audio_source *source);
+MA_API void ma_ex_audio_source_set_pan(ma_ex_audio_source *source, float value);
+MA_API float ma_ex_audio_source_get_pan(ma_ex_audio_source *source);
+MA_API void ma_ex_audio_source_set_pan_mode(ma_ex_audio_source *source, ma_pan_mode mode);
+MA_API ma_pan_mode ma_ex_audio_source_get_pan_mode(ma_ex_audio_source *source);
 MA_API void ma_ex_audio_source_set_pcm_position(ma_ex_audio_source *source, ma_uint64 position);
 MA_API ma_uint64 ma_ex_audio_source_get_pcm_position(ma_ex_audio_source *source);
 MA_API ma_uint64 ma_ex_audio_source_get_pcm_length(ma_ex_audio_source *source);

@@ -539,6 +539,8 @@ MA_API ma_ex_audio_source *ma_ex_audio_source_init(ma_ex_context *context) {
     source->settings.maxDistance = MA_FLT_MAX;
     source->settings.minDistance = 1.0f;
     source->settings.pitch = 1.0f;
+    source->settings.pan = 0.0f;
+    source->settings.panMode = ma_pan_mode_balance;
     source->settings.spatialization = MA_FALSE;
     source->settings.volume = 1.0f;
 
@@ -656,6 +658,8 @@ MA_API void ma_ex_audio_source_apply_settings(ma_ex_audio_source *source) {
         ma_sound_set_min_distance(&source->clip.sound, source->settings.minDistance);
         ma_sound_set_max_distance(&source->clip.sound, source->settings.maxDistance);
         ma_sound_set_pitch(&source->clip.sound, source->settings.pitch);
+        ma_sound_set_pan(&source->clip.sound, source->settings.pan);
+        ma_sound_set_pan_mode(&source->clip.sound, source->settings.panMode);
         ma_sound_set_position(&source->clip.sound, source->settings.position.x, source->settings.position.y, source->settings.position.z);
         ma_sound_set_spatialization_enabled(&source->clip.sound, source->settings.spatialization);
         ma_sound_set_velocity(&source->clip.sound, source->settings.velocity.x, source->settings.velocity.y, source->settings.velocity.z);
@@ -687,6 +691,32 @@ MA_API float ma_ex_audio_source_get_pitch(ma_ex_audio_source *source) {
     if(source != NULL)
         return source->settings.pitch;
     return 1.0f;
+}
+
+MA_API void ma_ex_audio_source_set_pan(ma_ex_audio_source *source, float value) {
+    if(source != NULL) {
+        source->settings.pan = value;
+        ma_sound_set_pan(&source->clip.sound, value);
+    }
+}
+
+MA_API float ma_ex_audio_source_get_pan(ma_ex_audio_source *source) {
+    if(source != NULL)
+        return source->settings.pan;
+    return 0.0f;
+}
+
+MA_API void ma_ex_audio_source_set_pan_mode(ma_ex_audio_source *source, ma_pan_mode mode) {
+    if(source != NULL) {
+        source->settings.panMode = mode;
+        ma_sound_set_pan_mode(&source->clip.sound, mode);
+    }
+}
+
+MA_API ma_pan_mode ma_ex_audio_source_get_pan_mode(ma_ex_audio_source *source) {
+    if(source != NULL)
+        return source->settings.panMode;
+    return ma_pan_mode_balance;
 }
 
 MA_API void ma_ex_audio_source_set_pcm_position(ma_ex_audio_source *source, ma_uint64 position) {
