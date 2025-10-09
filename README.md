@@ -7,6 +7,13 @@ This is a modified version of the [MiniAudio](https://github.com/mackron/miniaud
 - flac
 - ogg
 
+# What is different from miniaudio?
+- Support for the ogg format using `libvorbis`. 
+- Support for loading sounds from memory (see `ma_sound_init_from_memory`).
+- Added `ma_effect_node` for applying sound effects.
+- Added `ma_procedural_data_source` for generating sounds.
+- A complete high level audio source based API (see `miniaudioex.h`).
+
 # Building
 There's no need to install any dependencies. On Windows and macOS there's no need to link to  anything. On Linux just link to `-lpthread`, `-lm` and `-ldl`. On BSD just link to `-lpthread` and `-lm`. On iOS you need to compile as Objective-C.
 
