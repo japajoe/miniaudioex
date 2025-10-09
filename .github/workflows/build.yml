@@ -217,7 +217,7 @@ jobs:
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: miniaudioex-build-android-arm
+        name: miniaudioex-build-android-arm64
         path: build/
 
   build-windows:
