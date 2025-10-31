@@ -33,7 +33,7 @@ jobs:
         path: build/
 
   build-macos-x86_64:
-    runs-on: macos-13
+    runs-on: macos-15-intel
     strategy:
       matrix:
         arch: [x86_64]  # Mac architecture: Intel
