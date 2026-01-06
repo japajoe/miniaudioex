@@ -40,4 +40,18 @@ elseif(MINIAUDIOEX_BUILD_PLATFORM STREQUAL "linux_arm")
     target_link_libraries(${PROJECT_NAME} -lpthread -lm -ldl -latomic)
 elseif(MINIAUDIOEX_BUILD_PLATFORM STREQUAL "linux_arm64")
     target_link_libraries(${PROJECT_NAME} -lpthread -lm -ldl -latomic)
+elseif(MINIAUDIOEX_BUILD_PLATFORM STREQUAL "ios")
+	set_source_files_properties("${PROJECT_SOURCE_DIR}/miniaudio.c" PROPERTIES LANGUAGE OBJC)
+	set_source_files_properties("${PROJECT_SOURCE_DIR}/miniaudioex.c" PROPERTIES LANGUAGE OBJC)
+	set_source_files_properties("${PROJECT_SOURCE_DIR}/extras/miniaudio_libvorbis.c" PROPERTIES LANGUAGE OBJC)
+	target_link_libraries(${PROJECT_NAME} PRIVATE 
+		"-framework CoreFoundation"
+		"-framework CoreAudio"
+		"-framework AudioToolbox"
+		"-framework AVFoundation"
+	)
+	set_target_properties(${PROJECT_NAME} PROPERTIES 
+		XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES"
+		XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT "dwarf-with-dsym"
+	)
 endif()
