@@ -3,7 +3,7 @@ name: Build for MacOS, Linux, and Windows
 on: [push, pull_request]
 
 jobs:
-  build-ios:
+build-ios:
     runs-on: macos-latest
     steps:
     - name: Checkout code
@@ -18,25 +18,24 @@ jobs:
         echo "Building project for iOS arm64"
         mkdir build
         cd build
-        # We use the built-in iOS toolchain support in CMake 3.14+
+        # Ensure there is a space before the '..' at the end
         cmake -G Xcode \
-				-DCMAKE_SYSTEM_NAME=iOS \
-				-DCMAKE_OSX_ARCHITECTURES=arm64 \
-				-DCMAKE_OSX_DEPLOYMENT_TARGET=13.0 \
-				-DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO \
-				-DCMAKE_XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY="" \
-				-DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED=NO \
-				-DMINIAUDIOEX_BUILD_PLATFORM=ios ..
-        # Using --config Release because Xcode is a multi-config generator
-		cmake --build . --config Release -- \
-					CODE_SIGNING_ALLOWED=NO \
-					CODE_SIGNING_REQUIRED=NO \
-					CODE_SIGN_IDENTITY=""
+          -DCMAKE_SYSTEM_NAME=iOS \
+          -DCMAKE_OSX_ARCHITECTURES=arm64 \
+          -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0 \
+          -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO \
+          -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY="" \
+          -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED=NO \
+          -DMINIAUDIOEX_BUILD_PLATFORM=ios ..
+        
+        # Build using xcodebuild flags passed through cmake
+        cmake --build . --config Release -- \
+          CODE_SIGNING_ALLOWED=NO \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGN_IDENTITY=""
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
         name: miniaudioex-build-ios
         path: build/
-
-  
