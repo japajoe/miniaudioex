@@ -61,38 +61,6 @@ jobs:
         name: miniaudioex-build-macos-x86_64
         path: build/
 
-build-ios:
-    runs-on: macos-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up dependencies on MacOS (iOS)
-      run: |
-        brew update && (brew list cmake || brew install cmake)
-
-    - name: Build the project for iOS
-      run: |
-        echo "Building project for iOS arm64"
-        mkdir build
-        cd build
-        # We use the built-in iOS toolchain support in CMake 3.14+
-        cmake -G Xcode \
-              -DCMAKE_SYSTEM_NAME=iOS \
-              -DCMAKE_OSX_ARCHITECTURES=arm64 \
-              -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0 \
-              -DCMAKE_BUILD_TYPE=Release \
-              -DMINIAUDIOEX_BUILD_PLATFORM=ios \
-              ..
-        # Using --config Release because Xcode is a multi-config generator
-        cmake --build . --config Release
-
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: miniaudioex-build-ios
-        path: build/
-
   build-linux:
     runs-on: ubuntu-22.04
     strategy:
