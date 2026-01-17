@@ -1,5 +1,5 @@
 # miniaudioex
-This is a modified version of the [MiniAudio](https://github.com/mackron/miniaudio) library. The aim is to extend the library so it's more easy to use in applications, and write simpler bindings for other languages. Current miniaudio version is 0.11.23.
+This is a modified version of the [MiniAudio](https://github.com/mackron/miniaudio) library. The aim is to extend the library so it's more easy to use in applications, and write simpler bindings for other languages. Current miniaudio version is 0.11.24.
 
 # Supported formats
 - wav
