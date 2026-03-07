@@ -191,6 +191,7 @@ MA_API void *ma_ex_device_get_user_data(ma_device *pDevice);
 MA_API ma_ex_audio_source *ma_ex_audio_source_init(ma_ex_context *context);
 MA_API void ma_ex_audio_source_uninit(ma_ex_audio_source *source);
 MA_API ma_result ma_ex_audio_source_play_from_file(ma_ex_audio_source *source, const char *filePath, ma_bool8 streamFromDisk);
+MA_API ma_result ma_ex_audio_source_play_from_file_w(ma_ex_audio_source *source, const wchar_t *filePath, ma_bool8 streamFromDisk);
 MA_API ma_result ma_ex_audio_source_play_from_memory(ma_ex_audio_source *source, const void *pData, ma_uint64 dataSize);
 MA_API ma_result ma_ex_audio_source_play_from_callback(ma_ex_audio_source *source, ma_procedural_data_source_proc callback, void *pUserData);
 MA_API void ma_ex_audio_source_stop(ma_ex_audio_source *source);

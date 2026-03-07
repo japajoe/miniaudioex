@@ -54,6 +54,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#if !defined(_MSC_VER) && !defined(__DMC__)
+    #include <wchar.h>      /* For wcslen(), wcsrtombs() */
+#endif
 
 #ifndef MA_ASSERT
 #define MA_ASSERT(condition) assert(condition)
@@ -572,6 +575,36 @@ MA_API ma_result ma_ex_audio_source_play_from_file(ma_ex_audio_source *source, c
             source->clip.flags |= MA_SOUND_FLAG_STREAM;
 
         ma_result result = ma_sound_init_from_file(&source->context->engine, filePath, source->clip.flags, source->group, NULL, &source->clip.sound);
+
+        if(result != MA_SUCCESS) {
+            ma_sound_uninit(&source->clip.sound);
+            return MA_ERROR;
+        }
+    }
+
+    source->clip.soundHash = soundHash;
+    ma_ex_audio_source_apply_settings(source);
+    return ma_sound_start(&source->clip.sound);
+}
+
+MA_API ma_result ma_ex_audio_source_play_from_file_w(ma_ex_audio_source *source, const wchar_t *filePath, ma_bool8 streamFromDisk) {
+    if(source == NULL)
+        return MA_ERROR;
+
+    if(filePath == NULL)
+        return MA_INVALID_FILE;
+    
+    ma_uint64 soundHash = ma_ex_create_hashcode(filePath, wcslen(filePath));
+
+    if(ma_ex_hashcode_is_same(source->clip.soundHash, soundHash) == MA_FALSE) {
+        ma_sound_uninit(&source->clip.sound);
+
+        source->clip.flags = MA_SOUND_FLAG_DECODE;
+        
+        if(streamFromDisk == MA_TRUE)
+            source->clip.flags |= MA_SOUND_FLAG_STREAM;
+
+        ma_result result = ma_sound_init_from_file_w(&source->context->engine, filePath, source->clip.flags, source->group, NULL, &source->clip.sound);
 
         if(result != MA_SUCCESS) {
             ma_sound_uninit(&source->clip.sound);
