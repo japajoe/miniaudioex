@@ -7669,6 +7669,7 @@ struct ma_effect_node {
 typedef enum {
     ma_allocation_type_async_notification,
     ma_allocation_type_biquad_coefficient,
+    ma_allocation_type_bpf2,
     ma_allocation_type_channel,
     ma_allocation_type_context,
     ma_allocation_type_data_source,
@@ -7687,6 +7688,8 @@ typedef enum {
     ma_allocation_type_fader,
     ma_allocation_type_fence,
     ma_allocation_type_gainer,
+    ma_allocation_type_hpf1,
+    ma_allocation_type_hpf2,
     ma_allocation_type_log,
     ma_allocation_type_lpf1,
     ma_allocation_type_lpf2,

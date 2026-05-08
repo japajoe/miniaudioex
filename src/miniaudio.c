@@ -68659,6 +68659,8 @@ MA_API size_t ma_get_size_of_type(ma_allocation_type type) {
             return sizeof(ma_async_notification);
         case ma_allocation_type_biquad_coefficient:
             return sizeof(ma_biquad_coefficient);
+        case ma_allocation_type_bpf2:
+            return sizeof(ma_bpf2);
         case ma_allocation_type_channel:
             return sizeof(ma_channel);
         case ma_allocation_type_context:
@@ -68693,6 +68695,10 @@ MA_API size_t ma_get_size_of_type(ma_allocation_type type) {
             return sizeof(ma_fader);
         case ma_allocation_type_fence:
             return sizeof(ma_fence);
+        case ma_allocation_type_hpf1:
+            return sizeof(ma_hpf1);
+        case ma_allocation_type_hpf2:
+            return sizeof(ma_hpf2);
         case ma_allocation_type_gainer:
             return sizeof(ma_gainer);
         case ma_allocation_type_log:
