@@ -68659,6 +68659,10 @@ MA_API size_t ma_get_size_of_type(ma_allocation_type type) {
             return sizeof(ma_async_notification);
         case ma_allocation_type_biquad_coefficient:
             return sizeof(ma_biquad_coefficient);
+        case ma_allocation_type_biquad:
+            return sizeof(ma_biquad);
+        case ma_allocation_type_bpf:
+            return sizeof(ma_bpf);
         case ma_allocation_type_bpf2:
             return sizeof(ma_bpf2);
         case ma_allocation_type_channel:
@@ -68695,14 +68699,22 @@ MA_API size_t ma_get_size_of_type(ma_allocation_type type) {
             return sizeof(ma_fader);
         case ma_allocation_type_fence:
             return sizeof(ma_fence);
+        case ma_allocation_type_gainer:
+            return sizeof(ma_gainer);
+        case ma_allocation_type_hishelf2:
+            return sizeof(ma_hishelf2);
+        case ma_allocation_type_hpf:
+            return sizeof(ma_hpf);
         case ma_allocation_type_hpf1:
             return sizeof(ma_hpf1);
         case ma_allocation_type_hpf2:
             return sizeof(ma_hpf2);
-        case ma_allocation_type_gainer:
-            return sizeof(ma_gainer);
         case ma_allocation_type_log:
             return sizeof(ma_log);
+        case ma_allocation_type_loshelf2:
+            return sizeof(ma_loshelf2);
+        case ma_allocation_type_lpf:
+            return sizeof(ma_lpf);
         case ma_allocation_type_lpf1:
             return sizeof(ma_lpf1);
         case ma_allocation_type_lpf2:
@@ -68719,8 +68731,12 @@ MA_API size_t ma_get_size_of_type(ma_allocation_type type) {
             return sizeof(ma_node_output_bus);
         case ma_allocation_type_node_vtable:
             return sizeof(ma_node_vtable);
+        case ma_allocation_type_notch2:
+            return sizeof(ma_notch2);
         case ma_allocation_type_panner:
             return sizeof(ma_panner);
+        case ma_allocation_type_peak2:
+            return sizeof(ma_peak2);
         case ma_allocation_type_procedural_data_source:
             return sizeof(ma_procedural_data_source);
         case ma_allocation_type_resampling_backend_vtable:
