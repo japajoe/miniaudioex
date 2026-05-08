@@ -68679,6 +68679,10 @@ MA_API size_t ma_get_size_of_type(ma_allocation_type type) {
             return sizeof(ma_decoder);
         case ma_allocation_type_decoding_backend_vtable:
             return sizeof(ma_decoding_backend_vtable);
+        case ma_allocation_type_delay:
+            return sizeof(ma_delay);
+        case ma_allocation_type_delay_node:
+            return sizeof(ma_delay_node);
         case ma_allocation_type_device:
             return sizeof(ma_device);
         case ma_allocation_type_device_id:
@@ -68755,6 +68759,8 @@ MA_API size_t ma_get_size_of_type(ma_allocation_type type) {
             return sizeof(ma_spatializer);
         case ma_allocation_type_spatializer_listener:
             return sizeof(ma_spatializer_listener);
+        case ma_allocation_type_splitter_node:
+            return sizeof(ma_splitter_node);
         case ma_allocation_type_stack:
             return sizeof(ma_stack);
         case ma_allocation_type_vfs:

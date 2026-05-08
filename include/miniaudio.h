@@ -7679,6 +7679,8 @@ typedef enum {
     ma_allocation_type_data_source_vtable,
     ma_allocation_type_decoder,
     ma_allocation_type_decoding_backend_vtable,
+    ma_allocation_type_delay,
+    ma_allocation_type_delay_node,
     ma_allocation_type_device,
     ma_allocation_type_device_id,
     ma_allocation_type_device_notification,
@@ -7717,6 +7719,7 @@ typedef enum {
     ma_allocation_type_sound_group,
     ma_allocation_type_spatializer,
     ma_allocation_type_spatializer_listener,
+    ma_allocation_type_splitter_node,
     ma_allocation_type_stack,
     ma_allocation_type_vfs
 } ma_allocation_type;
