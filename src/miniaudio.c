@@ -68708,14 +68708,20 @@ MA_API size_t ma_get_size_of_type(ma_allocation_type type) {
             return sizeof(ma_delay_node);
         case ma_allocation_type_device:
             return sizeof(ma_device);
-        case ma_allocation_type_device_id:
-            return sizeof(ma_device_id);
-        case ma_allocation_type_device_notification:
-            return sizeof(ma_device_notification);
+        case ma_allocation_type_device_capture:
+            return sizeof(((struct ma_device*)0)->capture);
         case ma_allocation_type_device_descriptor:
             return sizeof(ma_device_descriptor);
+        case ma_allocation_type_device_id:
+            return sizeof(ma_device_id);
         case ma_allocation_type_device_info:
             return sizeof(ma_device_info);
+        case ma_allocation_type_device_notification:
+            return sizeof(ma_device_notification);
+        case ma_allocation_type_device_playback:
+            return sizeof(((struct ma_device*)0)->playback);
+        case ma_allocation_type_device_resampling:
+            return sizeof(((struct ma_device*)0)->resampling);
         case ma_allocation_type_effect_node:
             return sizeof(ma_effect_node);
         case ma_allocation_type_encoder:
