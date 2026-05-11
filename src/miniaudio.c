@@ -68745,6 +68745,8 @@ MA_API size_t ma_get_size_of_type(ma_allocation_type type) {
             return sizeof(ma_node_output_bus);
         case ma_allocation_type_node_vtable:
             return sizeof(ma_node_vtable);
+        case ma_allocation_type_noise:
+            return sizeof(ma_noise);
         case ma_allocation_type_notch2:
             return sizeof(ma_notch2);
         case ma_allocation_type_notch_node:
@@ -68757,6 +68759,8 @@ MA_API size_t ma_get_size_of_type(ma_allocation_type type) {
             return sizeof(ma_peak_node);
         case ma_allocation_type_procedural_data_source:
             return sizeof(ma_procedural_data_source);
+        case ma_allocation_type_pulsewave:
+            return sizeof(ma_pulsewave);
         case ma_allocation_type_resampling_backend_vtable:
             return sizeof(ma_resampling_backend_vtable);
         case ma_allocation_type_resource_manager:
@@ -68779,6 +68783,8 @@ MA_API size_t ma_get_size_of_type(ma_allocation_type type) {
             return sizeof(ma_stack);
         case ma_allocation_type_vfs:
             return sizeof(ma_vfs);
+        case ma_allocation_type_waveform:
+            return sizeof(ma_waveform);
         default:
             return 0;
     }

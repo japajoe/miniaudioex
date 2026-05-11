@@ -7712,12 +7712,14 @@ typedef enum {
     ma_allocation_type_node_input_bus,
     ma_allocation_type_node_output_bus,
     ma_allocation_type_node_vtable,
+    ma_allocation_type_noise,
     ma_allocation_type_notch2,
     ma_allocation_type_notch_node,
     ma_allocation_type_panner,
     ma_allocation_type_peak2,
     ma_allocation_type_peak_node,
     ma_allocation_type_procedural_data_source,
+    ma_allocation_type_pulsewave,
     ma_allocation_type_resampling_backend_vtable,
     ma_allocation_type_resource_manager,
     ma_allocation_type_resource_manager_data_source,
@@ -7728,7 +7730,8 @@ typedef enum {
     ma_allocation_type_spatializer_listener,
     ma_allocation_type_splitter_node,
     ma_allocation_type_stack,
-    ma_allocation_type_vfs
+    ma_allocation_type_vfs,
+    ma_allocation_type_waveform,
 } ma_allocation_type;
 
 MA_API ma_result ma_engine_init(const ma_engine_config* pConfig, ma_engine* pEngine);
