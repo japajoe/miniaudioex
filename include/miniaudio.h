@@ -5872,6 +5872,13 @@ callback.
 */
 MA_API ma_result ma_device_handle_backend_data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount);
 
+typedef void ma_device_resampling;
+typedef void ma_device_playback;
+typedef void ma_device_capture;
+
+MA_API ma_device_resampling* ma_device_get_resampling(ma_device* pDevice);
+MA_API ma_device_playback* ma_device_get_playback(ma_device* pDevice);
+MA_API ma_device_capture* ma_device_get_capture(ma_device* pDevice);
 
 /*
 Calculates an appropriate buffer size from a descriptor, native sample rate and performance profile.

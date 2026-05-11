@@ -32998,6 +32998,27 @@ MA_API ma_result ma_device_handle_backend_data_callback(ma_device* pDevice, void
     return MA_SUCCESS;
 }
 
+MA_API ma_device_resampling* ma_device_get_resampling(ma_device* pDevice) {
+    if (pDevice == NULL) {
+        return NULL;
+    }
+    return (ma_device_resampling*)&pDevice->resampling;
+}
+
+MA_API ma_device_playback* ma_device_get_playback(ma_device* pDevice) {
+    if (pDevice == NULL) {
+        return NULL;
+    }
+    return (ma_device_playback*)&pDevice->playback;
+}
+
+MA_API ma_device_capture* ma_device_get_capture(ma_device* pDevice) {
+    if (pDevice == NULL) {
+        return NULL;
+    }
+    return (ma_device_capture*)&pDevice->capture;
+}
+
 MA_API ma_uint32 ma_calculate_buffer_size_in_frames_from_descriptor(const ma_device_descriptor* pDescriptor, ma_uint32 nativeSampleRate, ma_performance_profile performanceProfile)
 {
     if (pDescriptor == NULL) {
