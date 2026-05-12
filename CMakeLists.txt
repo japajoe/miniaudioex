@@ -14,7 +14,6 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
 endif()
 
 option(MINIAUDIOEX_BUILD_SHARED "Build shared library" ON)
-option(MINIAUDIOEX_BUILD_EXE "Build executable" OFF)
 
 message(STATUS "miniaudioex: Configuring for platform: ${MINIAUDIOEX_BUILD_PLATFORM}")
 
@@ -25,20 +24,14 @@ file(GLOB_RECURSE SOURCES
 include_directories(
     "${PROJECT_SOURCE_DIR}/include"
     "${PROJECT_SOURCE_DIR}/include/extras"
-    "${PROJECT_SOURCE_DIR}/include/test"
 )
 
-if(MINIAUDIOEX_BUILD_EXE)
-	add_executable(${PROJECT_NAME} ${SOURCES})
-	message(STATUS "miniaudioex: Building executable")
+if(MINIAUDIOEX_BUILD_SHARED)
+    add_library(${PROJECT_NAME} SHARED ${SOURCES})
+    message(STATUS "miniaudioex: Building shared library")
 else()
-	if(MINIAUDIOEX_BUILD_SHARED)
-		add_library(${PROJECT_NAME} SHARED ${SOURCES})
-		message(STATUS "miniaudioex: Building shared library")
-	else()
-		add_library(${PROJECT_NAME} STATIC ${SOURCES})
-		message(STATUS "miniaudioex: Building static library")
-	endif()
+    add_library(${PROJECT_NAME} STATIC ${SOURCES})
+    message(STATUS "miniaudioex: Building static library")
 endif()
 
 if(MINIAUDIOEX_BUILD_PLATFORM STREQUAL "linux_x86_64")
@@ -47,4 +40,28 @@ elseif(MINIAUDIOEX_BUILD_PLATFORM STREQUAL "linux_arm")
     target_link_libraries(${PROJECT_NAME} -lpthread -lm -ldl -latomic)
 elseif(MINIAUDIOEX_BUILD_PLATFORM STREQUAL "linux_arm64")
     target_link_libraries(${PROJECT_NAME} -lpthread -lm -ldl -latomic)
+elseif(MINIAUDIOEX_BUILD_PLATFORM STREQUAL "ios")
+	set_source_files_properties("${PROJECT_SOURCE_DIR}/miniaudio.c" PROPERTIES LANGUAGE OBJC)
+	set_source_files_properties("${PROJECT_SOURCE_DIR}/miniaudioex.c" PROPERTIES LANGUAGE OBJC)
+	set_source_files_properties("${PROJECT_SOURCE_DIR}/extras/miniaudio_libvorbis.c" PROPERTIES LANGUAGE OBJC)
+    add_definitions(-DMA_NO_RUNTIME_LINKING)
+    target_link_libraries(${PROJECT_NAME}
+        "-framework CoreFoundation"
+        "-framework CoreAudio"
+        "-framework AudioToolbox"
+        "-framework AVFoundation"
+        "-lpthread"
+        "-lm"
+    )
+
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        FRAMEWORK TRUE
+        FRAMEWORK_VERSION A
+        MACOSX_FRAMEWORK_IDENTIFIER com.japajoe.miniaudioex
+        MACOSX_FRAMEWORK_SHORT_VERSION_STRING "1.0"
+        MACOSX_FRAMEWORK_BUNDLE_VERSION "1"
+        XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ""
+        XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED "NO"
+        XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED "NO"
+    )
 endif()
