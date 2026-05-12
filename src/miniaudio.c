@@ -67271,12 +67271,13 @@ MA_API void ma_sound_uninit(ma_sound* pSound)
         pSound->pDataSource = NULL;
     } else {
         if (pSound->pDataSource != NULL) {
+            // To do: more robust handling of the custom flags without breaking ABI
             ma_data_source_base* pDataSourceBase = (ma_data_source_base*)pSound->pDataSource;
-            if ((pDataSourceBase->vtable->flags & MA_DATA_SOURCE_IS_DECODER) != 0) {
-                ma_decoder_uninit((ma_decoder*)pSound->pDataSource);
-                free(pSound->pDataSource);
-            } else if ((pDataSourceBase->vtable->flags & MA_DATA_SOURCE_IS_PROCEDURAL) != 0) {
+            if ((pDataSourceBase->vtable->flags & MA_DATA_SOURCE_IS_PROCEDURAL) != 0) {
                 ma_procedural_data_source_uninit((ma_procedural_data_source*)pSound->pDataSource);
+                free(pSound->pDataSource);
+            } else {
+                ma_decoder_uninit((ma_decoder*)pSound->pDataSource);
                 free(pSound->pDataSource);
             }
             pSound->pDataSource = NULL;
