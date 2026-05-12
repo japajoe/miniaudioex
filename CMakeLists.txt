@@ -44,14 +44,24 @@ elseif(MINIAUDIOEX_BUILD_PLATFORM STREQUAL "ios")
 	set_source_files_properties("${PROJECT_SOURCE_DIR}/miniaudio.c" PROPERTIES LANGUAGE OBJC)
 	set_source_files_properties("${PROJECT_SOURCE_DIR}/miniaudioex.c" PROPERTIES LANGUAGE OBJC)
 	set_source_files_properties("${PROJECT_SOURCE_DIR}/extras/miniaudio_libvorbis.c" PROPERTIES LANGUAGE OBJC)
-	target_link_libraries(${PROJECT_NAME} PRIVATE 
-		"-framework CoreFoundation"
-		"-framework CoreAudio"
-		"-framework AudioToolbox"
-		"-framework AVFoundation"
-	)
-	set_target_properties(${PROJECT_NAME} PROPERTIES 
-		XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES"
-		XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT "dwarf-with-dsym"
-	)
+    add_definitions(-DMA_NO_RUNTIME_LINKING)
+    target_link_libraries(${PROJECT_NAME}
+        "-framework CoreFoundation"
+        "-framework CoreAudio"
+        "-framework AudioToolbox"
+        "-framework AVFoundation"
+        "-lpthread"
+        "-lm"
+    )
+
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        FRAMEWORK TRUE
+        FRAMEWORK_VERSION A
+        MACOSX_FRAMEWORK_IDENTIFIER com.japajoe.miniaudioex
+        MACOSX_FRAMEWORK_SHORT_VERSION_STRING "1.0"
+        MACOSX_FRAMEWORK_BUNDLE_VERSION "1"
+        XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ""
+        XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED "NO"
+        XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED "NO"
+    )
 endif()
