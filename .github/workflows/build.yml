@@ -61,7 +61,6 @@ jobs:
         name: miniaudioex-build-macos-x86_64
         path: build/
 
-jobs:
   build-ios:
     runs-on: macos-latest
     strategy:
