@@ -166,9 +166,16 @@ MA_API ma_device_capture* ma_device_get_capture(ma_device* pDevice) {
     return (ma_device_capture*)&pDevice->capture;
 }
 
-    if (pDecoder->onSeek == NULL) {
+static ma_result ma_decoder_seek_bytes(ma_decoder* pDecoder, ma_int64 byteOffset, ma_seek_origin origin)
+{
+    MA_ASSERT(pDecoder != NULL);
+
+    if (pDecoder->onSeek == NULL) { // Only this check has been added
         return MA_NOT_IMPLEMENTED;
     }
+
+    return pDecoder->onSeek(pDecoder, byteOffset, origin);
+}
 
 MA_API ma_result ma_sound_init_from_memory(ma_engine* pEngine, const void* pData, ma_uint64 dataSize, ma_uint32 flags, ma_sound_group* pGroup, ma_fence* pDoneFence, ma_sound* pSound)
 {
