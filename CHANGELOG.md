@@ -205,11 +205,17 @@ MA_API ma_result ma_sound_init_from_memory(ma_engine* pEngine, const void* pData
 
     if(result != MA_SUCCESS) {
         free(config.pDataSource);
-        return MA_ERROR;
+        return result;
     }
 
+    result = ma_sound_init_ex(pEngine, &config, pSound);
 
-    return ma_sound_init_ex(pEngine, &config, pSound);
+    if(result != MA_SUCCESS) {
+        free(config.pDataSource);
+        return result;
+    }
+
+    return result;
 }
 
 MA_API ma_result ma_sound_init_from_callback(ma_engine* pEngine, const ma_procedural_data_source_config* pConfig, ma_uint32 flags, ma_sound_group* pGroup, ma_fence* pDoneFence, ma_sound* pSound)
@@ -263,14 +269,15 @@ MA_API void ma_sound_uninit(ma_sound* pSound)
         ma_resource_manager_data_source_uninit(pSound->pResourceManagerDataSource);
         ma_free(pSound->pResourceManagerDataSource, &pSound->engineNode.pEngine->allocationCallbacks);
         pSound->pDataSource = NULL;
-    } else { // Only this 'else' block has been added in this method
+    } else {
         if (pSound->pDataSource != NULL) {
+            // To do: more robust handling of the custom flags without breaking ABI
             ma_data_source_base* pDataSourceBase = (ma_data_source_base*)pSound->pDataSource;
-            if ((pDataSourceBase->vtable->flags & MA_DATA_SOURCE_IS_DECODER) != 0) {
-                ma_decoder_uninit((ma_decoder*)pSound->pDataSource);
-                free(pSound->pDataSource);
-            } else if ((pDataSourceBase->vtable->flags & MA_DATA_SOURCE_IS_PROCEDURAL) != 0) {
+            if ((pDataSourceBase->vtable->flags & MA_DATA_SOURCE_IS_PROCEDURAL) != 0) {
                 ma_procedural_data_source_uninit((ma_procedural_data_source*)pSound->pDataSource);
+                free(pSound->pDataSource);
+            } else {
+                ma_decoder_uninit((ma_decoder*)pSound->pDataSource);
                 free(pSound->pDataSource);
             }
             pSound->pDataSource = NULL;

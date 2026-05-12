@@ -67113,11 +67113,17 @@ MA_API ma_result ma_sound_init_from_memory(ma_engine* pEngine, const void* pData
 
     if(result != MA_SUCCESS) {
         free(config.pDataSource);
-        return MA_ERROR;
+        return result;
     }
 
+    result = ma_sound_init_ex(pEngine, &config, pSound);
 
-    return ma_sound_init_ex(pEngine, &config, pSound);
+    if(result != MA_SUCCESS) {
+        free(config.pDataSource);
+        return result;
+    }
+
+    return result;
 }
 
 MA_API ma_result ma_sound_init_from_callback(ma_engine* pEngine, const ma_procedural_data_source_config* pConfig, ma_uint32 flags, ma_sound_group* pGroup, ma_fence* pDoneFence, ma_sound* pSound)
