@@ -20437,6 +20437,20 @@ int ov_fopen(const char *path,OggVorbis_File *vf){
   return ret;
 }
 
+int ov_wfopen(const wchar_t *path,OggVorbis_File *vf){
+#if defined(_WIN32) || defined(__CYGWIN__)
+  int ret;
+  FILE *f = _wfopen(path,L"rb");
+  if (!f) return -1;
+
+  ret = ov_open(f,vf,NULL,0);
+  if (ret) fclose(f);
+  return ret;
+#else
+  return -1;
+#endif
+}
+
 int ov_mopen(void *pData,size_t dataSize,OggVorbis_File *vf){
   int ret;
   
