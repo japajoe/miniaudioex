@@ -259,8 +259,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        name: [win32, x64]
-        #arch: [x86, x86_64]  # Windows architectures: x86 (32-bit) and x64 (64-bit)
+        name: [win32, x64, ARM64]
 
     steps:
     - name: Checkout code
